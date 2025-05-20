@@ -110,13 +110,11 @@ useEffect(() => {
         </div>
         <div className="iframe-wrapper">
           {flexUrl ? (
-            <iframe
-              title="FlexCheckout"
-              src={flexUrl}
-              className="flex-iframe"
-            />
+            <iframe title="FlexCheckout" src={flexUrl} />
           ) : (
-            <div>{error ? `Error: ${error}` : 'Loading secure payment form…'}</div>
+            <div>
+              {error ? `Error: ${error}` : 'Loading secure payment form…'}
+            </div>
           )}
         </div>
         <div className="button-group">

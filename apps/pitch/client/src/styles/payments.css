@@ -86,10 +86,17 @@
   border-radius: 8px;
   overflow: hidden;
   background: #f9fafb;
-  min-height: 170px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: clamp(460px, 70vh, 900px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.iframe-wrapper iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /* Button Group */
@@ -138,14 +145,4 @@
   color: var(--helix-highlight, #3690CE);
   vertical-align: middle;
   margin-right: 0.22em;
-}
-
-/* simplest fix */
-.flex-iframe{
-  width:100%;
-  /* pick numbers that look good with your design */
-  height:clamp(460px,70vh,900px);   /* ✱ new line ✱ */
-  border:none;
-  border-radius:8px;
-  box-shadow:0 4px 12px rgba(0,0,0,.1);
 }
