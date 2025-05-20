@@ -1,0 +1,151 @@
+/* === payments.css === */
+
+.payment-section {
+  width: 100%;
+  max-width: 900px; /* or 100% for edge-to-edge */
+  margin: 0 auto;
+  padding: 0 24px; /* optional, for light breathing room */
+}
+
+.combined-section {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.2rem 1.2rem 1.2rem;
+  position: relative;
+}
+
+/* Service Summary Header */
+.group-header {
+  font-size: 1.04rem;
+  font-weight: 600;
+  color: var(--helix-highlight, #3690CE);
+  margin-bottom: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Service Summary Grid */
+.service-summary-grid {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  row-gap: 0.43em;
+  column-gap: 1.1em;
+  padding: 0.25rem 0 0.05rem 0;
+}
+
+.summary-label {
+  font-size: 0.97rem;
+  color: #6c7685;
+  font-weight: 500;
+  text-align: right;
+  padding-right: 0.5em;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.summary-value {
+  font-size: 1.01rem;
+  color: #16213d;
+  font-weight: 500;
+  padding-left: 0.1em;
+  word-break: break-word;
+}
+
+.separator {
+  height: 1px;
+  width: 100%;
+  background: var(--helix-grey, #e3e8ef);
+  margin: 0.8rem 0 1.2rem 0;
+  border: none;
+}
+
+/* Trust banner */
+.secure-banner {
+  display: block;
+  text-align: center;
+  padding: 0.7rem;
+  background: var(--helix-grey, #f4f7fa);
+  color: var(--helix-dark-blue, #294d69);
+  font-weight: 500;
+  border-radius: 4px;
+  margin-bottom: 1.2rem;
+  font-size: 1.04rem;
+}
+
+/* Payment Details */
+.payment-details-section {
+  margin-top: 0;
+}
+
+.iframe-wrapper {
+  margin-top: 0.8rem;
+  margin-bottom: 1.1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f9fafb;
+  min-height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Button Group */
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.form-button {
+  padding: 0.7em 1.3em;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--helix-highlight, #3690CE);
+  color: #fff;
+  transition: background 0.15s, box-shadow 0.12s;
+}
+
+.form-button.secondary {
+  background: #e8eaf0;
+  color: #2a3557;
+  border: 1px solid #e3e8ef;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .payment-section {
+    max-width: 98vw;
+    padding: 0 2vw;
+  }
+  .combined-section {
+    padding: 0.7rem 0.3rem 1rem 0.3rem;
+  }
+  .service-summary-grid {
+    grid-template-columns: 95px 1fr;
+    font-size: 0.95rem;
+  }
+}
+
+.header-icon {
+  font-size: 1.16rem;
+  color: var(--helix-highlight, #3690CE);
+  vertical-align: middle;
+  margin-right: 0.22em;
+}
+
+/* simplest fix */
+.flex-iframe{
+  width:100%;
+  /* pick numbers that look good with your design */
+  height:clamp(460px,70vh,900px);   /* ✱ new line ✱ */
+  border:none;
+  border-radius:8px;
+  box-shadow:0 4px 12px rgba(0,0,0,.1);
+}

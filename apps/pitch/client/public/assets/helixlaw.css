@@ -1,0 +1,182 @@
+/* === Helix Law ePDQ Payment CSS Customization === */
+
+/* General form wrapper styling */
+#payment-container {
+  width: 100%;
+  max-width: 400px !important;
+  margin: 0 auto;
+  background: #fff;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.payment-form-container {
+  background: #f8f9fb;
+  padding: 20px 10px 18px 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 8px rgba(54,144,206,0.05);
+}
+
+#payment-data-container {
+  color: #22324c;
+  background: #fff;
+  border-radius: 6px;
+  padding: 18px 10px 12px 10px;
+  margin: 0 auto;
+}
+
+.payment-label {
+  color: #3d4c68;
+  font-size: 1.02rem;
+  padding-bottom: 4px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.payment-input input,
+.payment-input select {
+  width: 100%;
+  height: 37px;
+  font-size: 1rem;
+  color: #22324c;
+  padding: 0 8px;
+  border: 1px solid #3690ce;
+  border-radius: 4px;
+  background: #f8f9fb;
+  margin-bottom: 10px;
+  transition: border 0.18s;
+}
+
+.payment-input input:focus,
+.payment-input select:focus {
+  border-color: #0d5fa7;
+  outline: none;
+}
+
+/* --- Expiry fields side by side --- */
+#payment-expirydate-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5em;
+}
+
+#payment-expirymonth-input-container,
+#payment-expiryyear-input-container {
+  width: auto;
+  min-width: 70px;
+  flex: none;
+}
+
+#payment-expirymonth-input-container select,
+#payment-expiryyear-input-container select {
+  min-width: 75px;
+  width: 90px;
+}
+
+/* Slash between MM / YYYY */
+#payment-expirydate-separator {
+  padding: 0 3px;
+  align-self: center;
+  color: #22324c;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+/* --- Make CVC (security code) box smaller --- */
+#payment-cvc-input-container input#payment-cvc {
+  width: 85px !important;
+  min-width: 70px;
+  max-width: 110px;
+  text-align: left;
+  height: 37px;
+  background: #f8f9fb;
+}
+
+/* Optional: align CVC field inline with label */
+#payment-cvc-container {
+  max-width: 200px;
+}
+
+/* Error styling */
+.payment-error,
+#payment-data-container .payment-input-error input,
+#payment-data-container .payment-input-error select {
+  color: #ab1500 !important;
+  background: #ffe9e8 !important;
+  border: 1px solid #ab1500 !important;
+}
+
+.field-validation-valid,
+.field-validation-error {
+  font-size: 0.95em;
+  color: #d22323;
+  margin-top: -4px;
+  margin-bottom: 7px;
+  display: block;
+}
+
+/* Info/help/cvc box */
+.payment-info,
+#payment-cvc-info-container .help-box {
+  font-size: 0.98em;
+  color: #3d4c68;
+  background: #f4f7fa;
+  border-radius: 4px;
+  margin-top: 3px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+}
+
+#payment-cvc-info-container .cvc-info-txt {
+  color: #3d4c68;
+  font-size: 0.96em;
+}
+
+#payment-cvc-info-container .aroowImg {
+  background: #5F5F5F;
+}
+
+#payment-data-container #payment-submit {
+  background: #3690ce;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  padding: 0.7em 2em;
+  border-radius: 4px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: background 0.14s;
+}
+
+#payment-data-container #payment-submit:hover {
+  background: #265d9b;
+}
+
+#payment-cancel-container input {
+  background: #f7f7f7;
+  color: #22324c;
+  border: 1px solid #d0d3da;
+  border-radius: 4px;
+  padding: 0.6em 1.6em;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  #payment-container {
+    max-width: 99vw !important;
+  }
+  .payment-form-container,
+  #payment-data-container {
+    padding: 8px 2vw 10px 2vw;
+  }
+  #payment-expirymonth-input-container select,
+  #payment-expiryyear-input-container select {
+    width: 65px;
+    min-width: 60px;
+  }
+  #payment-cvc-input-container input#payment-cvc {
+    width: 64px !important;
+    min-width: 54px;
+  }
+}
+
