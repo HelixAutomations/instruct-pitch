@@ -5,6 +5,7 @@ import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
 import ClientDetails from './structure/ClientDetails';
+import PaymentResult from './structure/PaymentResult';  // ← make sure this import is here
 import './styles/App.css';
 
 const params = new URLSearchParams(window.location.search);
@@ -29,15 +30,19 @@ const App: React.FC = () => {
               instructionId={instructionId}
               stage="Confirmation of Instruction"
               onAnimationEnd={() => {
-                // Smooth delay (tweak for feel)
-                setTimeout(() => setStep1Reveal(true), 550); // 550ms = 0.5s after last stat
+                setTimeout(() => setStep1Reveal(true), 550);
               }}
             />
           </div>
         </div>
       </div>
+
       <main className="app-container">
         <Routes>
+          {/* 1. Your new payment callback route */}
+          <Route path="/payment/result" element={<PaymentResult />} />
+
+          {/* 2. Your existing catch-all route */}
           <Route
             path="/*"
             element={
@@ -56,6 +61,7 @@ const App: React.FC = () => {
           />
         </Routes>
       </main>
+
       <Footer />
     </div>
   );

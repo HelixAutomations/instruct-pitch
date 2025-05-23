@@ -35,7 +35,6 @@ const Payment: React.FC<PaymentProps> = ({
   preloadFlexUrl,
   amount,
   product,
-  workType,
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);

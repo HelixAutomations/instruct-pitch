@@ -1,0 +1,12 @@
+.payment-result-container {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  text-align: center;
+  background: #f5f5f5;
+  color: #333;
+  padding: 2rem;
+}
+.payment-result-container h1 {
+  margin-bottom: 1rem;
+}
