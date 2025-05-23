@@ -29,14 +29,17 @@ export default function PaymentResult() {
     // 2) Figure out what to show the user
     if (result === 'accept' || status === '0') {
       sessionStorage.setItem('paymentDone', 'true')
+      localStorage.setItem('paymentSuccess', 'true')
       setMessage('Payment received')
       setSuccess(true)
     } else if (result === 'reject' || status !== '0') {
       sessionStorage.removeItem('paymentDone')
+      localStorage.removeItem('paymentSuccess')
       setMessage('❌ Payment failed.')
       setSuccess(false)
     } else {
       sessionStorage.removeItem('paymentDone')
+      localStorage.removeItem('paymentSuccess')
       setMessage('🤔 Payment status unknown.')
       setSuccess(null)
     }
@@ -45,7 +48,7 @@ export default function PaymentResult() {
   return (
     <div className="payment-result-container">
       <div className="result-panel">
-        <h1>{message}</h1>
+        <h2>{message}</h2>
         {success && (
           <>
             <p>

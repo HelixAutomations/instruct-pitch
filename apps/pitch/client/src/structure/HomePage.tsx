@@ -1,3 +1,9 @@
+declare const process: {
+  env: {
+    NODE_ENV: 'development' | 'production' | 'test' | string
+  }
+}
+
 declare global {
   interface Window {
     helixPrefillData?: {
@@ -126,8 +132,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   const [instruction] = useState(MOCK_INSTRUCTION);
 
   const PSPID = 'epdq1717240';
-  const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept`;
-  const EXCEPTION_URL = `${window.location.origin}/pitch/payment/result?result=reject`;
+  const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${encodeURIComponent(instruction.product)}`;
+  const EXCEPTION_URL = `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${encodeURIComponent(instruction.product)}`;
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
@@ -174,9 +180,13 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
         phone:        prefill.Phone_Number     ?? prev.phone,
         helixContact: prefill.Point_of_Contact ?? prev.helixContact,
       }));
-      console.log('✅ Prefilled data from backend:', prefill);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Prefilled data from backend:', prefill);
+      }
     }
-    console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
+    }
   }, []);
 
   useEffect(() => {
@@ -236,6 +246,14 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
     sessionStorage.getItem('paymentDone') === 'true'
   );
   const [summaryConfirmed, setSummaryConfirmed] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('paymentSuccess') === 'true') {
+      setPaymentDone(true);
+      sessionStorage.setItem('paymentDone', 'true');
+      localStorage.removeItem('paymentSuccess');
+    }
+  }, []);
 
   useEffect(() => {
     setProofDone(isProofComplete());
@@ -331,7 +349,9 @@ function getPulseClass(step: number, done: boolean) {
       })
         .then((res) => res.json())
         .then((data) => {
-          console.log('✅ Logged payment params to backend:', data);
+                    if (process.env.NODE_ENV !== 'production') {
+            console.log('✅ Logged payment params to backend:', data);
+          }
         })
         .catch((err) => {
           console.error('❌ Failed to confirm payment server-side:', err);
