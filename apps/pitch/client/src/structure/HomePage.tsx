@@ -232,7 +232,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
 
   const [isProofDone, setProofDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
-  const [isPaymentDone, setPaymentDone] = useState(false);
+  const [isPaymentDone, setPaymentDone] = useState(() =>
+    sessionStorage.getItem('paymentDone') === 'true'
+  );
   const [summaryConfirmed, setSummaryConfirmed] = useState(false);
 
   useEffect(() => {
@@ -242,7 +244,11 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
     setUploadDone(isUploadDataComplete());
   }, [uploadedFiles]);
   useEffect(() => {
-    setPaymentDone(isPaymentComplete());
+    if (sessionStorage.getItem('paymentDone') === 'true') {
+      setPaymentDone(true);
+    } else {
+      setPaymentDone(isPaymentComplete());
+    }
   }, [paymentDetails]);
 
   const [pulse, setPulse] = useState(false);

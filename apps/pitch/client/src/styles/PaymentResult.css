@@ -1,12 +1,29 @@
 .payment-result-container {
-  display: grid;
-  place-items: center;
-  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
   text-align: center;
   background: #f5f5f5;
   color: #333;
   padding: 2rem;
 }
-.payment-result-container h1 {
+
+.result-panel {
+  max-width: 420px;
+  width: 100%;
+}
+
+.result-panel h1 {
   margin-bottom: 1rem;
+}
+
+.result-panel p {
+  margin: 0.5rem 0;
+}
+
+.payment-result-container .button-group {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.2rem;
 }

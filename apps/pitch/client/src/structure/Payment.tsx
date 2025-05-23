@@ -54,10 +54,7 @@ const Payment: React.FC<PaymentProps> = ({
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data && e.data.flexMsg === 'size' && typeof e.data.height === 'number') {
-      const raw = e.data.height;
-      const max = Math.floor(window.innerHeight * 0.9);   // still cap at 90vh if you like
-      const clamped = Math.min(raw, max);                // ← drop the “Math.max(raw,600)”
-      setIframeHeight(clamped);
+        setIframeHeight(e.data.height);
       }
     };
     window.addEventListener('message', handler);
