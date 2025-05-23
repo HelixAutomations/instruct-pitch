@@ -31,6 +31,8 @@ import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
 import Payment from './Payment';
 import ReviewConfirm from './ReviewConfirm';
+import AcceptURL from './AcceptURL';
+import RejectURL from './RejectURL';
 import '../styles/HomePage.css';
 import { ProofData } from '../context/ProofData';
 import { PaymentDetails } from '../context/PaymentDetails';
@@ -123,12 +125,13 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   const aliasId = params.get('Alias.AliasId');
   const orderId = params.get('Alias.OrderId');
   const shaSign = params.get('SHASign');
+  const result = params.get('result');
   const isInIframe = window.self !== window.top;
   const [instruction] = useState(MOCK_INSTRUCTION);
 
   const PSPID = 'epdq1717240';
-  const ACCEPT_URL = 'https://helix-law.co.uk';
-  const EXCEPTION_URL = 'https://helix-law.co.uk';
+  const ACCEPT_URL = `${window.location.origin}/pitch?result=accept`;
+  const EXCEPTION_URL = `${window.location.origin}/pitch?result=reject`;
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
@@ -335,6 +338,8 @@ function getPulseClass(step: number, done: boolean) {
   }, [aliasId, orderId, shaSign]);
 
   const isFlexRedirect = aliasId && orderId && shaSign && isInIframe;
+    if (result === 'accept') return <AcceptURL />;
+    if (result === 'reject') return <RejectURL />;
   useEffect(() => {
     if (isFlexRedirect) {
       fetch('/pitch/confirm-payment', {
@@ -344,24 +349,35 @@ function getPulseClass(step: number, done: boolean) {
       }).catch(console.error);
     }
   }, [isFlexRedirect, aliasId, orderId]);
-  if (isFlexRedirect) {
-    return (
-      <div style={{
-        display: 'grid',
-        placeItems: 'center',
-        height: '100vh',
-        textAlign: 'center',
-        padding: '2rem',
-        backgroundColor: '#f5f5f5',
-        color: '#333'
-      }}>
-        <div>
-          <h1>✅ Payment Received</h1>
-          <p>Thank you! You may now close this window.</p>
+
+  if (result === 'accept') {
+      return <AcceptURL />;
+    }
+    if (result === 'reject') {
+      return <RejectURL />;
+    }
+    if (isFlexRedirect) {
+      if (result === 'accept') return <AcceptURL />;
+      if (result === 'reject') return <RejectURL />;
+      return (
+        <div
+          style={{
+            display: 'grid',
+            placeItems: 'center',
+            height: '100vh',
+            textAlign: 'center',
+            padding: '2rem',
+            backgroundColor: '#f5f5f5',
+            color: '#333'
+          }}
+        >
+          <div>
+            <h1>✅ Payment Received</h1>
+            <p>Thank you! You may now close this window.</p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
   return (
     <div className="home-page">
