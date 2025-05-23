@@ -179,17 +179,17 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
     console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
   }, []);
 
-    useEffect(() => {
-      const params: Record<string, string> = {
-        'ACCOUNT.PSPID': PSPID,
-        'ALIAS.ORDERID': instruction.instructionId,
-        'PARAMETERS.ACCEPTURL':    'https://instruct.helix-law.com/payment/result',
-        'PARAMETERS.EXCEPTIONURL': 'https://instruct.helix-law.com/payment/result?result=exception',
-        'CARD.PAYMENTMETHOD': 'CreditCard',
-        'LAYOUT.TEMPLATENAME': 'master.htm',
-        'LAYOUT.LANGUAGE': 'en_GB',
-        'ALIAS.STOREPERMANENTLY': 'Y'
-      };
+  useEffect(() => {
+    const params: Record<string,string> = {
+      'ACCOUNT.PSPID':           PSPID,
+      'ALIAS.ORDERID':           instruction.instructionId,
+      'PARAMETERS.ACCEPTURL':    ACCEPT_URL,
+      'PARAMETERS.EXCEPTIONURL': EXCEPTION_URL,
+      'CARD.PAYMENTMETHOD':      'CreditCard',
+      'LAYOUT.TEMPLATENAME':     'master.htm',
+      'LAYOUT.LANGUAGE':         'en_GB',
+      'ALIAS.STOREPERMANENTLY':  'Y',
+    };
 
       const preload = async () => {
         try {
