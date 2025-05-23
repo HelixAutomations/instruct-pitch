@@ -31,7 +31,6 @@ import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
 import Payment from './Payment';
 import ReviewConfirm from './ReviewConfirm';
-import { colours } from '../styles/colours';
 import '../styles/HomePage.css';
 import { ProofData } from '../context/ProofData';
 import { PaymentDetails } from '../context/PaymentDetails';
@@ -112,34 +111,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   );
 };
 
-const SummaryHeader: React.FC<{
-  title: string;
-  complete: boolean;
-  verified: boolean;
-  open: boolean;
-  onEdit: () => void;
-  onToggle: () => void;
-  onVerify: () => void;
-}> = ({ title, complete, verified, open, onEdit, onToggle, onVerify }) => (
-  <div className={`summary-header ${open ? 'active' : ''}`} onClick={onToggle}>
-    <h3>
-      {complete && (
-        <span
-          className={`verify-tick ${verified ? 'pressed' : ''} visible`}
-          onClick={(e) => { e.stopPropagation(); onVerify(); }}
-        >
-          ✔
-        </span>
-      )}
-      {title}
-      <span className="edit-icon" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-        ✎
-      </span>
-    </h3>
-    <span className="toggle-icon">{open ? '−' : '+'}</span>
-  </div>
-);
-
 const MOCK_INSTRUCTION = {
   instructionId: "HLX-2405-000001",
   amount: 0.99,
@@ -154,6 +125,11 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   const shaSign = params.get('SHASign');
   const isInIframe = window.self !== window.top;
   const [instruction] = useState(MOCK_INSTRUCTION);
+
+  const PSPID = 'epdq1717240';
+  const ACCEPT_URL = 'https://helix-law.co.uk';
+  const EXCEPTION_URL = 'https://helix-law.co.uk';
+  const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
 
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3 | 4>(0);
 
@@ -187,24 +163,56 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
     helixContact: '',
   });
 
-useEffect(() => {
-  const prefill = window.helixPrefillData;
-  if (prefill) {
-    setProofData(prev => ({
-      ...prev,
-      firstName:    prefill.First_Name       ?? prev.firstName,
-      lastName:     prefill.Last_Name        ?? prev.lastName,
-      email:        prefill.Email            ?? prev.email,
-      phone:        prefill.Phone_Number     ?? prev.phone,
-      helixContact: prefill.Point_of_Contact ?? prev.helixContact,
-    }));
-    console.log('✅ Prefilled data from backend:', prefill);
-  }
-  console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
-}, []);
+  useEffect(() => {
+    const prefill = window.helixPrefillData;
+    if (prefill) {
+      setProofData(prev => ({
+        ...prev,
+        firstName:    prefill.First_Name       ?? prev.firstName,
+        lastName:     prefill.Last_Name        ?? prev.lastName,
+        email:        prefill.Email            ?? prev.email,
+        phone:        prefill.Phone_Number     ?? prev.phone,
+        helixContact: prefill.Point_of_Contact ?? prev.helixContact,
+      }));
+      console.log('✅ Prefilled data from backend:', prefill);
+    }
+    console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
+  }, []);
+
+    useEffect(() => {
+      const params: Record<string, string> = {
+        'ACCOUNT.PSPID': PSPID,
+        'ALIAS.ORDERID': instruction.instructionId,
+        'PARAMETERS.ACCEPTURL': ACCEPT_URL,
+        'PARAMETERS.EXCEPTIONURL': EXCEPTION_URL,
+        'CARD.PAYMENTMETHOD': 'CreditCard',
+        'LAYOUT.TEMPLATENAME': 'master.htm',
+        'LAYOUT.LANGUAGE': 'en_GB',
+        'ALIAS.STOREPERMANENTLY': 'Y'
+      };
+
+      const preload = async () => {
+        try {
+          const res = await fetch('/pitch/get-shasign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+          });
+          const json = await res.json();
+          if (res.ok && json.shasign) {
+            const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
+            setPreloadedFlexUrl(`https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`);
+          }
+        } catch (err) {
+          console.error('Failed to preload payment form:', err);
+        }
+      };
+
+      preload();
+    }, []);
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
+  const [paymentDetails] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
   const [isUploadSkipped, setUploadSkipped] = useState(false);
 
   const [isProofDone, setProofDone] = useState(false);
@@ -287,16 +295,6 @@ function getPulseClass(step: number, done: boolean) {
   const hasFullName = nameParts.every(p => p && p.trim());
   const nameValue = nameParts.filter(Boolean).join(' ') || '--';
 
-  const personalAddressParts = [
-    proofData.houseNumber,
-    proofData.street,
-    proofData.city,
-    proofData.county,
-    proofData.postcode,
-    proofData.country,
-  ];
-  const hasPersonalAddress = personalAddressParts.every(p => p && p.trim());
-
   const companyAddressParts = [
     proofData.companyHouseNumber,
     proofData.companyStreet,
@@ -310,7 +308,6 @@ function getPulseClass(step: number, done: boolean) {
   const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
-  const toggleStep = (s: 1 | 2 | 3 | 4) => setOpenStep(openStep === s ? 0 : s);
   const next = () => setOpenStep((prev) => (prev < 4 ? (prev + 1) as any : prev));
   const back = () => setOpenStep((prev) => (prev > 1 ? (prev - 1) as any : prev));
 
@@ -425,14 +422,14 @@ function getPulseClass(step: number, done: boolean) {
                     setIsComplete={setPaymentDone}
                     onBack={back}
                     onError={(code) => console.error('Payment error', code)}
-                    pspid="epdq1717240"
+                    pspid={PSPID}
                     orderId={instruction.instructionId}
                     amount={instruction.amount}
                     product={instruction.product}
                     workType={instruction.workType}
-                    acceptUrl="https://helix-law.co.uk"
-                    exceptionUrl="https://helix-law.co.uk"
-                    preloadFlexUrl={null}
+                    acceptUrl={ACCEPT_URL}
+                    exceptionUrl={EXCEPTION_URL}
+                    preloadFlexUrl={preloadedFlexUrl}
                   />
                 )}
               </div>
