@@ -126,8 +126,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   const [instruction] = useState(MOCK_INSTRUCTION);
 
   const PSPID = 'epdq1717240';
-  const ACCEPT_URL    = `${window.location.origin}/payment/result?result=accept`;
-  const EXCEPTION_URL = `${window.location.origin}/payment/result?result=reject`;
+  const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept`;
+  const EXCEPTION_URL = `${window.location.origin}/pitch/payment/result?result=reject`;
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   

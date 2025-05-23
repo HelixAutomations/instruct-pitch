@@ -3,9 +3,9 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const fs = require('fs');
 
 const app = express();
 app.use(express.json());
@@ -41,7 +41,6 @@ let cachedShaPhrase, cachedEpdqUser, cachedEpdqPassword, cachedFetchInstructionD
 
 // ─── SHASIGN generation ────────────────────────────────────────────────
 app.post('/pitch/get-shasign', (req, res) => {
-  console.log('🔐 POST /pitch/get-shasign');
   try {
     if (!cachedShaPhrase) throw new Error('SHA phrase not loaded');
     const params = req.body;
@@ -80,11 +79,10 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
       .join('');
     const shasign = crypto.createHash('sha256').update(shaInput).digest('hex').toUpperCase();
-    const postData = new URLSearchParams({ ...params, SHASIGN: shasign }).toString();
-
+    const payload = new URLSearchParams({ ...params, SHASIGN: shasign }).toString();
     const result = await axios.post(
       'https://mdepayments.epdq.co.uk/ncol/test/orderdirect.asp',
-      postData,
+      payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
     res.json({ success: true, result: result.data });
@@ -94,7 +92,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
   }
 });
 
-// ─── Internal fetchInstructionData (server-side only) ───────────────
+// ─── Internal fetchInstructionData (server-only) ───────────────────────
 app.get('/api/internal/fetch-instruction-data', async (req, res) => {
   const cid = req.query.cid;
   if (!cid) return res.status(400).json({ ok: false, error: 'Missing cid' });
@@ -104,7 +102,9 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
   if (!fnCode) return res.status(500).json({ ok: false, error: 'Server not ready' });
 
   try {
-    const { data } = await axios.get(`${fnUrl}?cid=${cid}&code=${fnCode}`, { timeout: 10000 });
+    const { data } = await axios.get(`${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`, {
+      timeout: 10_000,
+    });
     console.log('✅ fetchInstructionData >>', data);
     res.json({ ok: true });
   } catch (err) {
@@ -120,22 +120,39 @@ app.get('/payment-error',   (_req, res) => res.send('❌ Payment error callback'
 // ─── Redirect root to /pitch ──────────────────────────────────────────
 app.get('/', (_req, res) => res.redirect('/pitch'));
 
-// ─── Static assets & SPA routing ──────────────────────────────────────
+// ─── Static & SPA routing ───────────────────────────────────────────────
 const distPath = path.join(__dirname, 'client/dist');
 
-// 1. Serve everything in client/dist
+// 1) serve all static files
 app.use(express.static(distPath, { index: false }));
-// 2. Also mount under /pitch so assets load if your app is at that path
+// 2) also under /pitch
 app.use('/pitch', express.static(distPath, { index: false }));
 
-// 3. **New** – serve index.html on /payment/result so React Router can render PaymentResult
+// 3) payment-result route must serve index.html so React Router handles it
 app.get('/payment/result', (_req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-// 4. Your original SPA catch-all for /pitch/*
-app.get(/^\/pitch(?!\/.*\.).*$/, (_req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
+// 4) catch-all for /pitch SSR + prefill injection
+app.get(/^\/pitch(?!\/.*\.).*$/, async (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
+    const pid = req.query.pid;
+    if (pid && cachedFetchInstructionDataCode) {
+      const fnUrl  = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
+      const fnCode = cachedFetchInstructionDataCode;
+      const url    = `${fnUrl}?cid=${encodeURIComponent(pid)}&code=${fnCode}`;
+      const { data } = await axios.get(url, { timeout: 8_000 });
+      if (data && Object.keys(data).length > 0) {
+        const script = `<script>window.helixPrefillData = ${JSON.stringify(data)};</script>`;
+        html = html.replace('</head>', `${script}\n</head>`);
+      }
+    }
+    res.send(html);
+  } catch (err) {
+    console.error('❌ SSR /pitch catch-all error:', err);
+    res.status(500).send('Could not load page');
+  }
 });
 
 // ─── Start the server ───────────────────────────────────────────────────
