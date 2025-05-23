@@ -130,7 +130,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   const ACCEPT_URL = 'https://helix-law.co.uk';
   const EXCEPTION_URL = 'https://helix-law.co.uk';
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
-
+  const [prefetchPayment, setPrefetchPayment] = useState(false);
+  
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3 | 4>(0);
 
   const [proofData, setProofData] = useState<ProofData>({
@@ -210,6 +211,21 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
 
       preload();
     }, []);
+
+    useEffect(() => {
+      if (!preloadedFlexUrl) return;
+      const trigger = () => setPrefetchPayment(true);
+      const idle = (window as any).requestIdleCallback
+        ? requestIdleCallback(trigger)
+        : setTimeout(trigger, 1000);
+      return () => {
+        if ((window as any).cancelIdleCallback) {
+          cancelIdleCallback(idle as any);
+        } else {
+          clearTimeout(idle as any);
+        }
+      };
+    }, [preloadedFlexUrl]);
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [paymentDetails] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
@@ -294,16 +310,6 @@ function getPulseClass(step: number, done: boolean) {
   const nameParts = [proofData.title, proofData.firstName, proofData.lastName];
   const hasFullName = nameParts.every(p => p && p.trim());
   const nameValue = nameParts.filter(Boolean).join(' ') || '--';
-
-  const companyAddressParts = [
-    proofData.companyHouseNumber,
-    proofData.companyStreet,
-    proofData.companyCity,
-    proofData.companyCounty,
-    proofData.companyPostcode,
-    proofData.companyCountry,
-  ];
-  const hasCompanyAddress = companyAddressParts.every(p => p && p.trim());
 
   const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
@@ -416,21 +422,23 @@ function getPulseClass(step: number, done: boolean) {
                 toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
               />
               <div className={`step-content${openStep === 3 ? ' active payment-noscroll' : ''}${getPulseClass(3, isPaymentDone)}`}>
-                {openStep === 3 && (
-                  <Payment
-                    paymentDetails={paymentDetails}
-                    setIsComplete={setPaymentDone}
-                    onBack={back}
-                    onError={(code) => console.error('Payment error', code)}
-                    pspid={PSPID}
-                    orderId={instruction.instructionId}
-                    amount={instruction.amount}
-                    product={instruction.product}
-                    workType={instruction.workType}
-                    acceptUrl={ACCEPT_URL}
-                    exceptionUrl={EXCEPTION_URL}
-                    preloadFlexUrl={preloadedFlexUrl}
-                  />
+                {(prefetchPayment || openStep === 3) && (
+                  <div style={{ display: openStep === 3 ? 'block' : 'none' }}>
+                    <Payment
+                      paymentDetails={paymentDetails}
+                      setIsComplete={setPaymentDone}
+                      onBack={back}
+                      onError={(code) => console.error('Payment error', code)}
+                      pspid={PSPID}
+                      orderId={instruction.instructionId}
+                      amount={instruction.amount}
+                      product={instruction.product}
+                      workType={instruction.workType}
+                      acceptUrl={ACCEPT_URL}
+                      exceptionUrl={EXCEPTION_URL}
+                      preloadFlexUrl={preloadedFlexUrl}
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -477,10 +485,32 @@ function getPulseClass(step: number, done: boolean) {
                                 <p>
                                   <span className="field-label">Address:</span>
                                 </p>
-                                <div className="data-text" style={{ color: "inherit", lineHeight: 1.5 }}>
+                                <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
                                   <div>
-                                    <span className={`field-value${!hasCompanyAddress ? " empty" : ""}`}>
-                                      {companyAddressParts.filter(Boolean).join(', ') || '--'}
+                                    <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>
+                                      {proofData.companyHouseNumber?.trim() || 'House Number'}
+                                    </span>
+                                    ,&nbsp;
+                                    <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>
+                                      {proofData.companyStreet?.trim() || 'Street'}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>
+                                      {proofData.companyCity?.trim() || 'City'}
+                                    </span>
+                                    ,&nbsp;
+                                    <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>
+                                      {proofData.companyCounty?.trim() || 'County'}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>
+                                      {proofData.companyPostcode?.trim() || 'Postcode'}
+                                    </span>
+                                    ,&nbsp;
+                                    <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>
+                                      {proofData.companyCountry?.trim() || 'Country'}
                                     </span>
                                   </div>
                                 </div>
@@ -687,10 +717,32 @@ function getPulseClass(step: number, done: boolean) {
                         <p>
                           <span className="field-label">Address:</span>
                         </p>
-                        <div className="data-text" style={{ color: "inherit", lineHeight: 1.5 }}>
+                                                <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
                           <div>
-                            <span className={`field-value${!hasCompanyAddress ? " empty" : ""}`}>
-                              {companyAddressParts.filter(Boolean).join(', ') || '--'}
+                            <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>
+                              {proofData.companyHouseNumber?.trim() || 'House Number'}
+                            </span>
+                            ,&nbsp;
+                            <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>
+                              {proofData.companyStreet?.trim() || 'Street'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>
+                              {proofData.companyCity?.trim() || 'City'}
+                            </span>
+                            ,&nbsp;
+                            <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>
+                              {proofData.companyCounty?.trim() || 'County'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>
+                              {proofData.companyPostcode?.trim() || 'Postcode'}
+                            </span>
+                            ,&nbsp;
+                            <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>
+                              {proofData.companyCountry?.trim() || 'Country'}
                             </span>
                           </div>
                         </div>
