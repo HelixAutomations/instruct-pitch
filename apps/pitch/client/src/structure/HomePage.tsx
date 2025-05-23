@@ -398,6 +398,7 @@ function getPulseClass(step: number, done: boolean) {
                       paymentDetails={paymentDetails}
                       setIsComplete={setPaymentDone}
                       onBack={back}
+                      onNext={next}
                       onError={(code) => console.error('Payment error', code)}
                       pspid={PSPID}
                       orderId={instruction.instructionId}

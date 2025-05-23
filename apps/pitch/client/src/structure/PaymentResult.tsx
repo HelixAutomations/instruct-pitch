@@ -36,7 +36,7 @@ export default function PaymentResult() {
     <div style={{
       display:        'grid',
       placeItems:     'center',
-      height:         '100vh',
+      height:         '50vh',
       textAlign:      'center',
       background:     '#f5f5f5',
       color:          '#333',

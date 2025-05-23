@@ -13,6 +13,7 @@ interface PaymentProps {
   setIsComplete: Dispatch<SetStateAction<boolean>>;
   onError: (errorCode: string) => void;
   onBack: () => void;
+  onNext: () => void;
   pspid: string;
   orderId: string;
   acceptUrl: string;
@@ -35,10 +36,12 @@ const Payment: React.FC<PaymentProps> = ({
   preloadFlexUrl,
   amount,
   product,
+  onNext,
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [iframeHeight, setIframeHeight] = useState<number>(600);   // min-height fallback
+  const [iframeHeight, setIframeHeight] = useState<number>(0);
+  // min-height fallback
 
   /* Mark step 3 complete once *your* extra inputs are filled
      (you can remove this block if you rely solely on the gateway flow) */
@@ -51,10 +54,10 @@ const Payment: React.FC<PaymentProps> = ({
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data && e.data.flexMsg === 'size' && typeof e.data.height === 'number') {
-        const raw = e.data.height;
-        const max = Math.floor(window.innerHeight * 0.9);   // never exceed 90 vh
-        const clamped = Math.min(Math.max(raw, 600), max);
-        setIframeHeight(clamped);
+      const raw = e.data.height;
+      const max = Math.floor(window.innerHeight * 0.9);   // still cap at 90vh if you like
+      const clamped = Math.min(raw, max);                // ← drop the “Math.max(raw,600)”
+      setIframeHeight(clamped);
       }
     };
     window.addEventListener('message', handler);
@@ -141,11 +144,14 @@ const Payment: React.FC<PaymentProps> = ({
           )}
         </div>
 
-        <div className="button-group">
-          <button className="form-button secondary" onClick={onBack}>
-            Back
-          </button>
-        </div>
+       <div className="button-group">
+         <button className="btn secondary" onClick={onBack}>
+           Back
+         </button>
+        <button className="btn primary" onClick={onNext} disabled={!flexUrl}>
+          Next
+        </button>
+       </div>
       </div>
     </div>
   );
