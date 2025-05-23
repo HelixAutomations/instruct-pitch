@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './structure/Header';
 import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
@@ -17,6 +17,11 @@ const App: React.FC = () => {
     Boolean(params.get('pid') && params.get('eid'))
   );
   const [step1Reveal, setStep1Reveal] = useState(false);
+  const location = useLocation();
+
+  if (location.pathname === '/payment/result') {
+    return <PaymentResult />;
+  }
 
   return (
     <div className="app-page">
@@ -39,10 +44,7 @@ const App: React.FC = () => {
 
       <main className="app-container">
         <Routes>
-          {/* 1. Your new payment callback route */}
-          <Route path="/payment/result" element={<PaymentResult />} />
-
-          {/* 2. Your existing catch-all route */}
+          {/* Catch-all routes */}
           <Route
             path="/*"
             element={

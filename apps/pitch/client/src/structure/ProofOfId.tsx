@@ -29,7 +29,6 @@ interface SectionStates {
 
 const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, onNext }) => {
   const [step, setStep] = useState<number>(1);
-  const [step1Page, setStep1Page] = useState(0);
   const idStatus = value.idStatus || '';
   const isCompanyClient = value.isCompanyClient ?? null;
   const idType = value.idType || null;
