@@ -62,7 +62,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
             }
           >
             {summaryConfirmed
-              ? '✅ Your details are confirmed and ready to submit.'
+              ? 'Your details are confirmed and ready to submit.'
               : 'Please review and confirm your details in the summary to continue.'}
           </span>
         </div>
@@ -83,7 +83,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
           disabled={!summaryConfirmed}
           onClick={() => {/* put your handler here */}}
         >
-          I confirm the above information is accurate and consent to a soft electronic identity check.
+          Confirm Identity and Open a Matter
         </button>
       </div>
 

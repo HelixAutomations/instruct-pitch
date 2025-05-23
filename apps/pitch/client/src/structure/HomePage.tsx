@@ -8,14 +8,24 @@ declare global {
   }
 }
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, JSX } from 'react';
 import {
   FaUser,
   FaMapMarkerAlt,
   FaPhone,
   FaCity,
   FaIdCard,
-  FaUserTie
+  FaUserTie,
+  FaFilePdf,
+  FaFileImage,
+  FaFileWord,
+  FaFileExcel,
+  FaFilePowerpoint,
+  FaFileArchive,
+  FaFileAlt,
+  FaFileAudio,
+  FaFileVideo,
+  FaFileUpload,
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
@@ -26,6 +36,8 @@ import '../styles/HomePage.css';
 import { ProofData } from '../context/ProofData';
 import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
+
+
 
 interface HomePageProps {
   step1Reveal?: boolean;
@@ -39,6 +51,31 @@ interface StepHeaderProps {
   toggle: () => void;
   locked?: boolean;
 }
+
+const iconMap: Record<string, JSX.Element> = {
+  pdf: <FaFilePdf className="section-icon" />,
+  doc: <FaFileWord className="section-icon" />,
+  docx: <FaFileWord className="section-icon" />,
+  xls: <FaFileExcel className="section-icon" />,
+  xlsx: <FaFileExcel className="section-icon" />,
+  ppt: <FaFilePowerpoint className="section-icon" />,
+  pptx: <FaFilePowerpoint className="section-icon" />,
+  txt: <FaFileAlt className="section-icon" />,
+  zip: <FaFileArchive className="section-icon" />,
+  rar: <FaFileArchive className="section-icon" />,
+  jpg: <FaFileImage className="section-icon" />,
+  jpeg: <FaFileImage className="section-icon" />,
+  png: <FaFileImage className="section-icon" />,
+  mp3: <FaFileAudio className="section-icon" />,
+  mp4: <FaFileVideo className="section-icon" />,
+};
+
+const getFileIcon = (filename?: string): JSX.Element => {
+  if (!filename) return <FaFileUpload className="section-icon" />;
+  const ext = filename.split('.').pop()?.toLowerCase() ?? '';
+  return iconMap[ext] || <FaFileAlt className="section-icon" />;
+};
+
 const StepHeader: React.FC<StepHeaderProps> = ({
   step,
   title,
@@ -46,29 +83,34 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   open,
   toggle,
   locked = false,
-}) => (
-  <div
-    className={`step-header${open ? ' active' : ''}${locked ? ' locked' : ''}`}
-    onClick={() => {
-      if (!locked) toggle();
-    }}
-    style={locked ? { cursor: "not-allowed", opacity: 0.5 } : undefined}
-    tabIndex={locked ? -1 : 0}
-    aria-disabled={locked}
-  >
-    <div className="step-number">{step}</div>
-    <h2>
-      {title}
-      {complete && <span className="completion-tick visible">✔</span>}
-      {locked && <span className="step-lock" style={{
-        marginLeft: 6,
-        fontSize: "1.07em",
-        verticalAlign: "middle"
-      }}>🔒</span>}
-    </h2>
-    <span className="toggle-icon">{open ? '−' : '+'}</span>
-  </div>
-);
+}) => {
+  // dark-blue skin when the step is CLOSED and NOT complete
+  const attention = !open && !complete;
+
+  return (
+    <div
+      className={
+        `step-header${open ? ' active' : ''}${locked ? ' locked' : ''}${attention ? ' attention' : ''}`
+      }
+      onClick={() => { if (!locked) toggle(); }}
+      style={locked ? { cursor: 'not-allowed', opacity: 0.5 } : undefined}
+      tabIndex={locked ? -1 : 0}
+      aria-disabled={locked}
+    >
+      <div className="step-number">{step}</div>
+      <h2>
+        {title}
+        {complete && <span className="completion-tick visible">✔</span>}
+        {locked && (
+          <span className="step-lock" style={{ marginLeft: 6, fontSize: '1.07em', verticalAlign: 'middle' }}>
+            🔒
+          </span>
+        )}
+      </h2>
+      <span className="toggle-icon">{open ? '−' : '+'}</span>
+    </div>
+  );
+};
 
 const SummaryHeader: React.FC<{
   title: string;
@@ -146,15 +188,18 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   });
 
 useEffect(() => {
-  if (window.helixPrefillData) {
+  const prefill = window.helixPrefillData;
+  if (prefill) {
     setProofData(prev => ({
       ...prev,
-      firstName: window.helixPrefillData?.First_Name || prev.firstName,
-      lastName: window.helixPrefillData?.Last_Name || prev.lastName,
+      firstName:    prefill.First_Name       ?? prev.firstName,
+      lastName:     prefill.Last_Name        ?? prev.lastName,
+      email:        prefill.Email            ?? prev.email,
+      phone:        prefill.Phone_Number     ?? prev.phone,
+      helixContact: prefill.Point_of_Contact ?? prev.helixContact,
     }));
-    console.log("✅ Prefilled names from backend:", window.helixPrefillData);
+    console.log('✅ Prefilled data from backend:', prefill);
   }
-  // Add this line:
   console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
 }, []);
 
@@ -196,11 +241,11 @@ useEffect(() => {
     };
   }, [openStep]);
 
-  function getPulseClass(step: number, done: boolean) {
-    return openStep === step && pulse && pulseStep === step
-      ? done ? ' pulse-green' : ' pulse-red'
-      : '';
-  }
+function getPulseClass(step: number, done: boolean) {
+  return openStep === step && pulse && pulseStep === step && done
+    ? ' pulse-green'
+    : '';
+}
 
   useEffect(() => {
     if (step1Reveal) setOpenStep(1);
@@ -571,18 +616,43 @@ useEffect(() => {
                           </>
                         }
                         documentsContent={
-                          <>
-                            {isUploadSkipped
-                              ? <span className="field-value">File upload skipped.</span>
-                              : uploadedFiles.length
-                                ? uploadedFiles.map((f) => f.name).join(', ')
-                                : '--'}
-                          </>
-                        }
-                        paymentContent={
-                          <>
-                            **** **** **** {paymentDetails.cardNumber.slice(-4) || '--'}
-                          </>
+                          isUploadSkipped ? (
+                            <span className="field-value">File upload skipped.</span>
+                          ) : uploadedFiles.length ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              {
+                                uploadedFiles.map((f, i) => (
+                                  <div
+                                    key={i}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.5rem',
+                                      flexWrap: 'nowrap',
+                                      overflow: 'hidden',
+                                      minWidth: 0,
+                                    }}
+                                  >
+                                    <span style={{ flexShrink: 0 }}>{getFileIcon(f.name)}</span>
+                                    <span
+                                      style={{
+                                        fontSize: '0.95rem',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        flexGrow: 1,
+                                      }}
+                                      title={f.name}
+                                    >
+                                      {f.name}
+                                    </span>
+                                  </div>
+                                ))
+                              }
+                            </div>
+                          ) : (
+                            <span className="field-value">--</span>
+                          )
                         }
                         summaryConfirmed={summaryConfirmed}
                         setSummaryConfirmed={setSummaryConfirmed}
@@ -722,18 +792,43 @@ useEffect(() => {
                   </>
                 }
                 documentsContent={
-                  <>
-                    {isUploadSkipped
-                      ? <span className="field-value">File upload skipped.</span>
-                      : uploadedFiles.length
-                        ? uploadedFiles.map((f) => f.name).join(', ')
-                        : '--'}
-                  </>
-                }
-                paymentContent={
-                  <>
-                    **** **** **** {paymentDetails.cardNumber.slice(-4) || '--'}
-                  </>
+                  isUploadSkipped ? (
+                    <span className="field-value">File upload skipped.</span>
+                  ) : uploadedFiles.length ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {
+                        uploadedFiles.map((f, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              flexWrap: 'nowrap',
+                              overflow: 'hidden',
+                              minWidth: 0,
+                            }}
+                          >
+                            <span style={{ flexShrink: 0 }}>{getFileIcon(f.name)}</span>
+                            <span
+                              style={{
+                                fontSize: '0.95rem',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                flexGrow: 1,
+                              }}
+                              title={f.name}
+                            >
+                              {f.name}
+                            </span>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  ) : (
+                    <span className="field-value">--</span>
+                  )
                 }
                 summaryConfirmed={summaryConfirmed}
                 setSummaryConfirmed={setSummaryConfirmed}

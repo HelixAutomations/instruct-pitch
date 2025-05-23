@@ -1,35 +1,82 @@
-/* === Helix Law ePDQ Payment CSS Customization === */
+/* ──────────────────────────────────────────────
+   Helix Law – Barclaycard FlexCheckout theme
+   v2025-05-21  rev-D
+────────────────────────────────────────────── */
 
-/* General form wrapper styling */
-#payment-container {
+/* 0. Font import & CSS vars
+   ─────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap');
+
+:root {
+  --website-blue: #000319;
+  --helix-dark-blue: #061733;
+  --helix-blue: #0D2F60;
+  --helix-highlight: #3690CE;
+  --helix-cta: #D65541;
+  --helix-grey: #F4F4F6;
+}
+
+/* Force consistent box model */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-family: 'Raleway', sans-serif !important;
+}
+
+/* 1. Outer wrappers
+   ─────────────────────── */
+html, body, #payment-container {
   width: 100%;
-  max-width: 400px !important;
-  margin: 0 auto;
-  background: #fff;
-  font-family: 'Inter', Arial, sans-serif;
+  max-width: none !important;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--helix-dark-blue);
+  line-height: 1.5;
 }
 
+/* ensure the form container uses full width */
+html body #payment-form-container,
+html body .payment-form-container,
+html body #payment-data-container {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* wrap styling */
 .payment-form-container {
-  background: #f8f9fb;
-  padding: 20px 10px 18px 10px;
-  border-radius: 8px;
-  box-shadow: 0 1px 8px rgba(54,144,206,0.05);
-}
-
-#payment-data-container {
-  color: #22324c;
   background: #fff;
-  border-radius: 6px;
-  padding: 18px 10px 12px 10px;
-  margin: 0 auto;
+  padding: 20px;
+  border-radius: 0; /* no rounding */
+  box-shadow: 0 1px 8px rgba(54,144,206,.05);
 }
 
+/* 2. Field-layout helpers
+   ─────────────────────── */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: .9rem;
+}
+.row.buttons { gap: 1rem; }
+
+#payment-expirydate-container {
+  display: flex;
+  align-items: flex-end;
+  gap: .75rem;
+}
+#payment-cvc-input-container input#payment-cvc {
+  width: 90px !important;
+}
+
+/* 3. Labels & inputs
+   ─────────────────────── */
 .payment-label {
-  color: #3d4c68;
-  font-size: 1.02rem;
-  padding-bottom: 4px;
+  color: var(--helix-dark-blue);
+  font-size: 1rem;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  margin-bottom: .25rem;
 }
 
 .payment-input input,
@@ -37,146 +84,97 @@
   width: 100%;
   height: 37px;
   font-size: 1rem;
-  color: #22324c;
+  color: var(--helix-dark-blue);
   padding: 0 8px;
-  border: 1px solid #3690ce;
-  border-radius: 4px;
-  background: #f8f9fb;
-  margin-bottom: 10px;
-  transition: border 0.18s;
+  border: 1px solid var(--helix-highlight);
+  border-radius: 0 !important;
+  background: #fff;
+  margin-bottom: .65rem;
+  transition: border .18s;
 }
 
 .payment-input input:focus,
 .payment-input select:focus {
-  border-color: #0d5fa7;
+  border-color: var(--helix-blue);
   outline: none;
 }
 
-/* --- Expiry fields side by side --- */
-#payment-expirydate-container {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5em;
-}
-
-#payment-expirymonth-input-container,
-#payment-expiryyear-input-container {
-  width: auto;
-  min-width: 70px;
-  flex: none;
-}
-
-#payment-expirymonth-input-container select,
-#payment-expiryyear-input-container select {
-  min-width: 75px;
-  width: 90px;
-}
-
-/* Slash between MM / YYYY */
-#payment-expirydate-separator {
-  padding: 0 3px;
-  align-self: center;
-  color: #22324c;
-  font-size: 1.1em;
-  font-weight: 500;
-}
-
-/* --- Make CVC (security code) box smaller --- */
-#payment-cvc-input-container input#payment-cvc {
-  width: 85px !important;
-  min-width: 70px;
-  max-width: 110px;
-  text-align: left;
-  height: 37px;
-  background: #f8f9fb;
-}
-
-/* Optional: align CVC field inline with label */
-#payment-cvc-container {
-  max-width: 200px;
-}
-
-/* Error styling */
+/* 4. Error & helper text
+   ─────────────────────── */
 .payment-error,
 #payment-data-container .payment-input-error input,
 #payment-data-container .payment-input-error select {
-  color: #ab1500 !important;
-  background: #ffe9e8 !important;
-  border: 1px solid #ab1500 !important;
+  color: #D65541 !important;
+  background: #FCEBE9 !important;
+  border: 1px solid #D65541 !important;
 }
 
 .field-validation-valid,
 .field-validation-error {
-  font-size: 0.95em;
+  font-size: .95em;
   color: #d22323;
-  margin-top: -4px;
-  margin-bottom: 7px;
+  margin: -4px 0 7px 0;
   display: block;
 }
 
-/* Info/help/cvc box */
-.payment-info,
-#payment-cvc-info-container .help-box {
-  font-size: 0.98em;
-  color: #3d4c68;
-  background: #f4f7fa;
-  border-radius: 4px;
-  margin-top: 3px;
-  margin-bottom: 8px;
-  padding: 8px 10px;
+#payment-cvc-info-container .help-box,
+.payment-info {
+  display: none !important;
 }
 
-#payment-cvc-info-container .cvc-info-txt {
-  color: #3d4c68;
-  font-size: 0.96em;
-}
-
-#payment-cvc-info-container .aroowImg {
-  background: #5F5F5F;
-}
 
 #payment-data-container #payment-submit {
-  background: #3690ce;
+  background: var(--helix-highlight);
   color: #fff;
   font-weight: 600;
+  font-size: 0.98rem;
+  padding: 0.45rem 1.1rem;
+  min-height: 36px;
+  min-width: 90px;
   border: none;
-  padding: 0.7em 2em;
-  border-radius: 4px;
-  margin-top: 12px;
+  border-radius: 0;
   cursor: pointer;
-  transition: background 0.14s;
+  transition: background 0.18s, transform 0.09s;
 }
-
 #payment-data-container #payment-submit:hover {
-  background: #265d9b;
+  background: var(--helix-blue);
+}
+#payment-data-container #payment-submit:active {
+  transform: scale(0.97);
 }
 
 #payment-cancel-container input {
-  background: #f7f7f7;
-  color: #22324c;
-  border: 1px solid #d0d3da;
-  border-radius: 4px;
-  padding: 0.6em 1.6em;
-  margin-top: 6px;
+  background: #f5f5f7;
+  color: var(--helix-dark-blue);
+  border: 1px solid #e6e6e6;
+  font-weight: 400;
+  font-size: 0.98rem;
+  padding: 0.45rem 1.1rem;
+  min-height: 36px;
+  min-width: 90px;
+  border-radius: 0;
   cursor: pointer;
+  transition: background 0.18s, transform 0.09s;
+}
+#payment-cancel-container input:hover {
+  background: #ebecf0;
+}
+#payment-cancel-container input:active {
+  transform: scale(0.97);
 }
 
+/* 6. Mobile tweak
+   ─────────────────────── */
 @media (max-width: 520px) {
-  #payment-container {
-    max-width: 99vw !important;
+  html body #payment-container,
+  html body #payment-form-container,
+  html body #payment-data-container {
+    max-width: 98vw !important;
+    padding: 0 2vw;
   }
-  .payment-form-container,
-  #payment-data-container {
-    padding: 8px 2vw 10px 2vw;
-  }
-  #payment-expirymonth-input-container select,
-  #payment-expiryyear-input-container select {
-    width: 65px;
-    min-width: 60px;
-  }
-  #payment-cvc-input-container input#payment-cvc {
-    width: 64px !important;
-    min-width: 54px;
-  }
+
+  #payment-expirydate-container { flex-wrap: wrap; }
+  #payment-cvc-input-container input#payment-cvc { width: 70px !important; }
 }
 
+/* iframe wrapper lives in your React app (not here) */

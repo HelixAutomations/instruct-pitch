@@ -75,7 +75,7 @@ button:focus-visible {
   border: none;
   border-radius: 0px !important; /* No rounding */
   font-size: 0.98rem;
-  font-weight: 600;
+  font-weight: 400;
   background: var(--helix-blue);
   color: #fff;
   box-shadow: none;

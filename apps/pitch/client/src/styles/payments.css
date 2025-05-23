@@ -1,22 +1,27 @@
 /* === payments.css === */
 
+/* Container */
 .payment-section {
   width: 100%;
-  max-width: 900px; /* or 100% for edge-to-edge */
+  max-width: 900px;
   margin: 0 auto;
-  padding: 0 24px; /* optional, for light breathing room */
+  padding: 0 16px;
 }
 
-.combined-section {
-  background: #fff;
+/* Trust banner */
+.secure-banner {
+  display: block;
+  text-align: center;
+  padding: 0.7rem;
+  background: var(--helix-grey, #f4f7fa);
+  color: var(--helix-dark-blue, #294d69);
+  font-weight: 500;
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-  padding: 1rem 1.2rem 1.2rem 1.2rem;
-  position: relative;
+  margin-bottom: 1.2rem;
+  font-size: 1.04rem;
 }
 
-/* Service Summary Header */
+/* Group header (used for both sections) */
 .group-header {
   font-size: 1.04rem;
   font-weight: 600;
@@ -27,7 +32,25 @@
   gap: 0.5rem;
 }
 
-/* Service Summary Grid */
+/* Header icon */
+.header-icon {
+  font-size: 1.16rem;
+  color: var(--helix-highlight, #3690CE);
+  vertical-align: middle;
+  margin-right: 0.22em;
+}
+
+/* Summary Section */
+.combined-section {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.2rem 1.2rem 1.2rem;
+  position: relative;
+}
+
+/* Summary Grid */
 .service-summary-grid {
   display: grid;
   grid-template-columns: 110px 1fr;
@@ -54,6 +77,7 @@
   word-break: break-word;
 }
 
+/* Horizontal line */
 .separator {
   height: 1px;
   width: 100%;
@@ -62,33 +86,17 @@
   border: none;
 }
 
-/* Trust banner */
-.secure-banner {
-  display: block;
-  text-align: center;
-  padding: 0.7rem;
-  background: var(--helix-grey, #f4f7fa);
-  color: var(--helix-dark-blue, #294d69);
-  font-weight: 500;
-  border-radius: 4px;
-  margin-bottom: 1.2rem;
-  font-size: 1.04rem;
-}
-
-/* Payment Details */
-.payment-details-section {
-  margin-top: 0;
+/* Payment Section (cleaned up) */
+.payment-details-clean {
+  margin-top: 1rem;
 }
 
 .iframe-wrapper {
-  margin-top: 0.8rem;
-  margin-bottom: 1.1rem;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f9fafb;
-  height: clamp(460px, 70vh, 900px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: 100%;        /* Allow parent to define height */
+  min-height: 300px;   /* Fallback if JS fails */
   position: relative;
+  overflow: hidden;
+  background: #fff;
 }
 
 .iframe-wrapper iframe {
@@ -99,7 +107,7 @@
   border: none;
 }
 
-/* Button Group */
+/* Button container */
 .button-group {
   display: flex;
   justify-content: flex-end;
@@ -107,6 +115,7 @@
   margin-top: 0.8rem;
 }
 
+/* Buttons */
 .form-button {
   padding: 0.7em 1.3em;
   font-size: 1rem;
@@ -125,24 +134,35 @@
   border: 1px solid #e3e8ef;
 }
 
-/* Responsive adjustments */
+/* Responsive tweaks */
 @media (max-width: 600px) {
   .payment-section {
     max-width: 98vw;
     padding: 0 2vw;
   }
+
   .combined-section {
-    padding: 0.7rem 0.3rem 1rem 0.3rem;
+    padding: 0.7rem 0.6rem 1rem 0.6rem;
   }
+
+  .group-header {
+    font-size: 0.98rem;
+  }
+
   .service-summary-grid {
     grid-template-columns: 95px 1fr;
     font-size: 0.95rem;
   }
-}
 
-.header-icon {
-  font-size: 1.16rem;
-  color: var(--helix-highlight, #3690CE);
-  vertical-align: middle;
-  margin-right: 0.22em;
+  .iframe-wrapper {
+    height: 75vh;
+    border-radius: 6px;
+    box-shadow: none;
+    background: #f4f7fa;
+  }
+
+  .secure-banner {
+    font-size: 1rem;
+    padding: 0.6rem;
+  }
 }
