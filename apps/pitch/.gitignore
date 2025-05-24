@@ -1,2 +1,8 @@
 
 node_modules/
+
+/server.js
+/upload.js
+/package.json
+/web.config
+/.env
