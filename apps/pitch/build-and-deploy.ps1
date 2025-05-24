@@ -14,7 +14,7 @@ Pop-Location
 
 # Copy backend files to root of instructions/
 Copy-Item .\backend\server.js ..\..\ -Force
-# Upload.js was removed – skip copying
+Copy-Item .\backend\upload.js ..\..\ -Force
 Copy-Item .\backend\package.json ..\..\ -Force
 Copy-Item .\backend\web.config ..\..\ -Force
 Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
@@ -34,7 +34,7 @@ az webapp deployment source config-zip `
   --src push-package.zip
 
 # Optional cleanup – only run manually if needed
-$shouldClean = $false
+$shouldClean = $true
 if ($shouldClean) {
   Remove-Item .\server.js, .\upload.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue

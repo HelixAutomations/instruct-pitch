@@ -54,5 +54,26 @@ These specify where the server stores uploaded documents in Azure Blob Storage.
 The `DocumentUpload` component caches successful uploads in `sessionStorage` using
 the client and instruction IDs. When the user navigates back to the upload step,
 cached file information is loaded and files that were already uploaded are not
-re-sent to the server. A small "Uploaded ✓" label next to the file name shows
-which documents have been persisted.
+re-sent to the server. A small "Uploaded ✓" label next to the file name shows which documents have been persisted.
+
+## Deploying to Azure
+
+The repository includes a PowerShell script that builds the client and backend
+and then pushes the package to an Azure Web App. Run the script from the project
+root:
+
+```powershell
+pwsh apps/pitch/build-and-deploy.ps1
+```
+
+### Deployment prerequisites
+
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) installed
+  locally
+- Signed in to Azure CLI with the correct subscription selected
+- A valid `.env` file in `apps/pitch/backend` containing the environment
+  variables mentioned above (e.g. `AZURE_STORAGE_ACCOUNT` and
+  `UPLOAD_CONTAINER`)
+
+The script builds the production assets, creates `push-package.zip`, and uploads
+it using `az webapp deployment source config-zip`.

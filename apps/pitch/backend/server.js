@@ -1,6 +1,6 @@
 require('dotenv').config();
-console.log('AZURE_STORAGE_ACCOUNT:', process.env.AZURE_STORAGE_ACCOUNT);
-console.log('UPLOAD_CONTAINER:', process.env.UPLOAD_CONTAINER);
+// console.log('AZURE_STORAGE_ACCOUNT:', process.env.AZURE_STORAGE_ACCOUNT);
+// console.log('UPLOAD_CONTAINER:', process.env.UPLOAD_CONTAINER);
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
