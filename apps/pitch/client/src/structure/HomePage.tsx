@@ -321,7 +321,9 @@ function getPulseClass(step: number, done: boolean) {
     ].every((f) => f && f.toString().trim());
   }
   function isUploadDataComplete() {
-    return uploadedFiles.length > 0;
+    if (uploadedFiles.length > 0) return true;
+    const key = `uploadedDocs-${clientId}-${instruction.instructionId}`;
+    return !!sessionStorage.getItem(key);
   }
   function isPaymentComplete() {
     return (

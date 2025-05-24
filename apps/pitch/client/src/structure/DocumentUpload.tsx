@@ -79,23 +79,49 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   clientId,
   instructionId
 }) => {
-  const [documents, setDocuments] = useState<DocItem[]>(
-    uploadedFiles.length
+  const storageKey = `uploadedDocs-${clientId}-${instructionId}`;
+  const [documents, setDocuments] = useState<DocItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem(storageKey);
+      if (cached) {
+        try {
+          const arr = JSON.parse(cached) as { title: string; blobUrl: string }[];
+          return arr.map((item, idx) => ({
+            id: idx + 1,
+            title: item.title,
+            blobUrl: item.blobUrl,
+            isCollapsed: false,
+            isEditing: false,
+          }));
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+    return uploadedFiles.length
+
       ? uploadedFiles.map((file, idx) => ({
           id: idx + 1,
           file,
           blobUrl: undefined,
           title: file.name,
           isCollapsed: false,
-          isEditing: false
+          isEditing: false,
         }))
-      : [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }]
-  );
+      : [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }];
+  });
+  const saveCache = (docs: DocItem[]) => {
+    if (typeof window === 'undefined') return;
+    const data = docs
+      .filter((d) => d.blobUrl)
+      .map((d) => ({ title: d.title, blobUrl: d.blobUrl }));
+    sessionStorage.setItem(storageKey, JSON.stringify(data));
+  };
   const [supportedOpen, setSupportedOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const hasFile = documents.some(doc => !!doc.file);
+    const hasFile = documents.some(doc => !!doc.file || !!doc.blobUrl);
     if (hasFile) {
       setUploadSkipped(false);
       setIsComplete(true);
@@ -114,7 +140,15 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (!file) return;
     setDocuments((docs) =>
       docs.map((doc) =>
-        doc.id === id ? { ...doc, file, title: file.name, hasError: false } : doc
+        doc.id === id
+          ? {
+              ...doc,
+              file,
+              title: file.name,
+              blobUrl: undefined,
+              hasError: false,
+            }
+          : doc
       )
     );
   };
@@ -148,9 +182,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     const targetDoc = documents.find((d) => d.id === id);
     if (targetDoc) {
       const updated = await uploadSingleFile({ ...targetDoc, isUploading: true });
-      setDocuments((docs) =>
-        docs.map((doc) => doc.id === id ? updated : doc)
-      );
+      setDocuments((docs) => {
+        const newDocs = docs.map((doc) => (doc.id === id ? updated : doc));
+        saveCache(newDocs);
+        return newDocs;
+      });
     }
   };
 
@@ -158,11 +194,12 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploading(true);
     const updatedDocs = await Promise.all(
       documents.map((doc) => {
-        if (!doc.file) return Promise.resolve(doc);
+        if (doc.blobUrl || !doc.file) return Promise.resolve(doc);
         return uploadSingleFile({ ...doc, isUploading: true });
       })
     );
     setDocuments(updatedDocs);
+    saveCache(updatedDocs);
     setUploading(false);
 
     const anyFailures = updatedDocs.some((doc) => doc.hasError);
@@ -174,12 +211,17 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       docs.map((doc) => ({ ...doc, isEditing: doc.id === id }))
     );
 
-  const saveTitle = (id: number, newTitle: string) =>
+  const updateTitle = (id: number, newTitle: string) =>
     setDocuments((docs) =>
       docs.map((doc) =>
-        doc.id === id
-          ? { ...doc, title: newTitle || doc.title, isEditing: false }
-          : doc
+        doc.id === id ? { ...doc, title: newTitle } : doc
+      )
+    );
+
+  const saveTitle = (id: number) =>
+    setDocuments((docs) =>
+      docs.map((doc) =>
+        doc.id === id ? { ...doc, isEditing: false } : doc
       )
     );
 
@@ -215,11 +257,13 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 type="text"
                 className="edit-input"
                 value={doc.title}
-                onChange={(e) => saveTitle(doc.id, e.target.value)}
-                onBlur={() => saveTitle(doc.id, doc.title)}
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && e.currentTarget.blur()
-                }
+                onChange={(e) => updateTitle(doc.id, e.target.value)}
+                onBlur={() => saveTitle(doc.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    saveTitle(doc.id);
+                  }
+                }}
                 autoFocus
               />
             ) : (
@@ -251,9 +295,12 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 className="file-input-hidden"
                 onChange={(e) => handleFileChange(doc.id, e)}
               />
-              {doc.file && (
+              {(doc.file || doc.blobUrl) && (
                 <div className="file-list-item">
-                  {doc.file.name}
+                  {doc.file ? doc.file.name : doc.title}
+                  {doc.blobUrl && !doc.hasError && (
+                    <span className="upload-status">Uploaded ✓</span>
+                  )}
                   {doc.hasError && (
                     <span style={{ color: 'red', marginLeft: 8 }}>
                       – upload failed
@@ -307,7 +354,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         >
           Back
         </button>
-        {documents.every((d) => !d.file) && !isUploadSkipped ? (
+        {documents.every((d) => !d.file && !d.blobUrl) && !isUploadSkipped ? (
           <button
             type="button"
             className="btn primary"
@@ -327,7 +374,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             className="btn primary"
             onClick={handleNext}
             aria-label="Proceed to next step"
-            disabled={uploading || !documents.every((d) => !!d.file)}
+            disabled={uploading || !documents.every((d) => !!d.file || !!d.blobUrl)}
           >
             {uploading ? 'Uploading...' : 'Next'}
           </button>

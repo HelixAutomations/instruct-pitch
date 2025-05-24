@@ -93,7 +93,7 @@
 /* ─── FORM STRUCTURE ─── */
 .document-upload .form-group-section {
     padding: 16px 16px 1px;
-    margin-bottom: px;
+    margin-bottom: 8px;
   }
 
 .document-upload .form-group {
@@ -132,6 +132,12 @@
     margin-top: 8px;
     font-size: 14px;
     color: var(--helix-dark-blue);
+}
+
+.document-upload .upload-status {
+    margin-left: 8px;
+    color: var(--helix-highlight);
+    font-size: 0.9em;
 }
 
 .document-upload .section-divider {
