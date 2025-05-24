@@ -244,7 +244,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
 
   const [isProofDone, setProofDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
-  const [setUploadReady] = useState(false);
+  const [, setUploadReady] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(() =>
     sessionStorage.getItem('paymentDone') === 'true'
   );

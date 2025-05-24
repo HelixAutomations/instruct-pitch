@@ -148,6 +148,9 @@
     margin-top: 8px;
     font-size: 14px;
     color: var(--helix-dark-blue);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .document-upload .upload-status {
@@ -311,6 +314,19 @@
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
+.upload-button.drag-over {
+    border-color: var(--helix-highlight);
+    background: rgba(54, 144, 206, 0.05);
+}
+
+.upload-button.has-file {
+    background: var(--helix-grey);
+    border-style: solid;
+    opacity: 1;
+    pointer-events: none;
+}
+
+
 .upload-button-icon {
     font-size: 20px;
     opacity: 0.6;
@@ -383,24 +399,63 @@
   color: var(--helix-highlight);
 }
 
+.rename-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--helix-blue);
+  font-size: 0.85em;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.rename-button:hover {
+  color: var(--helix-highlight);
+}
+
+.rename-text {
+  font-size: 0.85em;
+}
+
+.edit-icon {
+  font-size: 16px;
+  color: var(--helix-blue);
+  margin-left: 8px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.edit-icon:hover {
+  color: var(--helix-highlight);
+}
+
 .remove-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   color: var(--helix-blue);
   margin-left: 8px;
   cursor: pointer;
-    display: inline-flex;
-  align-items: center;
-  justify-content: center;
   padding: 2px;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 14px;
-  line-height: 1;
 }
 
 .remove-button:hover {
   color: var(--helix-highlight);
   background-color: rgba(0, 0, 0, 0.06);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

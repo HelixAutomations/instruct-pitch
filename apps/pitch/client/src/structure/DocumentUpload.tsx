@@ -1,3 +1,5 @@
+// apps/pitch/client/src/structure/DocumentUpload.tsx
+
 import React, { useState, useEffect } from 'react';
 import { Dispatch, SetStateAction } from 'react';
 import {
@@ -5,6 +7,8 @@ import {
   FaChevronUp,
   FaFileUpload,
   FaPlus,
+  FaEdit,
+  FaTimes,
   FaFilePdf,
   FaFileImage,
   FaFileWord,
@@ -16,8 +20,7 @@ import {
   FaFileVideo,
   FaCaretDown,
   FaCaretUp,
-  FaSyncAlt,
-  FaTimes
+  FaSyncAlt
 } from 'react-icons/fa';
 import '../styles/DocumentUpload.css';
 
@@ -39,6 +42,7 @@ interface DocItem {
   blobUrl?: string;
   title: string;
   isCollapsed: boolean;
+  isEditing?: boolean;
   isUploading?: boolean;
   hasError?: boolean;
 }
@@ -80,34 +84,16 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 }) => {
   const [documents, setDocuments] = useState<DocItem[]>(() =>
     uploadedFiles.length
-
       ? uploadedFiles.map((file, idx) => ({
           id: idx + 1,
           file,
           blobUrl: undefined,
           title: file.name,
           isCollapsed: false,
+          isEditing: false
         }))
-      : [{ id: 1, title: 'Document 1', isCollapsed: false }]
+      : [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }]
   );
-  const removeDocument = (id: number) => {
-    const doc = documents.find((d) => d.id === id);
-    if (!doc) return;
-    if (doc.blobUrl) {
-      if (!window.confirm('This file was already uploaded. Removing it will delete it from our system. Continue?')) {
-        return;
-      }
-      // Placeholder: send DELETE to backend if needed
-      // await fetch(`/api/upload?url=${encodeURIComponent(doc.blobUrl)}`, { method: 'DELETE' });
-    }
-    setDocuments((docs) => {
-      const remaining = docs.filter((d) => d.id !== id);
-      if (remaining.length === 0) {
-        return [{ id: 1, title: 'Document 1', isCollapsed: false }];
-      }
-      return remaining.map((d, idx) => ({ ...d, id: idx + 1 }));
-    });
-  };
   const [supportedOpen, setSupportedOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
@@ -130,33 +116,80 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const handleFileChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setDocuments((docs) =>
-      docs.map((doc) =>
+    setDocuments(docs =>
+      docs.map(doc =>
         doc.id === id
-          ? {
-              ...doc,
-              file,
-              title: file.name,
-              blobUrl: undefined,
-              hasError: false,
-            }
+          ? { ...doc, file, title: file.name, blobUrl: undefined, hasError: false }
           : doc
       )
     );
   };
 
+  const addExtraDocuments = (files: File[]) =>
+    setDocuments(docs => [
+      ...docs,
+      ...files.map((f, idx) => ({
+        id: docs.length + idx + 1,
+        file: f,
+        title: f.name,
+        isCollapsed: false,
+        isEditing: false
+      }))
+    ]);
+
+  const handleDrop = (id: number, e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    const dropped = Array.from(e.dataTransfer.files);
+    if (!dropped.length) return;
+    const [first, ...rest] = dropped;
+    setDocuments(docs =>
+      docs.map(doc =>
+        doc.id === id
+          ? { ...doc, file: first, title: first.name, blobUrl: undefined, hasError: false }
+          : doc
+      )
+    );
+    if (rest.length) addExtraDocuments(rest);
+    setDragOverId(null);
+  };
+
+  const handleDragOver = (id: number, e: React.DragEvent) => {
+    e.preventDefault();
+    if (dragOverId !== id) setDragOverId(id);
+  };
+
+  const handleDragLeave = () => setDragOverId(null);
+
+  const removeDocument = (id: number) => {
+    const doc = documents.find(d => d.id === id);
+    if (!doc) return;
+    if (doc.blobUrl) {
+      if (
+        !window.confirm(
+          'This file was already uploaded. Removing it will delete it from our system. Continue?'
+        )
+      ) {
+        return;
+      }
+    }
+    setDocuments(docs => {
+      const remaining = docs.filter(d => d.id !== id);
+      if (remaining.length === 0) {
+        return [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }];
+      }
+      return remaining.map((d, idx) => ({ ...d, id: idx + 1 }));
+    });
+  };
+
   const uploadSingleFile = async (doc: DocItem) => {
     if (!doc.file) return doc;
-    const prefix = '';    const formData = new FormData();
+    const formData = new FormData();
     formData.append('file', doc.file);
     formData.append('clientId', clientId);
     formData.append('instructionId', instructionId);
 
     try {
-      const res = await fetch(`${prefix}/api/upload`, {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch(`/api/upload`, { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       return { ...doc, blobUrl: data.url, isUploading: false, hasError: false };
@@ -167,131 +200,158 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   };
 
   const handleRetry = async (id: number) => {
-    setDocuments((docs) =>
-      docs.map((doc) => doc.id === id ? { ...doc, isUploading: true, hasError: false } : doc)
+    setDocuments(docs =>
+      docs.map(doc =>
+        doc.id === id ? { ...doc, isUploading: true, hasError: false } : doc
+      )
     );
-    const targetDoc = documents.find((d) => d.id === id);
-    if (targetDoc) {
-      const updated = await uploadSingleFile({ ...targetDoc, isUploading: true });
-      setDocuments((docs) =>
-        docs.map((doc) => (doc.id === id ? updated : doc))
-      );
+    const target = documents.find(d => d.id === id);
+    if (target) {
+      const updated = await uploadSingleFile({ ...target, isUploading: true });
+      setDocuments(docs => docs.map(doc => (doc.id === id ? updated : doc)));
     }
   };
 
   const handleNext = async () => {
     setUploading(true);
     const updatedDocs = await Promise.all(
-      documents.map((doc) => {
-        if (doc.blobUrl || !doc.file) return Promise.resolve(doc);
-        return uploadSingleFile({ ...doc, isUploading: true });
-      })
+      documents.map(doc =>
+        doc.blobUrl || !doc.file
+          ? Promise.resolve(doc)
+          : uploadSingleFile({ ...doc, isUploading: true })
+      )
     );
     setDocuments(updatedDocs);
     setUploading(false);
 
-    const anyFailures = updatedDocs.some((doc) => doc.hasError);
-    if (!anyFailures) onNext();
+    if (!updatedDocs.some(doc => doc.hasError)) {
+      onNext();
+    }
   };
 
   const updateTitle = (id: number, newTitle: string) =>
-    setDocuments((docs) =>
-      docs.map((doc) =>
-        doc.id === id ? { ...doc, title: newTitle } : doc
-      )
+    setDocuments(docs =>
+      docs.map(doc => (doc.id === id ? { ...doc, title: newTitle } : doc))
+    );
+
+  const startEditing = (id: number) =>
+    setDocuments(docs =>
+      docs.map(doc => (doc.id === id ? { ...doc, isEditing: true } : doc))
+    );
+
+  const saveTitle = (id: number) =>
+    setDocuments(docs =>
+      docs.map(doc => (doc.id === id ? { ...doc, isEditing: false } : doc))
     );
 
   const toggleCollapse = (id: number) =>
-    setDocuments((docs) =>
-      docs.map((doc) =>
-        doc.id === id ? { ...doc, isCollapsed: !doc.isCollapsed } : doc
-      )
+    setDocuments(docs =>
+      docs.map(doc => (doc.id === id ? { ...doc, isCollapsed: !doc.isCollapsed } : doc))
     );
 
   const addDocument = () =>
-    setDocuments((docs) => [
+    setDocuments(docs => [
       ...docs,
-      {
-        id: docs.length + 1,
-        title: `Document ${docs.length + 1}`,
-        isCollapsed: false
-      }
+      { id: docs.length + 1, title: `Document ${docs.length + 1}`, isCollapsed: false, isEditing: false }
     ]);
 
   return (
     <div className="form-container apple-form document-upload">
-      {documents.map((doc) => (
+      {documents.map(doc => (
         <div key={doc.id} className="form-group-section">
-          <div
-            className="group-header"
-            onClick={() => toggleCollapse(doc.id)}
-          >
+          <div className="group-header" onClick={() => toggleCollapse(doc.id)}>
             {getFileIcon(doc.file)}
-            <input
-              type="text"
-              className="title-input"
-              value={doc.title}
-              onChange={(e) => updateTitle(doc.id, e.target.value)}
-              onClick={(e) => e.stopPropagation()}
+            {doc.isEditing ? (
+              <input
+                type="text"
+                className="edit-input"
+                value={doc.title}
+                onChange={e => updateTitle(doc.id, e.target.value)}
+                onBlur={() => saveTitle(doc.id)}
+                onKeyDown={e => e.key === 'Enter' && saveTitle(doc.id)}
+                autoFocus
+              />
+            ) : (
+              <span className="document-title">{doc.title}</span>
+            )}
+            <FaEdit
+              className="edit-icon"
+              title="Rename document"
+              onClick={e => {
+                e.stopPropagation();
+                startEditing(doc.id);
+              }}
             />
-            {doc.isUploading && <span className="spinner" style={{ marginLeft: 8 }}><FaSyncAlt className="spin" /></span>}
-            {!doc.isUploading && doc.file && !doc.hasError && <span className="completion-tick">✔</span>}
+            {doc.isUploading && (
+              <span className="spinner" style={{ marginLeft: 8 }}>
+                <FaSyncAlt className="spin" />
+              </span>
+            )}
+            {!doc.isUploading && doc.file && !doc.hasError && (
+              <span className="completion-tick">✔</span>
+            )}
             {doc.hasError && <span style={{ color: 'red' }}>✖</span>}
             {doc.isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
           </div>
 
           {!doc.isCollapsed && (
             <div className="form-group">
-              <label
-                className={`upload-button ${dragOverId === doc.id ? 'drag-over' : ''}`}
-                htmlFor={`fileUpload-${doc.id}`}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragOverId(doc.id);
-                }}
-                onDragLeave={() => setDragOverId(null)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setDragOverId(null);
-                  const files = e.dataTransfer.files;
-                  if (files && files.length > 0) {
-                    const event = {
-                      target: { files } as unknown as HTMLInputElement,
-                    } as React.ChangeEvent<HTMLInputElement>;
-                    handleFileChange(doc.id, event);
-                  }
-                }}
-              >
-                <FaFileUpload className="upload-button-icon" />
-                {doc.file ? 'Change file' : 'Choose file'}
-              </label>
+              {!doc.file && !doc.blobUrl && (
+                <label
+                  className={`upload-button${dragOverId === doc.id ? ' drag-over' : ''}`}
+                  htmlFor={`fileUpload-${doc.id}`}
+                  onDragOver={e => handleDragOver(doc.id, e)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={e => handleDrop(doc.id, e)}
+                >
+                  <FaFileUpload className="upload-button-icon" />
+                  <span className="upload-button-text">Drag &amp; drop or click to upload</span>
+                </label>
+              )}
               <input
                 id={`fileUpload-${doc.id}`}
                 type="file"
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.jpg,.png,.mp3,.mp4"
                 className="file-input-hidden"
-                onChange={(e) => handleFileChange(doc.id, e)}
+                onChange={e => handleFileChange(doc.id, e)}
+                disabled={!!doc.file}
               />
               {(doc.file || doc.blobUrl) && (
                 <div className="file-list-item">
-                  {doc.file ? doc.file.name : doc.title}
+                  <span>{doc.file ? doc.file.name : doc.title}</span>
                   {doc.blobUrl && !doc.hasError && (
                     <span className="upload-status">Uploaded ✓</span>
                   )}
                   {doc.hasError && (
                     <span style={{ color: 'red', marginLeft: 8 }}>
                       – upload failed
-                      <button onClick={() => handleRetry(doc.id)} style={{ marginLeft: 6 }}>
+                      <button
+                        onClick={() => handleRetry(doc.id)}
+                        style={{ marginLeft: 6 }}
+                        className="retry-button"
+                      >
                         Retry
                       </button>
                     </span>
                   )}
                   <button
                     type="button"
+                    className="rename-button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      startEditing(doc.id);
+                    }}
+                  >
+                    <FaEdit className="edit-icon" />
+                    <span className="rename-text">Rename</span>
+                  </button>
+                  <button
+                    type="button"
                     className="remove-button"
                     onClick={() => removeDocument(doc.id)}
                   >
-                    <FaTimes aria-label="Remove" />
+                    <FaTimes />
+                    <span className="sr-only">Remove</span>
                   </button>
                 </div>
               )}
@@ -329,16 +389,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       )}
 
       <div className="button-group">
-        <button
-          type="button"
-          className="btn secondary"
-          onClick={onBack}
-          aria-label="Go back to document upload"
-          disabled={uploading}
-        >
+        <button type="button" className="btn secondary" onClick={onBack} disabled={uploading}>
           Back
         </button>
-        {documents.every((d) => !d.file && !d.blobUrl) && !isUploadSkipped ? (
+
+        {documents.every(d => !d.file && !d.blobUrl) && !isUploadSkipped ? (
           <button
             type="button"
             className="btn primary"
@@ -357,8 +412,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             type="button"
             className="btn primary"
             onClick={handleNext}
-            aria-label="Proceed to next step"
-            disabled={uploading || !documents.every((d) => !!d.file || !!d.blobUrl)}
+            disabled={uploading || !documents.every(d => !!d.file || !!d.blobUrl)}
           >
             {uploading ? 'Uploading...' : 'Next'}
           </button>
