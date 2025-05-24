@@ -1,2 +1,3 @@
 # Ignore all local dependencies
 node_modules/
+unzipped/
