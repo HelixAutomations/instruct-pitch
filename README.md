@@ -37,3 +37,14 @@ npm run preview --prefix apps/pitch/client
 ```
 
 Environment variables (e.g., Azure Key Vault secrets) must be configured for the backend before running in production.
+
+### Upload Environment Variables
+
+File uploads require the following settings in `apps/pitch/backend/.env`:
+
+```
+AZURE_STORAGE_ACCOUNT=<your storage account name>
+UPLOAD_CONTAINER=<container for temporary uploads>
+```
+
+These specify where the server stores uploaded documents in Azure Blob Storage.

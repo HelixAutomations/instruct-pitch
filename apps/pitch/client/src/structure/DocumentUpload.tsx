@@ -28,11 +28,14 @@ interface DocumentUploadProps {
   onNext: () => void;
   setUploadSkipped: Dispatch<SetStateAction<boolean>>;
   isUploadSkipped: boolean;
+  clientId: string;
+  instructionId: string;
 }
 
 interface DocItem {
   id: number;
   file?: File;
+  blobUrl?: string;
   title: string;
   isCollapsed: boolean;
   isEditing: boolean;
@@ -69,13 +72,16 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   onBack,
   onNext,
   setUploadSkipped,
-  isUploadSkipped
+  isUploadSkipped,
+  clientId,
+  instructionId
 }) => {
   const [documents, setDocuments] = useState<DocItem[]>(
     uploadedFiles.length
       ? uploadedFiles.map((file, idx) => ({
           id: idx + 1,
           file,
+          blobUrl: undefined,
           title: file.name,
           isCollapsed: false,
           isEditing: false
@@ -101,18 +107,31 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     // eslint-disable-next-line
   }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped]);
 
-  const handleFileChange = (
+  const handleFileChange = async (
     id: number,
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
-    setDocuments((docs) =>
-      docs.map((doc) =>
-        doc.id === id
-          ? { ...doc, file, title: file ? file.name : doc.title }
-          : doc
-      )
-    );
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('clientId', clientId);
+    formData.append('instructionId', instructionId);
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      setDocuments((docs) =>
+        docs.map((doc) =>
+          doc.id === id
+            ? { ...doc, file, title: file.name, blobUrl: data.url }
+            : doc
+        )
+      );
+    } catch (err) {
+      console.error('Upload error', err);
+    }
+
   };
 
   const startEditing = (id: number) =>

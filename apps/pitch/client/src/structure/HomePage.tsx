@@ -129,6 +129,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   const aliasId = params.get('Alias.AliasId');
   const orderId = params.get('Alias.OrderId');
   const shaSign = params.get('SHASign');
+  const clientId = params.get('pid') || '';
   const [instruction] = useState(MOCK_INSTRUCTION);
 
   const PSPID = 'epdq1717240';
@@ -404,6 +405,8 @@ function getPulseClass(step: number, done: boolean) {
                     onNext={next}
                     setUploadSkipped={setUploadSkipped}
                     isUploadSkipped={isUploadSkipped}
+                    clientId={clientId}
+                    instructionId={instruction.instructionId}
                   />
                 )}
               </div>

@@ -4,11 +4,13 @@ const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
+const uploadRouter = require('./upload');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
 
 const app = express();
 app.use(express.json());
+app.use('/api', uploadRouter);
 
 // ─── Health probe support ───────────────────────────────────────────────
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
