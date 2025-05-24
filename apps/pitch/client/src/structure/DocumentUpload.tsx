@@ -155,8 +155,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
   const uploadSingleFile = async (doc: DocItem) => {
     if (!doc.file) return doc;
-    const prefix = window.location.pathname.startsWith('/pitch') ? '/pitch' : '';
-    const formData = new FormData();
+    const prefix = '';    const formData = new FormData();
     formData.append('file', doc.file);
     formData.append('clientId', clientId);
     formData.append('instructionId', instructionId);
