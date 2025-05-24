@@ -20,17 +20,26 @@ const containerClient = serviceClient.getContainerClient(container);
 
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
+    if (!account || !container) {
+      throw new Error('Missing storage account or container');
+    }
+
     const { clientId, instructionId } = req.body;
     if (!req.file) return res.status(400).json({ error: 'No file provided' });
     if (!clientId || !instructionId) {
       return res.status(400).json({ error: 'Missing clientId or instructionId' });
     }
+
     const blobName = `${clientId}/${instructionId}/${req.file.originalname}`;
+    console.log(`⬆️  Uploading ${blobName}`);
+
     const blockBlob = containerClient.getBlockBlobClient(blobName);
     await blockBlob.uploadData(req.file.buffer);
+
+    console.log(`✅ Uploaded ${blobName}`);
     res.json({ blobName, url: blockBlob.url });
   } catch (err) {
-    console.error('❌ Upload error', err);
+    console.error('❌ Upload error:', err);
     res.status(500).json({ error: 'Upload failed' });
   }
 });

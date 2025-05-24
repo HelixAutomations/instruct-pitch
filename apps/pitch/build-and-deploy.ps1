@@ -15,6 +15,7 @@ Pop-Location
 
 # Copy backend files to root of instructions/
 Copy-Item .\backend\server.js ..\..\ -Force
+Copy-Item .\backend\upload.js ..\..\ -Force
 Copy-Item .\backend\package.json ..\..\ -Force
 Copy-Item .\backend\web.config ..\..\ -Force
 Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
@@ -25,7 +26,7 @@ npm install --omit=dev
 npm install @azure/identity @azure/keyvault-secrets
 
 # Zip frontend + backend (INCLUDE WHOLE CLIENT FOLDER)
-Compress-Archive -Path .\apps\pitch\client, .\server.js, .\package.json, .\web.config, .\.env, .\node_modules -DestinationPath push-package.zip -Force
+Compress-Archive -Path .\apps\pitch\client, .\*.js, .\package.json, .\web.config, .\.env, .\node_modules -DestinationPath push-package.zip -Force
 
 # Deploy to Azure
 az webapp deployment source config-zip `

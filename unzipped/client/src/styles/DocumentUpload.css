@@ -1,0 +1,324 @@
+/* DocumentUpload.css */
+
+/* ─── FILE‑TYPE BUBBLE STYLES ─── */
+/* base state: hidden */
+.document-upload .file-type-bubble {
+    display: flex;                /* switch to flexbox */
+    flex-wrap: wrap;              /* allow wrapping on small screens */
+    justify-content: center;      /* center the row */
+    gap: clamp(4px, 1vw, 8px);    /* responsive spacing */
+    padding: clamp(12px, 2vw, 16px);
+    margin-block: clamp(12px, 2vw, 16px);
+    max-height: none;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    overflow: visible;            /* show overflowed tooltips */
+}
+
+.document-upload .file-type-bubble.open {
+    opacity: 1;
+    transform: scale(1);
+    max-height: 500px;            /* enough for all icons */
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.document-upload .file-type-icon {
+    font-size: clamp(24px, 3.75vw, 36px);
+    padding: 8px;
+    color: var(--helix-highlight);
+    position: relative;           /* for tooltip */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.document-upload .file-type-icon:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    transform: translateY(-3px);
+}
+
+.document-upload .file-type-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.document-upload .file-type-icon:hover::after,
+.document-upload .file-type-icon:focus::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-8px);
+}
+
+/* staggered fade‑in */
+@keyframes fadeDropIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+}
+.document-upload .file-type-bubble.open .file-type-icon {
+    animation: fadeDropIn 0.25s ease-out forwards;
+}
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(1) { animation-delay:   0ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(2) { animation-delay:  40ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(3) { animation-delay:  80ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(4) { animation-delay: 120ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(5) { animation-delay: 160ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(6) { animation-delay: 200ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(7) { animation-delay: 240ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(8) { animation-delay: 280ms; }
+.document-upload .file-type-bubble.open .file-type-icon:nth-child(9) { animation-delay: 320ms; }
+
+
+/* ─── FORM STRUCTURE ─── */
+.document-upload .form-group-section {
+    padding: 16px 16px 1px;
+    margin-bottom: px;
+  }
+
+.document-upload .form-group {
+    margin-top: 8px;
+    }
+
+.document-upload .group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.document-upload .document-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--helix-dark-blue);
+    flex-grow: 1;
+}
+
+.document-upload .edit-input {
+    font-size: 16px;
+    padding: 4px 8px;
+    border: 1px solid var(--helix-blue);
+    border-radius: 4px;
+    flex-grow: 1;
+}
+
+.document-upload .completion-tick {
+    margin-left: auto;
+    font-size: 14px;
+    color: var(--helix-highlight); /* highlight blue */
+}
+
+.document-upload .file-list-item {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--helix-dark-blue);
+}
+
+.document-upload .section-divider {
+    /* reduce top margin from 8px to 4px */
+    margin: 4px 0 0;
+}
+
+.document-upload .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+
+/* ─── SMALL ICONS ─── */
+.document-upload .section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 20px;
+    color: var(--helix-highlight);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.document-upload .section-icon:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+    transform: scale(1.07);
+}
+
+
+/* ─── SUPPORTED TYPES TOGGLE ─── */
+.document-upload .supported-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--helix-dark-blue);
+    cursor: pointer;
+    margin: 16px 0;
+}
+
+.document-upload .toggle-icon {
+    font-size: 12px;
+    color: var(--helix-dark-blue);
+}
+
+.document-upload .supported-list {
+    margin-bottom: 24px;
+}
+
+
+/* ─── ADD ANOTHER DOCUMENT BUTTON ─── */
+.document-upload .add-document-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px dashed var(--helix-blue);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--helix-blue);
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+
+/* ─── PAPER INPUT (fallback) ─── */
+.document-upload .paper-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--helix-blue);
+    border-radius: 4px;
+    background: var(--helix-grey);
+    transition: border-color 0.3s;
+}
+
+.document-upload .paper-input:focus {
+    outline: none;
+    border-color: var(--helix-highlight);
+}
+
+
+/* ─── CUSTOM UPLOAD / DROP‑ZONE BUTTON ─── */
+
+/* hide the native file input but keep it operable */
+.file-input-hidden {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+}
+
+/* thinner base border + include in transition */
+.upload-button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;               /* controls top/bottom inset */
+    background: transparent;
+    border: 1px dashed var(--helix-blue);
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    opacity: 0.9;
+    transition:
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      transform 0.1s ease,
+      border-color 0.3s ease,
+      border-width 0.3s ease;
+  }
+
+/* keyframes for eased stroke animation */
+@keyframes border-ease-in {
+  0% {
+    border-width: 1px;
+    border-color: var(--helix-blue);
+  }
+  60% {
+    border-width: 2px;
+    border-color: var(--helix-highlight);
+  }
+  100% {
+    border-width: 1px;
+    border-color: var(--helix-highlight);
+  }
+}
+
+.upload-button:hover {
+    animation: border-ease-in 0.6s ease forwards;
+    border-color: var(--helix-highlight);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.06),
+      0 4px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+    background-color: rgba(var(--helix-blue-rgb), 0.02);
+}
+
+.upload-button:active {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.upload-button-icon {
+    font-size: 20px;
+    opacity: 0.6;
+}
+
+.upload-button-text {
+    flex-grow: 1;
+    font-size: 14px;
+    color: var(--helix-dark-blue);
+    opacity: 0.8;
+}
+
+/* --- SKIP BUTTON AND SKIPPED STATE --- */
+.skip-btn,
+.undo-skip-btn {
+  background: #fff8f1;
+  color: #d65541;
+  border: 1px solid #f3ccc0;
+  border-radius: 3px;
+  font-size: 0.97em;
+  padding: 5px 13px;
+  margin: 8px 0 0 0;
+  cursor: pointer;
+  transition: background 0.17s, border 0.17s, color 0.16s;
+}
+.skip-btn:hover,
+.undo-skip-btn:hover {
+  background: #ffe7db;
+  border-color: #d65541;
+  color: #c03d1a;
+}
+
+.file-list-item.skipped-doc {
+  color: #c03d1a;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}

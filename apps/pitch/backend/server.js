@@ -1,4 +1,6 @@
 require('dotenv').config();
+console.log('AZURE_STORAGE_ACCOUNT:', process.env.AZURE_STORAGE_ACCOUNT);
+console.log('UPLOAD_CONTAINER:', process.env.UPLOAD_CONTAINER);
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
@@ -159,6 +161,4 @@ app.get(/^\/pitch(?!\/.*\.).*$/, async (req, res) => {
 
 // ─── Start the server ───────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Backend server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));

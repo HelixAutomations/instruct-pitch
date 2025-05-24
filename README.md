@@ -43,8 +43,8 @@ Environment variables (e.g., Azure Key Vault secrets) must be configured for the
 File uploads require the following settings in `apps/pitch/backend/.env`:
 
 ```
-AZURE_STORAGE_ACCOUNT=<your storage account name>
-UPLOAD_CONTAINER=<container for temporary uploads>
+AZURE_STORAGE_ACCOUNT=instructionfiles
+UPLOAD_CONTAINER=instruction-files
 ```
 
 These specify where the server stores uploaded documents in Azure Blob Storage.

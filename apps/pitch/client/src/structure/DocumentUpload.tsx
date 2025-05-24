@@ -16,7 +16,8 @@ import {
   FaFileAudio,
   FaFileVideo,
   FaCaretDown,
-  FaCaretUp
+  FaCaretUp,
+  FaSyncAlt
 } from 'react-icons/fa';
 import '../styles/DocumentUpload.css';
 
@@ -39,6 +40,8 @@ interface DocItem {
   title: string;
   isCollapsed: boolean;
   isEditing: boolean;
+  isUploading?: boolean;
+  hasError?: boolean;
 }
 
 const iconMap: Record<string, React.ReactElement> = {
@@ -89,8 +92,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       : [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }]
   );
   const [supportedOpen, setSupportedOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  // Keep skip logic in sync with file upload
   useEffect(() => {
     const hasFile = documents.some(doc => !!doc.file);
     if (hasFile) {
@@ -104,34 +107,66 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       setIsComplete(false);
       setUploadedFiles([]);
     }
-    // eslint-disable-next-line
   }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped]);
 
-  const handleFileChange = async (
-    id: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setDocuments((docs) =>
+      docs.map((doc) =>
+        doc.id === id ? { ...doc, file, title: file.name, hasError: false } : doc
+      )
+    );
+  };
+
+  const uploadSingleFile = async (doc: DocItem) => {
+    if (!doc.file) return doc;
+    const prefix = window.location.pathname.startsWith('/pitch') ? '/pitch' : '';
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', doc.file);
     formData.append('clientId', clientId);
     formData.append('instructionId', instructionId);
+
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch(`${prefix}/api/upload`, {
+        method: 'POST',
+        body: formData,
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
-      setDocuments((docs) =>
-        docs.map((doc) =>
-          doc.id === id
-            ? { ...doc, file, title: file.name, blobUrl: data.url }
-            : doc
-        )
-      );
+      return { ...doc, blobUrl: data.url, isUploading: false, hasError: false };
     } catch (err) {
-      console.error('Upload error', err);
+      console.error('❌ Upload failed for', doc.title, err);
+      return { ...doc, isUploading: false, hasError: true };
     }
+  };
 
+  const handleRetry = async (id: number) => {
+    setDocuments((docs) =>
+      docs.map((doc) => doc.id === id ? { ...doc, isUploading: true, hasError: false } : doc)
+    );
+    const targetDoc = documents.find((d) => d.id === id);
+    if (targetDoc) {
+      const updated = await uploadSingleFile({ ...targetDoc, isUploading: true });
+      setDocuments((docs) =>
+        docs.map((doc) => doc.id === id ? updated : doc)
+      );
+    }
+  };
+
+  const handleNext = async () => {
+    setUploading(true);
+    const updatedDocs = await Promise.all(
+      documents.map((doc) => {
+        if (!doc.file) return Promise.resolve(doc);
+        return uploadSingleFile({ ...doc, isUploading: true });
+      })
+    );
+    setDocuments(updatedDocs);
+    setUploading(false);
+
+    const anyFailures = updatedDocs.some((doc) => doc.hasError);
+    if (!anyFailures) onNext();
   };
 
   const startEditing = (id: number) =>
@@ -166,8 +201,6 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       }
     ]);
 
-  const allFilesUploaded = documents.every((d) => !!d.file);
-
   return (
     <div className="form-container apple-form document-upload">
       {documents.map((doc) => (
@@ -199,7 +232,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 startEditing(doc.id);
               }}
             />
-            {doc.file && <span className="completion-tick">✔</span>}
+            {doc.isUploading && <span className="spinner" style={{ marginLeft: 8 }}><FaSyncAlt className="spin" /></span>}
+            {!doc.isUploading && doc.file && !doc.hasError && <span className="completion-tick">✔</span>}
+            {doc.hasError && <span style={{ color: 'red' }}>✖</span>}
             {doc.isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
           </div>
 
@@ -217,7 +252,17 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 onChange={(e) => handleFileChange(doc.id, e)}
               />
               {doc.file && (
-                <div className="file-list-item">{doc.file.name}</div>
+                <div className="file-list-item">
+                  {doc.file.name}
+                  {doc.hasError && (
+                    <span style={{ color: 'red', marginLeft: 8 }}>
+                      – upload failed
+                      <button onClick={() => handleRetry(doc.id)} style={{ marginLeft: 6 }}>
+                        Retry
+                      </button>
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -228,57 +273,27 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         type="button"
         className="add-document-button"
         onClick={addDocument}
-        disabled={isUploadSkipped}
+        disabled={isUploadSkipped || uploading}
       >
         <FaPlus /> Add another document
       </button>
 
-      {/* Supported file types toggle */}
-      <div
-        className="supported-toggle"
-        onClick={() => setSupportedOpen(!supportedOpen)}
-      >
+      <div className="supported-toggle" onClick={() => setSupportedOpen(!supportedOpen)}>
         <span>Supported file types</span>
-        {supportedOpen
-          ? <FaCaretUp className="toggle-icon" />
-          : <FaCaretDown className="toggle-icon" />
-        }
+        {supportedOpen ? <FaCaretUp className="toggle-icon" /> : <FaCaretDown className="toggle-icon" />}
       </div>
 
-      {/* Animated file‑type bubble */}
       {supportedOpen && (
         <div className="file-type-bubble supported-list open">
-          {/* Documents first */}
-          <span className="file-type-icon" data-tooltip="PDF (.pdf)">
-            <FaFilePdf />
-          </span>
-          <span className="file-type-icon" data-tooltip="Word (.doc, .docx)">
-            <FaFileWord />
-          </span>
-          <span className="file-type-icon" data-tooltip="Excel (.xls, .xlsx)">
-            <FaFileExcel />
-          </span>
-          <span className="file-type-icon" data-tooltip="PowerPoint (.ppt, .pptx)">
-            <FaFilePowerpoint />
-          </span>
-          {/* Images & text */}
-          <span className="file-type-icon" data-tooltip="Image (.jpg, .png)">
-            <FaFileImage />
-          </span>
-          <span className="file-type-icon" data-tooltip="Text (.txt)">
-            <FaFileAlt />
-          </span>
-          {/* Archives next */}
-          <span className="file-type-icon" data-tooltip="Archive (.zip, .rar)">
-            <FaFileArchive />
-          </span>
-          {/* Media last */}
-          <span className="file-type-icon" data-tooltip="Video (.mp4)">
-            <FaFileVideo />
-          </span>
-          <span className="file-type-icon" data-tooltip="Audio (.mp3)">
-            <FaFileAudio />
-          </span>
+          <span className="file-type-icon" data-tooltip="PDF (.pdf)"><FaFilePdf /></span>
+          <span className="file-type-icon" data-tooltip="Word (.doc, .docx)"><FaFileWord /></span>
+          <span className="file-type-icon" data-tooltip="Excel (.xls, .xlsx)"><FaFileExcel /></span>
+          <span className="file-type-icon" data-tooltip="PowerPoint (.ppt, .pptx)"><FaFilePowerpoint /></span>
+          <span className="file-type-icon" data-tooltip="Image (.jpg, .png)"><FaFileImage /></span>
+          <span className="file-type-icon" data-tooltip="Text (.txt)"><FaFileAlt /></span>
+          <span className="file-type-icon" data-tooltip="Archive (.zip, .rar)"><FaFileArchive /></span>
+          <span className="file-type-icon" data-tooltip="Video (.mp4)"><FaFileVideo /></span>
+          <span className="file-type-icon" data-tooltip="Audio (.mp3)"><FaFileAudio /></span>
         </div>
       )}
 
@@ -288,6 +303,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           className="btn secondary"
           onClick={onBack}
           aria-label="Go back to document upload"
+          disabled={uploading}
         >
           Back
         </button>
@@ -301,6 +317,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
               setUploadedFiles([]);
               onNext();
             }}
+            disabled={uploading}
           >
             Skip
           </button>
@@ -308,11 +325,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           <button
             type="button"
             className="btn primary"
-            onClick={onNext}
+            onClick={handleNext}
             aria-label="Proceed to next step"
-            disabled={!documents.every((d) => !!d.file)}
+            disabled={uploading || !documents.every((d) => !!d.file)}
           >
-            Next
+            {uploading ? 'Uploading...' : 'Next'}
           </button>
         )}
       </div>
