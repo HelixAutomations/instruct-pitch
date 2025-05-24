@@ -79,26 +79,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   clientId,
   instructionId
 }) => {
-  const storageKey = `uploadedDocs-${clientId}-${instructionId}`;
-  const [documents, setDocuments] = useState<DocItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = sessionStorage.getItem(storageKey);
-      if (cached) {
-        try {
-          const arr = JSON.parse(cached) as { title: string; blobUrl: string }[];
-          return arr.map((item, idx) => ({
-            id: idx + 1,
-            title: item.title,
-            blobUrl: item.blobUrl,
-            isCollapsed: false,
-            isEditing: false,
-          }));
-        } catch {
-          // ignore parse errors
-        }
-      }
-    }
-    return uploadedFiles.length
+  const [documents, setDocuments] = useState<DocItem[]>(() =>
+    uploadedFiles.length
 
       ? uploadedFiles.map((file, idx) => ({
           id: idx + 1,
@@ -108,14 +90,25 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           isCollapsed: false,
           isEditing: false,
         }))
-      : [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }];
-  });
-  const saveCache = (docs: DocItem[]) => {
-    if (typeof window === 'undefined') return;
-    const data = docs
-      .filter((d) => d.blobUrl)
-      .map((d) => ({ title: d.title, blobUrl: d.blobUrl }));
-    sessionStorage.setItem(storageKey, JSON.stringify(data));
+      : [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }]
+  );
+  const removeDocument = (id: number) => {
+    const doc = documents.find((d) => d.id === id);
+    if (!doc) return;
+    if (doc.blobUrl) {
+      if (!window.confirm('This file was already uploaded. Removing it will delete it from our system. Continue?')) {
+        return;
+      }
+      // Placeholder: send DELETE to backend if needed
+      // await fetch(`/api/upload?url=${encodeURIComponent(doc.blobUrl)}`, { method: 'DELETE' });
+    }
+    setDocuments((docs) => {
+      const remaining = docs.filter((d) => d.id !== id);
+      if (remaining.length === 0) {
+        return [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }];
+      }
+      return remaining.map((d, idx) => ({ ...d, id: idx + 1 }));
+    });
   };
   const [supportedOpen, setSupportedOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -181,11 +174,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     const targetDoc = documents.find((d) => d.id === id);
     if (targetDoc) {
       const updated = await uploadSingleFile({ ...targetDoc, isUploading: true });
-      setDocuments((docs) => {
-        const newDocs = docs.map((doc) => (doc.id === id ? updated : doc));
-        saveCache(newDocs);
-        return newDocs;
-      });
+      setDocuments((docs) =>
+        docs.map((doc) => (doc.id === id ? updated : doc))
+      );
     }
   };
 
@@ -198,7 +189,6 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       })
     );
     setDocuments(updatedDocs);
-    saveCache(updatedDocs);
     setUploading(false);
 
     const anyFailures = updatedDocs.some((doc) => doc.hasError);
@@ -308,6 +298,13 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                       </button>
                     </span>
                   )}
+                  <button
+                    type="button"
+                    className="remove-button"
+                    onClick={() => removeDocument(doc.id)}
+                  >
+                    Remove
+                  </button>
                 </div>
               )}
             </div>

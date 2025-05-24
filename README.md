@@ -60,12 +60,9 @@ UPLOAD_CONTAINER=instruction-files
 
 These specify where the server stores uploaded documents in Azure Blob Storage.
 
-### Document upload caching
+### Document upload behaviour
 
-The `DocumentUpload` component caches successful uploads in `sessionStorage` using
-the client and instruction IDs. When the user navigates back to the upload step,
-cached file information is loaded and files that were already uploaded are not
-re-sent to the server. A small "Uploaded ✓" label next to the file name shows which documents have been persisted.
+Uploaded documents are not cached between sessions. Refreshing the page or returning to the upload step shows an empty form and no files are considered uploaded until they are submitted again during that visit.
 
 ## Deploying to Azure
 

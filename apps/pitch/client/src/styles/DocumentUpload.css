@@ -360,3 +360,18 @@
 .retry-button:hover {
   color: var(--helix-highlight);
 }
+
+.remove-button {
+  background: transparent;
+  border: none;
+  color: var(--helix-blue);
+  font-size: 0.85em;
+  margin-left: 8px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.remove-button:hover {
+  color: var(--helix-highlight);
+}
