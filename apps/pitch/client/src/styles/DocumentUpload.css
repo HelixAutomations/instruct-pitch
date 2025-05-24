@@ -170,6 +170,37 @@
     gap: 12px;
 }
 
+/* compact row when a file is selected */
+.document-upload .file-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.document-upload .file-row .section-icon {
+    font-size: 24px;
+}
+
+.document-upload .file-name {
+    flex-grow: 1;
+    font-size: 15px;
+    color: var(--helix-dark-blue);
+    cursor: pointer;
+}
+
+.document-upload .remove-icon {
+    margin-left: auto;
+    color: var(--helix-blue);
+    cursor: pointer;
+    padding: 2px;
+}
+
+.document-upload .remove-icon:hover {
+    color: var(--helix-highlight);
+}
+
+
 
 /* ─── SMALL ICONS ─── */
 .document-upload .section-icon {

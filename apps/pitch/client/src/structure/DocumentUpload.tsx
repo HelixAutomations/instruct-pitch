@@ -1,5 +1,3 @@
-// apps/pitch/client/src/structure/DocumentUpload.tsx
-
 import React, { useState, useEffect } from 'react';
 import { Dispatch, SetStateAction } from 'react';
 import {
@@ -99,18 +97,22 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [dragOverId, setDragOverId] = useState<number | null>(null);
 
   useEffect(() => {
-    const hasFile = documents.some(doc => !!doc.file || !!doc.blobUrl);
-    if (hasFile) {
-      setUploadSkipped(false);
+    const uploaded = documents.filter(d => d.blobUrl && !d.hasError);
+    const allSuccess =
+      uploaded.length > 0 &&
+      documents.every(d => (!!d.blobUrl || !d.file) && !d.hasError);
+
+    if (isUploadSkipped || allSuccess) {
       setIsComplete(true);
-      setUploadedFiles(documents.filter(d => d.file).map(d => d.file!));
-    } else if (isUploadSkipped) {
-      setIsComplete(true);
-      setUploadedFiles([]);
     } else {
       setIsComplete(false);
-      setUploadedFiles([]);
     }
+
+    if (documents.some(doc => !!doc.file || !!doc.blobUrl)) {
+      setUploadSkipped(false);
+    }
+
+    setUploadedFiles(documents.filter(d => d.file).map(d => d.file!));
   }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped]);
 
   const handleFileChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,7 +121,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setDocuments(docs =>
       docs.map(doc =>
         doc.id === id
-          ? { ...doc, file, title: file.name, blobUrl: undefined, hasError: false }
+          ? { ...doc, file, title: file.name, blobUrl: undefined, hasError: false, isCollapsed: true }
           : doc
       )
     );
@@ -132,7 +134,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         id: docs.length + idx + 1,
         file: f,
         title: f.name,
-        isCollapsed: false,
+        isCollapsed: true,
         isEditing: false
       }))
     ]);
@@ -145,7 +147,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setDocuments(docs =>
       docs.map(doc =>
         doc.id === id
-          ? { ...doc, file: first, title: first.name, blobUrl: undefined, hasError: false }
+          ? { ...doc, file: first, title: first.name, blobUrl: undefined, hasError: false, isCollapsed: true }
           : doc
       )
     );
@@ -189,7 +191,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     formData.append('instructionId', instructionId);
 
     try {
-      const res = await fetch(`/api/upload`, { method: 'POST', body: formData });
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       return { ...doc, blobUrl: data.url, isUploading: false, hasError: false };
@@ -246,7 +248,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
   const toggleCollapse = (id: number) =>
     setDocuments(docs =>
-      docs.map(doc => (doc.id === id ? { ...doc, isCollapsed: !doc.isCollapsed } : doc))
+      docs.map(doc =>
+        doc.id === id && !doc.file && !doc.blobUrl
+          ? { ...doc, isCollapsed: !doc.isCollapsed }
+          : doc
+      )
     );
 
   const addDocument = () =>
@@ -259,103 +265,108 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     <div className="form-container apple-form document-upload">
       {documents.map(doc => (
         <div key={doc.id} className="form-group-section">
-          <div className="group-header" onClick={() => toggleCollapse(doc.id)}>
-            {getFileIcon(doc.file)}
-            {doc.isEditing ? (
-              <input
-                type="text"
-                className="edit-input"
-                value={doc.title}
-                onChange={e => updateTitle(doc.id, e.target.value)}
-                onBlur={() => saveTitle(doc.id)}
-                onKeyDown={e => e.key === 'Enter' && saveTitle(doc.id)}
-                autoFocus
-              />
-            ) : (
-              <span className="document-title">{doc.title}</span>
-            )}
-            <FaEdit
-              className="edit-icon"
-              title="Rename document"
-              onClick={e => {
-                e.stopPropagation();
-                startEditing(doc.id);
-              }}
-            />
-            {doc.isUploading && (
-              <span className="spinner" style={{ marginLeft: 8 }}>
-                <FaSyncAlt className="spin" />
-              </span>
-            )}
-            {!doc.isUploading && doc.file && !doc.hasError && (
-              <span className="completion-tick">✔</span>
-            )}
-            {doc.hasError && <span style={{ color: 'red' }}>✖</span>}
-            {doc.isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
-          </div>
-
-          {!doc.isCollapsed && (
-            <div className="form-group">
-              {!doc.file && !doc.blobUrl && (
-                <label
-                  className={`upload-button${dragOverId === doc.id ? ' drag-over' : ''}`}
-                  htmlFor={`fileUpload-${doc.id}`}
-                  onDragOver={e => handleDragOver(doc.id, e)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={e => handleDrop(doc.id, e)}
+          {doc.file || doc.blobUrl ? (
+            <div className="file-row">
+              {getFileIcon(doc.file)}
+              {doc.isEditing ? (
+                <input
+                  type="text"
+                  className="edit-input"
+                  value={doc.title}
+                  onChange={e => updateTitle(doc.id, e.target.value)}
+                  onBlur={() => saveTitle(doc.id)}
+                  onKeyDown={e => e.key === 'Enter' && saveTitle(doc.id)}
+                  autoFocus
+                />
+              ) : (
+                <span
+                  className="file-name"
+                  onClick={() => !doc.blobUrl && startEditing(doc.id)}
                 >
-                  <FaFileUpload className="upload-button-icon" />
-                  <span className="upload-button-text">Drag &amp; drop or click to upload</span>
-                </label>
+                  {doc.title}
+                </span>
               )}
-              <input
-                id={`fileUpload-${doc.id}`}
-                type="file"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.jpg,.png,.mp3,.mp4"
-                className="file-input-hidden"
-                onChange={e => handleFileChange(doc.id, e)}
-                disabled={!!doc.file}
+              {doc.isUploading && (
+                <span className="spinner" style={{ marginLeft: 8 }}>
+                  <FaSyncAlt className="spin" />
+                </span>
+              )}
+              {doc.blobUrl && !doc.hasError && (
+                <span className="upload-status">Uploaded</span>
+              )}
+              {doc.hasError && !doc.isUploading && (
+                <span style={{ color: 'red', marginLeft: 8 }}>
+                  – upload failed
+                  <button
+                    onClick={() => handleRetry(doc.id)}
+                    style={{ marginLeft: 6 }}
+                    className="retry-button"
+                  >
+                    Retry
+                  </button>
+                </span>
+              )}
+              <FaTimes
+                className="remove-icon"
+                onClick={() => removeDocument(doc.id)}
               />
-              {(doc.file || doc.blobUrl) && (
-                <div className="file-list-item">
-                  <span>{doc.file ? doc.file.name : doc.title}</span>
-                  {doc.blobUrl && !doc.hasError && (
-                    <span className="upload-status">Uploaded ✓</span>
-                  )}
-                  {doc.hasError && (
-                    <span style={{ color: 'red', marginLeft: 8 }}>
-                      – upload failed
-                      <button
-                        onClick={() => handleRetry(doc.id)}
-                        style={{ marginLeft: 6 }}
-                        className="retry-button"
-                      >
-                        Retry
-                      </button>
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className="rename-button"
-                    onClick={e => {
-                      e.stopPropagation();
-                      startEditing(doc.id);
-                    }}
+            </div>
+          ) : (
+            <>  
+              <div className="group-header" onClick={() => toggleCollapse(doc.id)}>
+                {getFileIcon(doc.file)}
+                {doc.isEditing ? (
+                  <input
+                    type="text"
+                    className="edit-input"
+                    value={doc.title}
+                    onChange={e => updateTitle(doc.id, e.target.value)}
+                    onBlur={() => saveTitle(doc.id)}
+                    onKeyDown={e => e.key === 'Enter' && saveTitle(doc.id)}
+                    autoFocus
+                  />
+                ) : (
+                  <span className="document-title">{doc.title}</span>
+                )}
+                <FaEdit
+                  className="edit-icon"
+                  title="Rename document"
+                  onClick={e => {
+                    e.stopPropagation();
+                    startEditing(doc.id);
+                  }}
+                />
+                {doc.isUploading && (
+                  <span className="spinner" style={{ marginLeft: 8 }}>
+                    <FaSyncAlt className="spin" />
+                  </span>
+                )}
+                {doc.hasError && <span style={{ color: 'red' }}>✖</span>}
+                {doc.isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
+              </div>
+
+              {!doc.isCollapsed && (
+                <div className="form-group">
+                  <label
+                    className={`upload-button${dragOverId === doc.id ? ' drag-over' : ''}`}
+                    htmlFor={`fileUpload-${doc.id}`}
+                    onDragOver={e => handleDragOver(doc.id, e)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={e => handleDrop(doc.id, e)}
                   >
-                    <FaEdit className="edit-icon" />
-                    <span className="rename-text">Rename</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="remove-button"
-                    onClick={() => removeDocument(doc.id)}
-                  >
-                    <FaTimes />
-                    <span className="sr-only">Remove</span>
-                  </button>
+                    <FaFileUpload className="upload-button-icon" />
+                    <span className="upload-button-text">Drag &amp; drop or click to upload</span>
+                  </label>
+                  <input
+                    id={`fileUpload-${doc.id}`}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.jpg,.png,.mp3,.mp4"
+                    className="file-input-hidden"
+                    onChange={e => handleFileChange(doc.id, e)}
+                  />
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       ))}
