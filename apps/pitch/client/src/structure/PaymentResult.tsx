@@ -46,8 +46,7 @@ export default function PaymentResult() {
   }, [aliasId, orderId, result, status])
 
   return (
-    <div className="payment-result-container">
-      <div className="result-panel">
+    <div className="result-panel">
         <h2>{message}</h2>
         {success && (
           <>
@@ -65,6 +64,5 @@ export default function PaymentResult() {
           <p>Contact support if this persists.</p>
         )}
       </div>
-    </div>
   )
 }
