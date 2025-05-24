@@ -40,8 +40,8 @@ Environment variables (e.g., Azure Key Vault secrets) must be configured for the
 
 ### Upload Environment Variables
 
-File uploads require the following settings in `apps/pitch/backend/.env`:
-
+File uploads require the following settings in `apps/pitch/backend/.env`. The
+values below are examples and should be replaced with your own configuration:
 ```
 AZURE_STORAGE_ACCOUNT=instructionfiles
 UPLOAD_CONTAINER=instruction-files

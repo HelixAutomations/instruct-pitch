@@ -1,3 +1,10 @@
 # Ignore all local dependencies
 node_modules/
 unzipped/
+
+# Artifacts created by build-and-deploy.ps1
+/server.js
+/upload.js
+/package.json
+/web.config
+/.env

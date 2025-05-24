@@ -4302,7 +4302,7 @@ D:.
 |               |   |   ErrorBoundary.tsx
 |               |   |   ProofOfId.tsx
 |               |   |   
-|               |   \---form components
+|               |   \---form-components
 |               |           StepProgress.tsx
 |               |           
 |               +---structure
