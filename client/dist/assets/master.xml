@@ -1,0 +1,37 @@
+<root>
+  <Element ElementId="VisaCvcInfo">
+    <Languages>
+      <Language Id="en_us">The security code is on the back of your card.</Language>
+    </Languages>
+  </Element>
+  <Element ElementId="MasterCardCvcInfo">
+    <Languages>
+      <Language Id="en_us">The security code is on the back of your card.</Language>
+    </Languages>
+  </Element>
+  <Element ElementId="EurocardCvcInfo">
+    <Languages>
+      <Language Id="en_us">The security code is on the back of your card.</Language>
+    </Languages>
+  </Element>
+  <Element ElementId="DinersClubCvcInfo">
+    <Languages>
+      <Language Id="en_us">The security code is on the back of your card.</Language>
+    </Languages>
+  </Element>
+  <Element ElementId="JcbCvcInfo">
+    <Languages>
+      <Language Id="en_us">The security code is on the back of your card.</Language>
+    </Languages>
+  </Element>
+  <Element ElementId="AmericanExpressCvcInfo">
+    <Languages>
+      <Language Id="en_us">The security code is on the back of your card.</Language>
+    </Languages>
+  </Element>
+  <Element ElementId="DefaultCvcInfo">
+    <Languages>
+      <Language Id="en_us">The security code is on the back of your card.</Language>
+    </Languages>
+  </Element>
+</root>

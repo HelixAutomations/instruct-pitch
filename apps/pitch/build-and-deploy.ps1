@@ -12,6 +12,13 @@ npm ci
 npm run build
 Pop-Location
 
+# Copy built frontend to root-level client/dist
+Copy-Item .\client\dist ..\..\client\dist -Recurse -Force
+
+# Remove client dev dependencies to reduce package size
+Remove-Item -Recurse -Force .\client\node_modules -ErrorAction SilentlyContinue
+
+
 # Copy backend files to root of instructions/
 Copy-Item .\backend\server.js ..\..\ -Force
 Copy-Item .\backend\upload.js ..\..\ -Force
@@ -24,8 +31,8 @@ Push-Location ..\..\
 npm install --omit=dev
 npm install @azure/identity @azure/keyvault-secrets
 
-# Zip frontend + backend (INCLUDE WHOLE CLIENT FOLDER)
-Compress-Archive -Path .\apps\pitch\client, .\*.js, .\package.json, .\web.config, .\.env, .\upload.js, .\server.js, .\node_modules -DestinationPath push-package.zip -Force
+# Zip frontend dist + backend
+Compress-Archive -Path .\client\dist, .\*.js, .\package.json, .\web.config, .\.env, .\upload.js, .\server.js, .\node_modules -DestinationPath push-package.zip -Force
 
 # Deploy to Azure
 az webapp deployment source config-zip `

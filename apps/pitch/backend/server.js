@@ -18,7 +18,10 @@ app.use('/api', uploadRouter);
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
 
 // ─── Key Vault setup ──────────────────────────────────────────────────
-const keyVaultName = 'helixlaw-instructions';
+const keyVaultName = process.env.KEY_VAULT_NAME;
+if (!keyVaultName) {
+  console.warn('⚠️  KEY_VAULT_NAME not set');
+}
 const keyVaultUri  = `https://${keyVaultName}.vault.azure.net`;
 const credential   = new DefaultAzureCredential();
 const secretClient = new SecretClient(keyVaultUri, credential);

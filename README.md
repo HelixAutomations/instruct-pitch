@@ -38,6 +38,17 @@ npm run preview --prefix apps/pitch/client
 
 Environment variables (e.g., Azure Key Vault secrets) must be configured for the backend before running in production.
 
+### Key Vault Environment Variable
+
+Add the Key Vault name to `apps/pitch/backend/.env` so the server can load secrets:
+
+```
+KEY_VAULT_NAME=my-key-vault
+```
+
+This determines which Azure Key Vault the backend connects to.
+
+
 ### Upload Environment Variables
 
 File uploads require the following settings in `apps/pitch/backend/.env`. The

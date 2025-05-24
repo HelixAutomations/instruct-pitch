@@ -1,0 +1,54 @@
+<!-- 1) Inline your form-specific styles (allowed) -->
+<style>
+  /* Container overrides */
+  html body #payment-form-container,
+  html body .payment-form-container,
+  html body #payment-data-container {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+  }
+
+  /* Example label & input styling from helixlaw.css */
+  .payment-label {
+    color: #3d4c68;
+    font-weight: 500;
+    margin-bottom: .25rem;
+  }
+  .payment-input input,
+  .payment-input select {
+    width: 100%;
+    border: 1px solid #3690ce;
+    padding: .5rem;
+    border-radius: 4px;
+  }
+</style>
+
+<!-- 2) External resize helper (allowed) -->
+<script src="$$$TP RESOURCES URL$$$/flex-resize.js"></script>
+
+<!-- 3) Your form placeholders -->
+
+$$$CARD NUMBER LABEL$$$
+$$$CARD NUMBER INPUT$$$
+$$$CARD NUMBER INFO$$$
+$$$CARD NUMBER ERROR$$$
+
+$$$CARDHOLDER NAME LABEL$$$
+$$$CARDHOLDER NAME INPUT$$$
+$$$CARDHOLDER NAME INFO$$$
+$$$CARDHOLDER NAME ERROR$$$
+
+<div style="display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end; margin-top:1rem;">
+  $$$EXPIRY DATE MONTH$$$
+  $$$EXPIRY DATE YEAR$$$
+  $$$CVC LABEL$$$
+  $$$CVC INPUT$$$
+  $$$CVC INFO$$$
+  $$$CVC ERROR$$$
+</div>
+
+<div style="display:flex; gap:1rem; margin-top:1.5rem;">
+  $$$SUBMIT$$$
+  $$$CANCEL$$$
+</div>
