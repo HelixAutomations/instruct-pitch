@@ -5,7 +5,6 @@ import {
   FaChevronUp,
   FaFileUpload,
   FaPlus,
-  FaEdit,
   FaFilePdf,
   FaFileImage,
   FaFileWord,
@@ -17,7 +16,8 @@ import {
   FaFileVideo,
   FaCaretDown,
   FaCaretUp,
-  FaSyncAlt
+  FaSyncAlt,
+  FaTimes
 } from 'react-icons/fa';
 import '../styles/DocumentUpload.css';
 
@@ -39,7 +39,6 @@ interface DocItem {
   blobUrl?: string;
   title: string;
   isCollapsed: boolean;
-  isEditing: boolean;
   isUploading?: boolean;
   hasError?: boolean;
 }
@@ -88,9 +87,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           blobUrl: undefined,
           title: file.name,
           isCollapsed: false,
-          isEditing: false,
         }))
-      : [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }]
+      : [{ id: 1, title: 'Document 1', isCollapsed: false }]
   );
   const removeDocument = (id: number) => {
     const doc = documents.find((d) => d.id === id);
@@ -105,13 +103,14 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setDocuments((docs) => {
       const remaining = docs.filter((d) => d.id !== id);
       if (remaining.length === 0) {
-        return [{ id: 1, title: 'Document 1', isCollapsed: false, isEditing: false }];
+        return [{ id: 1, title: 'Document 1', isCollapsed: false }];
       }
       return remaining.map((d, idx) => ({ ...d, id: idx + 1 }));
     });
   };
   const [supportedOpen, setSupportedOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
 
   useEffect(() => {
     const hasFile = documents.some(doc => !!doc.file || !!doc.blobUrl);
@@ -195,22 +194,10 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (!anyFailures) onNext();
   };
 
-  const startEditing = (id: number) =>
-    setDocuments((docs) =>
-      docs.map((doc) => ({ ...doc, isEditing: doc.id === id }))
-    );
-
   const updateTitle = (id: number, newTitle: string) =>
     setDocuments((docs) =>
       docs.map((doc) =>
         doc.id === id ? { ...doc, title: newTitle } : doc
-      )
-    );
-
-  const saveTitle = (id: number) =>
-    setDocuments((docs) =>
-      docs.map((doc) =>
-        doc.id === id ? { ...doc, isEditing: false } : doc
       )
     );
 
@@ -227,8 +214,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       {
         id: docs.length + 1,
         title: `Document ${docs.length + 1}`,
-        isCollapsed: false,
-        isEditing: false
+        isCollapsed: false
       }
     ]);
 
@@ -241,29 +227,12 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             onClick={() => toggleCollapse(doc.id)}
           >
             {getFileIcon(doc.file)}
-            {doc.isEditing ? (
-              <input
-                type="text"
-                className="edit-input"
-                value={doc.title}
-                onChange={(e) => updateTitle(doc.id, e.target.value)}
-                onBlur={() => saveTitle(doc.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    saveTitle(doc.id);
-                  }
-                }}
-                autoFocus
-              />
-            ) : (
-              <span className="document-title">{doc.title}</span>
-            )}
-            <FaEdit
-              className="edit-icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                startEditing(doc.id);
-              }}
+            <input
+              type="text"
+              className="title-input"
+              value={doc.title}
+              onChange={(e) => updateTitle(doc.id, e.target.value)}
+              onClick={(e) => e.stopPropagation()}
             />
             {doc.isUploading && <span className="spinner" style={{ marginLeft: 8 }}><FaSyncAlt className="spin" /></span>}
             {!doc.isUploading && doc.file && !doc.hasError && <span className="completion-tick">✔</span>}
@@ -273,7 +242,26 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
           {!doc.isCollapsed && (
             <div className="form-group">
-              <label className="upload-button" htmlFor={`fileUpload-${doc.id}`}>
+              <label
+                className={`upload-button ${dragOverId === doc.id ? 'drag-over' : ''}`}
+                htmlFor={`fileUpload-${doc.id}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverId(doc.id);
+                }}
+                onDragLeave={() => setDragOverId(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverId(null);
+                  const files = e.dataTransfer.files;
+                  if (files && files.length > 0) {
+                    const event = {
+                      target: { files } as unknown as HTMLInputElement,
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    handleFileChange(doc.id, event);
+                  }
+                }}
+              >
                 <FaFileUpload className="upload-button-icon" />
                 {doc.file ? 'Change file' : 'Choose file'}
               </label>
@@ -303,7 +291,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                     className="remove-button"
                     onClick={() => removeDocument(doc.id)}
                   >
-                    Remove
+                    <FaTimes aria-label="Remove" />
                   </button>
                 </div>
               )}

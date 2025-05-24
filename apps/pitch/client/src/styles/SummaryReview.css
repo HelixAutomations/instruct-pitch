@@ -221,3 +221,11 @@
   color: #9daab6;
   font-style: italic;
 }
+
+/* Check mark icon beside uploaded files */
+.summary-file-check {
+  color: var(--helix-highlight);
+  font-size: 1rem;
+  margin-left: 0.3rem;
+  flex-shrink: 0;
+}

@@ -32,6 +32,7 @@ import {
   FaFileAudio,
   FaFileVideo,
   FaFileUpload,
+  FaCheckCircle,
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
@@ -243,6 +244,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
 
   const [isProofDone, setProofDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
+  const [setUploadReady] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(() =>
     sessionStorage.getItem('paymentDone') === 'true'
   );
@@ -261,7 +263,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
   }, [proofData]);
   useEffect(() => {
     setUploadDone(isUploadDataComplete());
-  }, [uploadedFiles]);
+  }, []);
   useEffect(() => {
     if (sessionStorage.getItem('paymentDone') === 'true') {
       setPaymentDone(true);
@@ -321,9 +323,8 @@ function getPulseClass(step: number, done: boolean) {
     ].every((f) => f && f.toString().trim());
   }
   function isUploadDataComplete() {
-    if (uploadedFiles.length > 0) return true;
     const key = `uploadedDocs-${clientId}-${instruction.instructionId}`;
-    return !!sessionStorage.getItem(key);
+    return sessionStorage.getItem(key) === 'true';
   }
   function isPaymentComplete() {
     return (
@@ -340,7 +341,14 @@ function getPulseClass(step: number, done: boolean) {
   const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
-  const next = () => setOpenStep((prev) => (prev < 4 ? (prev + 1) as any : prev));
+  const next = () => {
+    if (openStep === 2) {
+      setUploadDone(true);
+      const key = `uploadedDocs-${clientId}-${instruction.instructionId}`;
+      sessionStorage.setItem(key, 'true');
+    }
+    setOpenStep((prev) => (prev < 4 ? (prev + 1) as any : prev));
+  };
   const back = () => setOpenStep((prev) => (prev > 1 ? (prev - 1) as any : prev));
 
   useEffect(() => {
@@ -402,7 +410,7 @@ function getPulseClass(step: number, done: boolean) {
                   <DocumentUpload
                     uploadedFiles={uploadedFiles}
                     setUploadedFiles={setUploadedFiles}
-                    setIsComplete={setUploadDone}
+                    setIsComplete={setUploadReady}
                     onBack={back}
                     onNext={next}
                     setUploadSkipped={setUploadSkipped}
@@ -675,6 +683,7 @@ function getPulseClass(step: number, done: boolean) {
                                     >
                                       {f.name}
                                     </span>
+                                                                        <FaCheckCircle className="summary-file-check" />
                                   </div>
                                 ))
                               }
@@ -873,6 +882,7 @@ function getPulseClass(step: number, done: boolean) {
                             >
                               {f.name}
                             </span>
+                            <FaCheckCircle className="summary-file-check" />
                           </div>
                         ))
                       }
