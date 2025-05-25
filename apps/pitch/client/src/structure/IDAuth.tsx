@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { FaUser, FaRegFileAlt, FaInfoCircle } from 'react-icons/fa';
+import { FaUser, FaInfoCircle } from 'react-icons/fa';
 import '../styles/IDAuth.css';
 
 /**
- * Collects and confirms the user’s Client ID and Instruction ID.
- */
+ * Collects and confirms the user’s Client ID.
+ *  */
 interface IDAuthProps {
   clientId?: string;
-  instructionId?: string;
   setClientId: (cid: string) => void;
   setInstructionId: (iid: string) => void;
   onConfirm: () => void;
@@ -15,31 +14,33 @@ interface IDAuthProps {
 
 const IDAuth: React.FC<IDAuthProps> = ({
   clientId = '',
-  instructionId = '',
   setClientId,
   setInstructionId,
   onConfirm,
 }) => {
-  const [errors, setErrors] = useState<{ clientId: string; instructionId: string }>({
+  const [errors, setErrors] = useState<{ clientId: string }>({
     clientId: '',
-    instructionId: '',
   });
 
   const validateInputs = () => {
-    const newErrors = { clientId: '', instructionId: '' };
-
+    const newErrors = { clientId: '' };
     if (!clientId.trim()) newErrors.clientId = 'Your Client ID is mandatory.';
-    if (!instructionId.trim()) newErrors.instructionId = 'Please enter your Instruction ID.';
 
     setErrors(newErrors);
-    return !newErrors.clientId && !newErrors.instructionId;
+    return !newErrors.clientId;
   };
 
   const handleSubmit = () => {
-    if (validateInputs()) onConfirm();
+    if (validateInputs()) {
+      const now = new Date();
+      const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const iid = `HLX-${clientId}-${ddmm}`;
+      setInstructionId(iid);
+      onConfirm();
+    }
   };
 
-  const isButtonDisabled = !clientId.trim() || !instructionId.trim();
+  const isButtonDisabled = !clientId.trim();
 
   return (
     <div
@@ -56,8 +57,7 @@ const IDAuth: React.FC<IDAuthProps> = ({
         <header className="modal-header">
           <div className="info-box">
             <span>
-              Please confirm your unique <span className="highlight">Client ID</span> or{' '}
-              <span className="highlight">Instruction ID</span>.
+              Please confirm your unique <span className="highlight">Client ID</span>.
             </span>
             <FaInfoCircle className="info-icon" aria-hidden="true" />
           </div>
@@ -76,21 +76,6 @@ const IDAuth: React.FC<IDAuthProps> = ({
               placeholder="Client ID"
             />
             {errors.clientId && <span className="error-text">{errors.clientId}</span>}
-          </div>
-
-          <div className="input-group">
-            <FaRegFileAlt className={`input-icon ${instructionId ? 'filled' : ''}`} />
-            <input
-              type="text"
-              id="instructionIdInput"
-              className="input-field"
-              value={instructionId}
-              onChange={(e) => setInstructionId(e.target.value)}
-              placeholder="Instruction ID"
-            />
-            {errors.instructionId && (
-              <span className="error-text">{errors.instructionId}</span>
-            )}
           </div>
         </div>
 

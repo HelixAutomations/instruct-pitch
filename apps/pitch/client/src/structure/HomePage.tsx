@@ -48,6 +48,8 @@ import SummaryReview from './SummaryReview';
 
 interface HomePageProps {
   step1Reveal?: boolean;
+  clientId: string;
+  instructionId: string;
 }
 
 interface StepHeaderProps {
@@ -124,20 +126,17 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   );
 };
 
-const MOCK_INSTRUCTION = {
-  instructionId: "HLX-2405-000001",
-  amount: 0.99,
-  product: "instruction-pitch",
-  workType: "Shareholder Dispute",
-};
-
-const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
+const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionId }) => {
   const params = new URLSearchParams(window.location.search);
   const aliasId = params.get('Alias.AliasId');
   const orderId = params.get('Alias.OrderId');
   const shaSign = params.get('SHASign');
-  const clientId = params.get('pid') || '';
-  const [instruction] = useState(MOCK_INSTRUCTION);
+  const [instruction] = useState({
+    instructionId,
+    amount: 0.99,
+    product: 'instruction-pitch',
+    workType: 'Shareholder Dispute',
+  });
 
   const PSPID = 'epdq1717240';
   const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${encodeURIComponent(instruction.product)}`;

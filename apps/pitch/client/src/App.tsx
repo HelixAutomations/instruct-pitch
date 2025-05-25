@@ -12,10 +12,14 @@ const params = new URLSearchParams(window.location.search);
 
 const App: React.FC = () => {
   const [clientId, setClientId] = useState(params.get('pid') || '');
-  const [instructionId, setInstructionId] = useState(params.get('eid') || '');
-  const [confirmed, setConfirmed] = useState(() =>
-    Boolean(params.get('pid') && params.get('eid'))
-  );
+  const [instructionId, setInstructionId] = useState(() => {
+    const pid = params.get('pid');
+    if (!pid) return '';
+    const now = new Date();
+    const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return `HLX-${pid}-${ddmm}`;
+  });
+  const [confirmed, setConfirmed] = useState(() => Boolean(params.get('pid')));
   const [step1Reveal, setStep1Reveal] = useState(false);
   const location = useLocation();
 
@@ -51,13 +55,16 @@ const App: React.FC = () => {
               !confirmed ? (
                 <IDAuth
                   clientId={clientId}
-                  instructionId={instructionId}
                   setClientId={setClientId}
                   setInstructionId={setInstructionId}
                   onConfirm={() => setConfirmed(true)}
                 />
               ) : (
-                <HomePage step1Reveal={step1Reveal} />
+                <HomePage
+                  step1Reveal={step1Reveal}
+                  clientId={clientId}
+                  instructionId={instructionId}
+                />
               )
             }
           />
