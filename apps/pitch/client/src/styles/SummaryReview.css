@@ -54,12 +54,12 @@
 .summary-subsection hr {
   border: none;
   border-top: 1px solid #e3e8ef;
-  margin: 0.2rem 0 0.4rem 0;
+  margin: 1rem 0 1rem 0;
 }
 
 /* The content reveal area */
 .summary-content {
-  padding: 0.25em 0 0.5em 0.3em;
+  padding: 0.25em 0.25rem 0.25em 0.25em;
   font-size: 0.96rem;
   color: var(--helix-dark-blue);
 }

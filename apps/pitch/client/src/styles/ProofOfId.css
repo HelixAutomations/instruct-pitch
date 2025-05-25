@@ -329,10 +329,6 @@
   margin: 0 auto;
 }
 
-.form-content {
-  padding-bottom: 4rem;
-}
-
 .info-box {
   background: #F4F4F6;
   padding: 1.5rem;
@@ -627,11 +623,10 @@
 }
 
 .button-group {
-  position: sticky;
-  bottom: 0;
   background: #fff;
-  z-index: 10;
   padding-top: 1rem;
+  padding-bottom: 2rem; /* optional: space below the buttons */
+  text-align: right;    /* optional: align buttons */
 }
 
 .form-container.apple-form {
