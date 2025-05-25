@@ -157,7 +157,6 @@
 .step-header.active + .step-content {
   max-height: 700px;
   opacity: 1;
-  padding: 16px 10px 20px 10px;
   border: 2px solid rgba(211, 211, 211, 0.5);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);
   transform: scaleY(1);
@@ -461,8 +460,18 @@
 .summary-placeholder { color: #b3b3b3; font-style: italic; font-weight: 400; }
 
 @media (max-width: 768px) {
-  .step-content { padding: 7px 2px 12px 2px !important; }
+  .step-content {
+    padding: 7px 6px 12px 6px !important;  /* Small, but even on left/right */
+    box-sizing: border-box;
+  }
 }
 
 /* Payment pane: allow natural height */
 .step-content.payment-noscroll { max-height: none !important; overflow: visible !important; }
+
+@media (max-width: 600px) {
+  .form-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

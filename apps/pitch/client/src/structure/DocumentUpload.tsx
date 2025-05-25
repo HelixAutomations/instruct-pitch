@@ -17,6 +17,7 @@ import {
   FaSyncAlt
 } from 'react-icons/fa';
 import '../styles/DocumentUpload.css';
+import { CSSTransition } from "react-transition-group";
 
 interface UploadedFile {
   file: File;
@@ -43,6 +44,7 @@ interface DocItem {
   isCollapsed: boolean;
   isUploading?: boolean;
   hasError?: boolean;
+  isEditing?: boolean;
 }
 
 const iconMap: Record<string, React.ReactElement> = {
@@ -69,6 +71,49 @@ const getFileIcon = (file?: File) => {
   return iconMap[ext] || <FaFileAlt className="section-icon" />;
 };
 
+const getFileNameWithoutExtension = (name?: string) => {
+  if (!name) return '';
+  const lastDot = name.lastIndexOf('.');
+  return lastDot > 0 ? name.slice(0, lastDot) : name;
+};
+
+// --- Supported File Types Info ---
+function SupportedFileTypesInfo() {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <div className="supported-types-center-wrap">
+      <button
+        className="supported-types-toggle"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        type="button"
+      >
+        Supported file types
+        {open ? <FaCaretUp /> : <FaCaretDown />}
+      </button>
+      <CSSTransition
+        in={open}
+        timeout={250}
+        classNames="supported-type-icons-anim"
+        unmountOnExit
+      >
+        <div className="supported-type-icons">
+          <span className="file-type-icon" title="PDF (.pdf)"><FaFilePdf /></span>
+          <span className="file-type-icon" title="Word (.doc, .docx)"><FaFileWord /></span>
+          <span className="file-type-icon" title="Excel (.xls, .xlsx)"><FaFileExcel /></span>
+          <span className="file-type-icon" title="PowerPoint (.ppt, .pptx)"><FaFilePowerpoint /></span>
+          <span className="file-type-icon" title="Image (.jpg, .png)"><FaFileImage /></span>
+          <span className="file-type-icon" title="Text (.txt)"><FaFileAlt /></span>
+          <span className="file-type-icon" title="Archive (.zip, .rar)"><FaFileArchive /></span>
+          <span className="file-type-icon" title="Video (.mp4)"><FaFileVideo /></span>
+          <span className="file-type-icon" title="Audio (.mp3)"><FaFileAudio /></span>
+        </div>
+      </CSSTransition>
+    </div>
+  );
+}
+
 const DocumentUpload: React.FC<DocumentUploadProps> = ({
   uploadedFiles,
   setUploadedFiles,
@@ -87,15 +132,14 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           file: uf.file,
           blobUrl: uf.uploaded ? 'uploaded' : undefined,
           title: uf.file.name,
-          isCollapsed: false
+          isCollapsed: false,
+          isEditing: false
         }))
-      : [{ id: 1, title: 'Document 1', isCollapsed: false }]
+      : []
   );
-  const [supportedOpen, setSupportedOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
 
-  // Sync uploadedFiles prop/state
   useEffect(() => {
     const uploaded = documents.filter(d => d.blobUrl && !d.hasError);
     const allSuccess =
@@ -123,30 +167,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     );
   }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, clientId, instructionId]);
 
-  // Add new empty document slot if all slots are filled
-  useEffect(() => {
-    if (documents.every(d => d.file || d.blobUrl)) {
-      setDocuments(docs => [
-        ...docs,
-        { id: docs.length + 1, title: `Document ${docs.length + 1}`, isCollapsed: false }
-      ]);
-    }
-  }, [documents]);
-
-  // Handlers
-  const handleFileChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setDocuments(docs =>
-      docs.map(doc =>
-        doc.id === id
-          ? { ...doc, file, title: file.name, blobUrl: undefined, hasError: false, isCollapsed: true }
-          : doc
-      )
-    );
-    e.target.value = '';
-  };
-
+  // Add new files to the document list
   const addExtraDocuments = (files: File[]) =>
     setDocuments(docs => [
       ...docs,
@@ -154,34 +175,12 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         id: docs.length + idx + 1,
         file: f,
         title: f.name,
-        isCollapsed: true
+        isCollapsed: true,
+        isEditing: false
       }))
     ]);
 
-  // Per-document drag & drop
-  const handleDragOver = (id: number, e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOverId(id);
-  };
-
-  const handleDragLeave = () => setDragOverId(null);
-
-  const handleDrop = (id: number, e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    const dropped = Array.from(e.dataTransfer.files);
-    if (!dropped.length) return;
-    const [first, ...rest] = dropped;
-    setDocuments(docs =>
-      docs.map(doc =>
-        doc.id === id
-          ? { ...doc, file: first, title: first.name, blobUrl: undefined, hasError: false, isCollapsed: true }
-          : doc
-      )
-    );
-    if (rest.length) addExtraDocuments(rest);
-    setDragOverId(null);
-  };
-
+  // Remove a file row
   const removeFile = (id: number) => {
     const target = documents.find(d => d.id === id);
     if (target?.blobUrl) {
@@ -195,13 +194,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
     setDocuments(docs => {
       const remaining = docs.filter(d => d.id !== id);
-      if (remaining.length === 0) {
-        return [{ id: 1, title: 'Document 1', isCollapsed: false }];
-      }
       return remaining.map((d, idx) => ({ ...d, id: idx + 1 }));
     });
   };
 
+  // Upload logic
   const uploadSingleFile = async (doc: DocItem) => {
     if (!doc.file) return doc;
     const formData = new FormData();
@@ -258,75 +255,161 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
   };
 
-  // UI
+  // ---- Inline rename/edit handlers ----
+
+  const handleFileNameClick = (id: number) => {
+    setDocuments(docs =>
+      docs.map(doc =>
+        doc.id === id ? { ...doc, isEditing: true } : { ...doc, isEditing: false }
+      )
+    );
+  };
+
+  const handleFileNameChange = (id: number, value: string) => {
+    setDocuments(docs =>
+      docs.map(doc =>
+        doc.id === id ? { ...doc, title: value } : doc
+      )
+    );
+  };
+
+  const handleFileNameBlur = (id: number) => {
+    setDocuments(docs =>
+      docs.map(doc =>
+        doc.id === id ? { ...doc, isEditing: false } : doc
+      )
+    );
+  };
+
+  const handleFileNameKeyDown = (id: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      handleFileNameBlur(id);
+    }
+  };
+
+  // ---- Render ----
   return (
     <div className="form-container apple-form document-upload">
+
+      {/* 1. Render selected/uploaded files at the top */}
       <div className="documents-list">
-        {documents.map(doc => (
-          <div key={doc.id} className="file-row">
-            {getFileIcon(doc.file)}
-            <span className="file-name">{doc.file ? doc.file.name : doc.title}</span>
-            <label
-              className={`upload-button${dragOverId === doc.id ? ' drag-over' : ''}`}
-              htmlFor={`fileUpload-${doc.id}`}
-              onDragOver={e => handleDragOver(doc.id, e)}
-              onDragLeave={handleDragLeave}
-              onDrop={e => handleDrop(doc.id, e)}
-            >
-              <FaFileUpload className="upload-button-icon" />
-              <span className="upload-button-text">Drag &amp; drop or click to upload</span>
-            </label>
-            <input
-              id={`fileUpload-${doc.id}`}
-              type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.jpg,.png,.mp3,.mp4"
-              className="file-input-hidden"
-              onChange={e => handleFileChange(doc.id, e)}
-            />
-            {doc.isUploading && (
-              <span className="spinner" style={{ marginLeft: 8 }}>
-                <FaSyncAlt className="spin" />
+        {documents.filter(doc => doc.file).map(doc => {
+          const fileBaseName = getFileNameWithoutExtension(doc.file?.name ?? '');
+          const showDraftStyle =
+            !doc.title ||
+            doc.title.trim() === '' ||
+            doc.title === doc.file?.name ||
+            doc.title === fileBaseName;
+
+          return (
+            <div key={doc.id} className="file-row file-row-list-item">
+              <span className="section-icon" style={{ fontSize: 36 }}>
+                {getFileIcon(doc.file)}
               </span>
-            )}
-            {doc.blobUrl && !doc.hasError && <span className="upload-status">Uploaded</span>}
-            {doc.hasError && !doc.isUploading && (
-              <span style={{ color: 'red', marginLeft: 8 }}>
-                – upload failed
-                <button
-                  onClick={() => handleRetry(doc.id)}
-                  style={{ marginLeft: 6 }}
-                  className="retry-button"
+              {doc.isEditing ? (
+                <input
+                  className="title-input"
+                  type="text"
+                  autoFocus
+                  value={doc.title ? getFileNameWithoutExtension(doc.title) : fileBaseName}
+                  onChange={e => handleFileNameChange(doc.id, e.target.value)}
+                  onBlur={() => handleFileNameBlur(doc.id)}
+                  onKeyDown={e => handleFileNameKeyDown(doc.id, e)}
+                  maxLength={80}
+                  style={{ minWidth: 80, fontSize: 16, fontWeight: 500 }}
+                  title={doc.file?.name}
+                />
+              ) : (
+                <span
+                  className={
+                    "file-name" +
+                    (showDraftStyle ? " draft-rename" : "")
+                  }
+                  title={doc.file?.name}
+                  tabIndex={0}
+                  onClick={() => handleFileNameClick(doc.id)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleFileNameClick(doc.id);
+                    }
+                  }}
+                  style={{ userSelect: "text" }}
                 >
-                  Retry
-                </button>
-              </span>
-            )}
-            <FaTimes className="remove-icon" onClick={() => removeFile(doc.id)} />
-          </div>
-        ))}
+                  {doc.title
+                    ? getFileNameWithoutExtension(doc.title)
+                    : fileBaseName}
+                </span>
+              )}
+              {doc.isUploading && (
+                <span className="spinner">
+                  <FaSyncAlt className="spin" />
+                </span>
+              )}
+              {doc.blobUrl && !doc.hasError && (
+                <span className="upload-status">Uploaded</span>
+              )}
+              {doc.hasError && !doc.isUploading && (
+                <span style={{ color: 'red', marginLeft: 8 }}>
+                  – upload failed
+                  <button
+                    onClick={() => handleRetry(doc.id)}
+                    className="retry-button"
+                    style={{ marginLeft: 6 }}
+                  >
+                    Retry
+                  </button>
+                </span>
+              )}
+              <FaTimes className="remove-icon" onClick={() => removeFile(doc.id)} />
+            </div>
+          );
+        })}
       </div>
 
-      <div className="supported-toggle" onClick={() => setSupportedOpen(!supportedOpen)}>
-        <span>Supported file types</span>
-        {supportedOpen ? <FaCaretUp className="toggle-icon" /> : <FaCaretDown className="toggle-icon" />}
+      {/* 2. Dropzone (dotted area) BELOW the file list */}
+      <div className="form-group">
+        <label
+          className={
+            `upload-button${dragOverId === 0 ? ' drag-over' : ''}` +
+            (documents.length === 0 ? ' pulse' : '')
+          }
+          htmlFor="fileUpload"
+          onDragOver={e => { e.preventDefault(); setDragOverId(0); }}
+          onDragLeave={() => setDragOverId(null)}
+          onDrop={e => {
+            e.preventDefault();
+            const files = Array.from(e.dataTransfer.files);
+            if (!files.length) return;
+            addExtraDocuments(files);
+            setDragOverId(null);
+          }}
+        >
+          <FaFileUpload className="upload-button-icon" />
+          <span className="upload-button-text">
+            {documents.length === 0 ? "Upload your first file" : "Upload another file"}
+          </span>
+        </label>
+        <input
+          id="fileUpload"
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.jpg,.png,.mp3,.mp4"
+          className="file-input-hidden"
+          onChange={e => {
+            const files = Array.from(e.target.files || []);
+            if (files.length) addExtraDocuments(files);
+            e.target.value = '';
+          }}
+        />
       </div>
 
-      {supportedOpen && (
-        <div className="file-type-bubble supported-list open">
-          <span className="file-type-icon" data-tooltip="PDF (.pdf)"><FaFilePdf /></span>
-          <span className="file-type-icon" data-tooltip="Word (.doc, .docx)"><FaFileWord /></span>
-          <span className="file-type-icon" data-tooltip="Excel (.xls, .xlsx)"><FaFileExcel /></span>
-          <span className="file-type-icon" data-tooltip="PowerPoint (.ppt, .pptx)"><FaFilePowerpoint /></span>
-          <span className="file-type-icon" data-tooltip="Image (.jpg, .png)"><FaFileImage /></span>
-          <span className="file-type-icon" data-tooltip="Text (.txt)"><FaFileAlt /></span>
-          <span className="file-type-icon" data-tooltip="Archive (.zip, .rar)"><FaFileArchive /></span>
-          <span className="file-type-icon" data-tooltip="Video (.mp4)"><FaFileVideo /></span>
-          <span className="file-type-icon" data-tooltip="Audio (.mp3)"><FaFileAudio /></span>
-        </div>
-      )}
+      <SupportedFileTypesInfo />
 
       <div className="button-group">
-        {documents.every(d => !d.file && !d.blobUrl) && !isUploadSkipped ? (
+        <button type="button" className="btn secondary" onClick={onBack} disabled={uploading}>
+          Back
+        </button>
+        {documents.length === 0 && !isUploadSkipped ? (
           <button
             type="button"
             className="btn primary"
@@ -346,16 +429,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             type="button"
             className="btn primary"
             onClick={handleNext}
-            disabled={
-              uploading || !documents.every(d => !!d.file || !!d.blobUrl)
-            }
+            disabled={uploading || !documents.every(d => !!d.file || !!d.blobUrl)}
           >
             {uploading ? 'Uploading...' : 'Next'}
           </button>
         )}
-        <button type="button" className="btn secondary" onClick={onBack} disabled={uploading}>
-          Back
-        </button>
       </div>
     </div>
   );

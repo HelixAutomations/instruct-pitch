@@ -75,7 +75,8 @@ button:focus-visible {
   border: none;
   border-radius: 0px !important; /* No rounding */
   font-size: 0.98rem;
-  font-weight: 400;
+  font-weight: 500; /* MATCH global */
+  line-height: 1;   /* FORCE uniform height */
   background: var(--helix-blue);
   color: #fff;
   box-shadow: none;
