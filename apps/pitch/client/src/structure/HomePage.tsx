@@ -244,7 +244,6 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
 
   const [isProofDone, setProofDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
-  const [, setUploadReady] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(() =>
     sessionStorage.getItem('paymentDone') === 'true'
   );
@@ -342,11 +341,6 @@ function getPulseClass(step: number, done: boolean) {
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
   const next = () => {
-    if (openStep === 2) {
-      setUploadDone(true);
-      const key = `uploadedDocs-${clientId}-${instruction.instructionId}`;
-      sessionStorage.setItem(key, 'true');
-    }
     setOpenStep((prev) => (prev < 4 ? (prev + 1) as any : prev));
   };
   const back = () => setOpenStep((prev) => (prev > 1 ? (prev - 1) as any : prev));
@@ -410,7 +404,7 @@ function getPulseClass(step: number, done: boolean) {
                   <DocumentUpload
                     uploadedFiles={uploadedFiles}
                     setUploadedFiles={setUploadedFiles}
-                    setIsComplete={setUploadReady}
+                    setIsComplete={setUploadDone}
                     onBack={back}
                     onNext={next}
                     setUploadSkipped={setUploadSkipped}

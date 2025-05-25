@@ -106,6 +106,10 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
     if (isUploadSkipped || allSuccess) {
       setIsComplete(true);
+            sessionStorage.setItem(
+        `uploadedDocs-${clientId}-${instructionId}`,
+        'true'
+      );
     } else {
       setIsComplete(false);
     }
@@ -413,6 +417,10 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             onClick={() => {
               setUploadSkipped(true);
               setIsComplete(true);
+                            sessionStorage.setItem(
+                `uploadedDocs-${clientId}-${instructionId}`,
+                'true'
+              );
               setUploadedFiles([]);
               onNext();
             }}
