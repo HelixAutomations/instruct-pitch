@@ -33,6 +33,7 @@ import {
   FaFileVideo,
   FaFileUpload,
   FaCheckCircle,
+  FaTimesCircle,
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
@@ -56,6 +57,11 @@ interface StepHeaderProps {
   open: boolean;
   toggle: () => void;
   locked?: boolean;
+}
+
+interface UploadedFile {
+  file: File;
+  uploaded: boolean;
 }
 
 const iconMap: Record<string, JSX.Element> = {
@@ -238,7 +244,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
       };
     }, [preloadedFlexUrl]);
 
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [paymentDetails] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
   const [isUploadSkipped, setUploadSkipped] = useState(false);
 
@@ -651,36 +657,38 @@ function getPulseClass(step: number, done: boolean) {
                             <span className="field-value">File upload skipped.</span>
                           ) : uploadedFiles.length ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                              {
-                                uploadedFiles.map((f, i) => (
-                                  <div
-                                    key={i}
+                              {uploadedFiles.map((f, i) => (
+                                <div
+                                  key={i}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    flexWrap: 'nowrap',
+                                    overflow: 'hidden',
+                                    minWidth: 0,
+                                  }}
+                                >
+                                  <span style={{ flexShrink: 0 }}>{getFileIcon(f.file.name)}</span>
+                                  <span
                                     style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.5rem',
-                                      flexWrap: 'nowrap',
+                                      fontSize: '0.95rem',
                                       overflow: 'hidden',
-                                      minWidth: 0,
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                      flexGrow: 1,
                                     }}
+                                    title={f.file.name}
                                   >
-                                    <span style={{ flexShrink: 0 }}>{getFileIcon(f.name)}</span>
-                                    <span
-                                      style={{
-                                        fontSize: '0.95rem',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        flexGrow: 1,
-                                      }}
-                                      title={f.name}
-                                    >
-                                      {f.name}
-                                    </span>
-                                                                        <FaCheckCircle className="summary-file-check" />
-                                  </div>
-                                ))
-                              }
+                                    {f.file.name}
+                                  </span>
+                                  {f.uploaded ? (
+                                    <FaCheckCircle className="summary-file-check" />
+                                  ) : (
+                                    <FaTimesCircle className="summary-file-check" style={{ color: 'crimson' }} />
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           ) : (
                             <span className="field-value">--</span>
@@ -850,36 +858,38 @@ function getPulseClass(step: number, done: boolean) {
                     <span className="field-value">File upload skipped.</span>
                   ) : uploadedFiles.length ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      {
-                        uploadedFiles.map((f, i) => (
-                          <div
-                            key={i}
+                      {uploadedFiles.map((f, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            flexWrap: 'nowrap',
+                            overflow: 'hidden',
+                            minWidth: 0,
+                          }}
+                        >
+                          <span style={{ flexShrink: 0 }}>{getFileIcon(f.file.name)}</span>
+                          <span
                             style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              flexWrap: 'nowrap',
+                              fontSize: '0.95rem',
                               overflow: 'hidden',
-                              minWidth: 0,
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              flexGrow: 1,
                             }}
+                          title={f.file.name}
                           >
-                            <span style={{ flexShrink: 0 }}>{getFileIcon(f.name)}</span>
-                            <span
-                              style={{
-                                fontSize: '0.95rem',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                flexGrow: 1,
-                              }}
-                              title={f.name}
-                            >
-                              {f.name}
-                            </span>
+                            {f.file.name}
+                          </span>
+                          {f.uploaded ? (
                             <FaCheckCircle className="summary-file-check" />
-                          </div>
-                        ))
-                      }
+                          ) : (
+                            <FaTimesCircle className="summary-file-check" style={{ color: 'crimson' }} />
+                          )}
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <span className="field-value">--</span>
