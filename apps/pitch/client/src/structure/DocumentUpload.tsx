@@ -1,3 +1,5 @@
+// apps/pitch/client/src/structure/DocumentUpload.tsx
+
 import React, { useState, useEffect } from 'react';
 import { Dispatch, SetStateAction } from 'react';
 import {
@@ -191,7 +193,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     formData.append('instructionId', instructionId);
 
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch(`/api/upload`, { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       return { ...doc, blobUrl: data.url, isUploading: false, hasError: false };
@@ -312,7 +314,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
               />
             </div>
           ) : (
-            <>  
+            <>
               <div className="group-header" onClick={() => toggleCollapse(doc.id)}>
                 {getFileIcon(doc.file)}
                 {doc.isEditing ? (
