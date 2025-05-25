@@ -267,8 +267,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
     setProofDone(isProofComplete());
   }, [proofData]);
   useEffect(() => {
-    setUploadDone(isUploadDataComplete());
-  }, []);
+    const isComplete = uploadedFiles.some(f => f.uploaded);
+    setUploadDone(isComplete);
+  }, [uploadedFiles]);
   useEffect(() => {
     if (sessionStorage.getItem('paymentDone') === 'true') {
       setPaymentDone(true);
@@ -326,10 +327,6 @@ function getPulseClass(step: number, done: boolean) {
       proofData.nationality,
       proofData.idNumber,
     ].every((f) => f && f.toString().trim());
-  }
-  function isUploadDataComplete() {
-    const key = `uploadedDocs-${clientId}-${instruction.instructionId}`;
-    return sessionStorage.getItem(key) === 'true';
   }
   function isPaymentComplete() {
     return (
