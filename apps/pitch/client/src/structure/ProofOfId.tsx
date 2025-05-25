@@ -32,6 +32,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
   const idStatus = value.idStatus || '';
   const isCompanyClient = value.isCompanyClient ?? null;
   const idType = value.idType || null;
+  const [dobFocused, setDobFocused] = useState(false);
 
   // State to track collapsed and completed status for each section
   const [sectionStates, setSectionStates] = useState<SectionStates>({
@@ -582,13 +583,15 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   </div>
                   <div className="form-group">
                     <input
-                      type="date"
+                      type={dobFocused || value.dob ? 'date' : 'text'}
                       id="dob"
                       className={`paper-input ${value.dob ? 'filled' : ''}`}
                       value={value.dob}
                       onChange={handleInputChange}
                       placeholder="Date of Birth"
-                      onBlur={() =>
+                      onFocus={() => setDobFocused(true)}
+                      onBlur={() => {
+                        setDobFocused(false);
                         handleBlur('personalDetails', [
                           'title',
                           'firstName',
@@ -596,8 +599,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                           'nationality',
                           'dob',
                           'gender',
-                        ])
-                      }
+                        ]);
+                      }}
                     />
                   </div>
                   <div className="form-group">
