@@ -250,9 +250,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
 
   const [isProofDone, setProofDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
-  const [isPaymentDone, setPaymentDone] = useState(() =>
-    sessionStorage.getItem('paymentDone') === 'true'
-  );
+  const [isPaymentDone, setPaymentDone] = useState(false);
   const [summaryConfirmed, setSummaryConfirmed] = useState(false);
 
   useEffect(() => {
@@ -270,13 +268,6 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal }) => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
     setUploadDone(isComplete);
   }, [uploadedFiles]);
-  useEffect(() => {
-    if (sessionStorage.getItem('paymentDone') === 'true') {
-      setPaymentDone(true);
-    } else {
-      setPaymentDone(isPaymentComplete());
-    }
-  }, [paymentDetails]);
 
   const [pulse, setPulse] = useState(false);
   const [pulseStep, setPulseStep] = useState<0 | 1 | 2 | 3 | 4>(0);
@@ -327,13 +318,6 @@ function getPulseClass(step: number, done: boolean) {
       proofData.nationality,
       proofData.idNumber,
     ].every((f) => f && f.toString().trim());
-  }
-  function isPaymentComplete() {
-    return (
-      !!paymentDetails.cardNumber.trim() &&
-      !!paymentDetails.expiry.trim() &&
-      !!paymentDetails.cvv.trim()
-    );
   }
 
   const nameParts = [proofData.title, proofData.firstName, proofData.lastName];

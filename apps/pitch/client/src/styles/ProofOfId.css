@@ -302,6 +302,10 @@
   box-shadow: none !important;
 }
 
+.modern-toggle-button.active .button-icon {
+  color: #fff;
+}
+
 .modern-toggle-button:focus {
   outline: none;
   border-radius: 2px !important;
@@ -600,9 +604,6 @@
   transition: color 0.3s ease;
 }
 
-.modern-toggle-button.active .button-icon {
-  color: #fff;
-}
 
 .modern-toggle-button:hover .button-icon {
   color: var(--helix-highlight);

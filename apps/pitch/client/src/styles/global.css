@@ -97,7 +97,7 @@ button:focus-visible {
 
 /* Primary Action */
 .btn.primary {
-  background: var(--helix-highlight);
+  background: var(--helix-cta);
   color: #fff;
 }
 
@@ -149,7 +149,7 @@ button:focus-visible {
   transition: background 0.18s, transform 0.09s;
 }
 .btn.chevron.primary {
-  background: var(--helix-highlight);
+  background: var(--helix-cta);
   color: #fff;
 }
 .btn.chevron.secondary {
