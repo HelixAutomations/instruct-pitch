@@ -61,12 +61,11 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     console.log(`✅ Uploaded ${blobName}`);
 
     const pool = await getSqlPool();
-    await pool.request()
-      .input('InstructionRef', sql.NVarChar, instructionRef)
-      .input('ClientId', sql.NVarChar, clientId)
-      .input('FileName', sql.NVarChar, req.file.originalname)
-      .input('BlobUrl', sql.NVarChar, blockBlob.url)
-      .query('INSERT INTO Documents (InstructionRef, ClientId, FileName, BlobUrl) VALUES (@InstructionRef, @ClientId, @FileName, @BlobUrl)');
+      await pool.request()
+        .input('InstructionRef', sql.NVarChar, instructionRef)
+        .input('FileName', sql.NVarChar, req.file.originalname)
+        .input('BlobUrl', sql.NVarChar, blockBlob.url)
+        .query('INSERT INTO Documents (InstructionRef, FileName, BlobUrl) VALUES (@InstructionRef, @FileName, @BlobUrl)');
 
     res.json({ blobName, url: blockBlob.url });
   } catch (err) {

@@ -151,7 +151,8 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
     const { data } = await axios.get(`${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`, {
       timeout: 10_000,
     });
-    console.log('✅ fetchInstructionData >>', data);
+    // Confirm successful fetch without logging the full payload
+    console.log('Fetched instruction data');
     res.json({ ok: true });
   } catch (err) {
     console.error('❌ fetchInstructionData error:', err);
@@ -189,10 +190,12 @@ app.get(/^\/pitch(?!\/.*\.).*$/, async (req, res) => {
       const fnCode = cachedFetchInstructionDataCode;
       const url    = `${fnUrl}?cid=${encodeURIComponent(pid)}&code=${fnCode}`;
       const { data } = await axios.get(url, { timeout: 8_000 });
-      if (data && Object.keys(data).length > 0) {
-        const script = `<script>window.helixPrefillData = ${JSON.stringify(data)};</script>`;
-        html = html.replace('</head>', `${script}\n</head>`);
-      }
+        if (data && Object.keys(data).length > 0) {
+          // escape closing script tags so embedded JSON cannot break the page
+          const safeData = JSON.stringify(data).replace(/<\/script/g, '<\\/script');
+          const script   = `<script>window.helixPrefillData = ${safeData};</script>`;
+          html = html.replace('</head>', `${script}\n</head>`);
+        }
     }
     res.send(html);
   } catch (err) {
