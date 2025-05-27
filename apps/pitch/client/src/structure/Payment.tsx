@@ -40,7 +40,7 @@ const Payment: React.FC<PaymentProps> = ({
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [iframeHeight, setIframeHeight] = useState<number>(300);
+  const [iframeHeight, setIframeHeight] = useState<number>(0);
   // min-height fallback
 
   /* Mark step 3 complete once *your* extra inputs are filled
@@ -70,14 +70,12 @@ const Payment: React.FC<PaymentProps> = ({
     if (!pspid || !orderId || !acceptUrl || !exceptionUrl) return;
 
     const generateShasignUrl = async () => {
-      const encodedAcceptUrl    = encodeURIComponent(acceptUrl);
-      const encodedExceptionUrl = encodeURIComponent(exceptionUrl);
 
       const params: Record<string, string> = {
         'ACCOUNT.PSPID':           pspid,
         'ALIAS.ORDERID':           orderId,
-        'PARAMETERS.ACCEPTURL':    encodedAcceptUrl,
-        'PARAMETERS.EXCEPTIONURL': encodedExceptionUrl,
+        'PARAMETERS.ACCEPTURL':    acceptUrl,
+        'PARAMETERS.EXCEPTIONURL': exceptionUrl,
         /* Let the gateway show *all* card brands */
         'CARD.PAYMENTMETHOD':      'CreditCard',
         'LAYOUT.TEMPLATENAME':     'master.htm',
@@ -95,9 +93,7 @@ const Payment: React.FC<PaymentProps> = ({
         if (!res.ok || !json.shasign) {
           throw new Error(`SHA-sign service returned ${res.status}`);
         }
-        const query = Object.entries({ ...params, SHASIGN: json.shasign })
-          .map(([k, v]) => `${encodeURIComponent(k)}=${v}`)
-          .join('&');
+        const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
         setFlexUrl(
           `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
         );

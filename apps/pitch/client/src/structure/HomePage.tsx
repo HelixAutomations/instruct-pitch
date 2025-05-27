@@ -139,8 +139,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   });
 
   const PSPID = 'epdq1717240';
-  const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${encodeURIComponent(instruction.product)}`;
-  const EXCEPTION_URL = `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${encodeURIComponent(instruction.product)}`;
+  const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`;
+  const EXCEPTION_URL = `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`;
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
@@ -197,14 +197,12 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, []);
 
   useEffect(() => {
-    const encodedAccept    = encodeURIComponent(ACCEPT_URL);
-    const encodedException = encodeURIComponent(EXCEPTION_URL);
 
     const params: Record<string,string> = {
       'ACCOUNT.PSPID':           PSPID,
       'ALIAS.ORDERID':           instruction.instructionRef,
-      'PARAMETERS.ACCEPTURL':    encodedAccept,
-      'PARAMETERS.EXCEPTIONURL': encodedException,
+      'PARAMETERS.ACCEPTURL':    ACCEPT_URL,
+      'PARAMETERS.EXCEPTIONURL': EXCEPTION_URL,
       'CARD.PAYMENTMETHOD':      'CreditCard',
       'LAYOUT.TEMPLATENAME':     'master.htm',
       'LAYOUT.LANGUAGE':         'en_GB',
@@ -220,9 +218,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
           });
           const json = await res.json();
           if (res.ok && json.shasign) {
-            const query = Object.entries({ ...params, SHASIGN: json.shasign })
-              .map(([k, v]) => `${encodeURIComponent(k)}=${v}`)
-              .join('&');
+            const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
             setPreloadedFlexUrl(
               `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
             );
