@@ -55,27 +55,53 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   const clientId = propClientId ?? ctxClientId;
   const instructionRef = propInstructionRef ?? ctxInstructionRef;
 
+  // Derive clientType from proofData
+  const clientType =
+    proofData?.isCompanyClient === true
+      ? 'company'
+      : proofData?.isCompanyClient === false
+      ? 'individual'
+      : undefined;
+
   const handleSubmit = async () => {
-    try {
-      const res = await fetch('/api/instruction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId,
-          instructionRef,
-          proofData,
-          amount,
-          product,
-          workType,
-        })
-      });
-      if (res.ok) {
-        // maybe navigate or display confirmation
-      }
-    } catch (err) {
-      console.error('❌ Instruction submit failed', err);
+  console.log('SUBMIT BUTTON CLICKED');
+  try {
+    console.log('clientId:', clientId);
+    console.log('instructionRef:', instructionRef);
+    console.log('proofData:', proofData);
+    console.log('clientType:', clientType);
+
+    const payload = {
+      clientId,
+      instructionRef,
+      proofData,
+      clientType,
+      amount,
+      product,
+      workType,
+    };
+    console.log('About to POST', payload);
+
+    const res = await fetch('/api/instruction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    console.log('Fetch finished', res);
+
+    const data = await res.json().catch(() => null);
+    console.log('Response JSON:', data);
+    if (res.ok) {
+      // Success
+    } else {
+      console.error('❌ Backend returned error', data);
     }
-  };
+  } catch (err) {
+    console.error('❌ Instruction submit failed', err);
+  }
+};
+
+
   return (
     <div className="next-steps-content">
       {/* Only show this prompt if NOT mobile or NOT rendering inline summary */}
