@@ -17,6 +17,15 @@ const app = express();
 app.use(express.json());
 app.use('/api', uploadRouter);
 
+// ─── Block direct access to server files ───────────────────────────────
+app.all('/server.js', (_req, res) => {
+  res.status(404).send('Not found');
+});
+app.all('/favicon.ico', (_req, res) => {
+  res.status(404).send('Not found');
+});
+
+
 // ─── Health probe support ───────────────────────────────────────────────
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
 app.get('/api/generate-instruction-ref', (req, res) => {

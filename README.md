@@ -85,3 +85,8 @@ pwsh apps/pitch/build-and-deploy.ps1
 
 The script builds the production assets, creates `push-package.zip`, and uploads
 it using `az webapp deployment source config-zip`.
+
+During packaging `build-and-deploy.ps1` copies `apps/pitch/backend/server.js` and
+`apps/pitch/backend/web.config` to the repository root so they are included in
+`push-package.zip`. Once deployed, access the site via
+`https://<app-domain>/pitch/` rather than `https://<app-domain>/server.js`.
