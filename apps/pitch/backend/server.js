@@ -133,6 +133,10 @@ app.post('/api/instruction', async (req, res) => {
       .query('INSERT INTO Instructions (InstructionRef, ClientType, ClientId, PaymentAmount, PaymentProduct) VALUES (@InstructionRef, @ClientType, @ClientId, @PaymentAmount, @PaymentProduct)');
     res.json({ ok: true });
   } catch (err) {
+    if (err && (err.number === 2627 || err.number === 2601)) {
+      // Duplicate key violation – treat as success
+      return res.json({ ok: true, alreadyExists: true });
+    }
     console.error('❌ /api/instruction error:', err);
     res.status(500).json({ error: 'Failed to create instruction' });
   }

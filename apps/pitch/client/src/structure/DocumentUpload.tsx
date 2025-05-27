@@ -34,6 +34,8 @@ interface DocumentUploadProps {
   isUploadSkipped: boolean;
   clientId: string;
   instructionRef: string;
+  instructionReady: boolean;
+  instructionError?: string | null;
 }
 
 interface DocItem {
@@ -124,7 +126,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   setUploadSkipped,
   isUploadSkipped,
   clientId,
-  instructionRef
+  instructionRef,
+  instructionReady,
+  instructionError
 }) => {
   const [documents, setDocuments] = useState<DocItem[]>(() =>
     uploadedFiles.length
@@ -141,6 +145,20 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   );
   const [uploading, setUploading] = useState(false);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
+
+  if (!instructionReady) {
+    return (
+      <div className="form-container apple-form document-upload">
+        <p>Setting up your instruction...</p>
+        {instructionError && <p className="upload-error">{instructionError}</p>}
+        <div className="button-group">
+          <button type="button" className="btn secondary" onClick={onBack}>
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     const uploaded = documents.filter(d => d.blobUrl && !d.hasError);
