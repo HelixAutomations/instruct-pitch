@@ -8,7 +8,8 @@
     childList: true,
     subtree:  true
   });
-    if (window.top !== window.self) {
-    window.top.location.href = window.location.href;
+  if (window.top !== window.self) {
+    // Request the parent window to navigate instead of forcing a redirect
+    window.parent.postMessage({ flexMsg: 'navigate', href: window.location.href }, '*');
   }
 })();
