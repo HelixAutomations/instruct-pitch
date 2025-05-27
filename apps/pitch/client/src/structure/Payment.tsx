@@ -40,7 +40,7 @@ const Payment: React.FC<PaymentProps> = ({
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [iframeHeight, setIframeHeight] = useState<number>(0);
+  const [iframeHeight, setIframeHeight] = useState<number>(300);
   // min-height fallback
 
   /* Mark step 3 complete once *your* extra inputs are filled
@@ -141,7 +141,7 @@ const Payment: React.FC<PaymentProps> = ({
             <iframe
               title="FlexCheckout"
               src={flexUrl}
-              style={{ width: '100%', height: `${iframeHeight}px`, border: 0 }}
+              style={{ width: '100%', height: `${iframeHeight || 300}px`, border: 0 }}
             />
           ) : (
             <div>{error ? `Error: ${error}` : 'Loading secure payment form…'}</div>

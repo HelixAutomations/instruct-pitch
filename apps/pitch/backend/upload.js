@@ -63,7 +63,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     const pool = await getSqlPool();
     await pool.request()
       .input('InstructionRef', sql.NVarChar, instructionRef)
-//      .input('ClientId', sql.NVarChar, clientId)  // fix here!
+      .input('ClientId', sql.NVarChar, clientId)
       .input('FileName', sql.NVarChar, req.file.originalname)
       .input('BlobUrl', sql.NVarChar, blockBlob.url)
       .query('INSERT INTO Documents (InstructionRef, ClientId, FileName, BlobUrl) VALUES (@InstructionRef, @ClientId, @FileName, @BlobUrl)');
