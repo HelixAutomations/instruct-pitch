@@ -8,14 +8,14 @@ import '../styles/IDAuth.css';
 interface IDAuthProps {
   clientId?: string;
   setClientId: (cid: string) => void;
-  setInstructionId: (iid: string) => void;
+  setInstructionRef: (iid: string) => void;
   onConfirm: () => void;
 }
 
 const IDAuth: React.FC<IDAuthProps> = ({
   clientId = '',
   setClientId,
-  setInstructionId,
+  setInstructionRef,
   onConfirm,
 }) => {
   const [errors, setErrors] = useState<{ clientId: string }>({
@@ -35,7 +35,7 @@ const IDAuth: React.FC<IDAuthProps> = ({
       const now = new Date();
       const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}`;
       const iid = `HLX-${clientId}-${ddmm}`;
-      setInstructionId(iid);
+      setInstructionRef(iid);
       onConfirm();
     }
   };

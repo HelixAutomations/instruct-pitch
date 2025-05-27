@@ -2,9 +2,9 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ClientData {
   clientId: string;
-  instructionId: string;
+  instructionRef: string;
   setClientId: (id: string) => void;
-  setInstructionId: (id: string) => void;
+  setInstructionRef: (id: string) => void;
 }
 
 const ClientContext = createContext<ClientData | undefined>(undefined);
@@ -17,10 +17,10 @@ export const useClient = () => {
 
 export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [clientId, setClientId] = useState('');
-  const [instructionId, setInstructionId] = useState('');
+  const [instructionRef, setInstructionRef] = useState('');
 
   return (
-    <ClientContext.Provider value={{ clientId, instructionId, setClientId, setInstructionId }}>
+    <ClientContext.Provider value={{ clientId, instructionRef, setClientId, setInstructionRef }}>
       {children}
     </ClientContext.Provider>
   );

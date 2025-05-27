@@ -6,7 +6,10 @@ const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
+const { generateInstructionRef } = require('./dist/generateInstructionRef');
 const uploadRouter = require('./upload');
+const sql = require('mssql');
+const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
 
@@ -16,6 +19,12 @@ app.use('/api', uploadRouter);
 
 // ─── Health probe support ───────────────────────────────────────────────
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
+app.get('/api/generate-instruction-ref', (req, res) => {
+  const pid = req.query.pid;
+  if (!pid) return res.status(400).json({ error: 'Missing pid' });
+  const ref = generateInstructionRef(String(pid));
+  res.json({ instructionRef: ref });
+});
 
 // ─── Key Vault setup ──────────────────────────────────────────────────
 const keyVaultName = process.env.KEY_VAULT_NAME;
@@ -26,19 +35,22 @@ const keyVaultUri  = `https://${keyVaultName}.vault.azure.net`;
 const credential   = new DefaultAzureCredential();
 const secretClient = new SecretClient(keyVaultUri, credential);
 
-let cachedShaPhrase, cachedEpdqUser, cachedEpdqPassword, cachedFetchInstructionDataCode;
+let cachedShaPhrase, cachedEpdqUser, cachedEpdqPassword, cachedFetchInstructionDataCode, cachedDbPassword;
 (async () => {
   try {
-    const [sha, user, pass, fetchCode] = await Promise.all([
+    const [sha, user, pass, fetchCode, dbPass] = await Promise.all([
       secretClient.getSecret('epdq-shaphrase'),
       secretClient.getSecret('epdq-userid'),
       secretClient.getSecret('epdq-password'),
       secretClient.getSecret('fetchInstructionData-code'),
+      secretClient.getSecret(process.env.DB_PASSWORD_SECRET),
     ]);
     cachedShaPhrase               = sha.value;
     cachedEpdqUser                = user.value;
     cachedEpdqPassword            = pass.value;
     cachedFetchInstructionDataCode = fetchCode.value;
+    cachedDbPassword              = dbPass.value;
+    process.env.DB_PASSWORD = cachedDbPassword;
     console.log('✅ All secrets loaded from Key Vault');
   } catch (err) {
     console.error('❌ Failed to load secrets:', err);
@@ -92,10 +104,37 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
+    const pool = await getSqlPool();
+    await pool.request()
+      .input('InstructionRef', sql.NVarChar, orderId)
+      .query("UPDATE Instructions SET PaymentResult = 'Confirmed', PaymentTimestamp = SYSDATETIME() WHERE InstructionRef = @InstructionRef");
+
     res.json({ success: true, result: result.data });
   } catch (err) {
     console.error('❌ /pitch/confirm-payment error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Instruction creation ─────────────────────────────────────────────
+app.post('/api/instruction', async (req, res) => {
+  const { clientId, instructionRef, proofData, amount, product, workType, clientType } = req.body;
+  if (!clientId || !instructionRef || !clientType) {
+    return res.status(400).json({ error: 'Missing clientId, instructionRef, or clientType' });
+  }
+  try {
+    const pool = await getSqlPool();
+    await pool.request()
+      .input('InstructionRef', sql.NVarChar, instructionRef)
+      .input('ClientType', sql.NVarChar, clientType)
+      .input('ClientId', sql.NVarChar, clientId)
+      .input('PaymentAmount', sql.Decimal, amount || 0)
+      .input('PaymentProduct', sql.NVarChar, product || '')
+      .query('INSERT INTO Instructions (InstructionRef, ClientType, ClientId, PaymentAmount, PaymentProduct) VALUES (@InstructionRef, @ClientType, @ClientId, @PaymentAmount, @PaymentProduct)');
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('❌ /api/instruction error:', err);
+    res.status(500).json({ error: 'Failed to create instruction' });
   }
 });
 

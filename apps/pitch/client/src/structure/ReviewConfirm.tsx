@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useClient } from '../context/ClientContext';
+import { ProofData } from '../context/ProofData';
 import '../styles/ReviewConfirm.css';
 
 interface ReviewConfirmProps {
@@ -6,6 +8,12 @@ interface ReviewConfirmProps {
   openSummaryPanel?: () => void;
   summaryContent?: React.ReactNode;
   isMobile?: boolean; // <-- Pass this down from HomePage for clarity!
+  clientId?: string;
+  instructionRef?: string;
+  proofData?: ProofData;
+  amount?: number;
+  product?: string;
+  workType?: string;
 }
 
 const AccordionSection: React.FC<{
@@ -35,8 +43,39 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   summaryConfirmed,
   openSummaryPanel,
   summaryContent,
-  isMobile = false // default to false if not passed
+  isMobile = false,
+  clientId: propClientId,
+  instructionRef: propInstructionRef,
+  proofData,
+  amount,
+  product,
+  workType,
 }) => {
+  const { clientId: ctxClientId, instructionRef: ctxInstructionRef } = useClient();
+  const clientId = propClientId ?? ctxClientId;
+  const instructionRef = propInstructionRef ?? ctxInstructionRef;
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch('/api/instruction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId,
+          instructionRef,
+          proofData,
+          amount,
+          product,
+          workType,
+        })
+      });
+      if (res.ok) {
+        // maybe navigate or display confirmation
+      }
+    } catch (err) {
+      console.error('❌ Instruction submit failed', err);
+    }
+  };
   return (
     <div className="next-steps-content">
       {/* Only show this prompt if NOT mobile or NOT rendering inline summary */}
@@ -81,7 +120,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
         <button
           className="cta-declare-btn"
           disabled={!summaryConfirmed}
-          onClick={() => {/* put your handler here */}}
+          onClick={handleSubmit}
         >
           Confirm Identity and Open a Matter
         </button>

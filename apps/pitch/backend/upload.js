@@ -1,10 +1,19 @@
 const express = require('express');
 const multer = require('multer');
+const { generateInstructionRef } = require('./dist/generateInstructionRef');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require('@azure/storage-blob');
+const sql = require('mssql');
+const { getSqlPool } = require('./sqlClient');
 
 const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_EXTS = new Set([
+  'pdf','doc','docx','xls','xlsx','ppt','pptx',
+  'txt','zip','rar','jpg','jpeg','png','mp3','mp4',
+]);
 
 const account = process.env.AZURE_STORAGE_ACCOUNT;
 const container = process.env.UPLOAD_CONTAINER;
@@ -24,19 +33,41 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       throw new Error('Missing storage account or container');
     }
 
-    const { clientId, instructionId } = req.body;
+    let { clientId, instructionRef } = req.body;
     if (!req.file) return res.status(400).json({ error: 'No file provided' });
-    if (!clientId || !instructionId) {
-      return res.status(400).json({ error: 'Missing clientId or instructionId' });
+    if (!clientId) {
+      return res.status(400).json({ error: 'Missing clientId' });
+    }
+    // If not provided, generate one
+    if (!instructionRef) {
+      instructionRef = generateInstructionRef(clientId);
     }
 
-    const blobName = `${clientId}/${instructionId}/${req.file.originalname}`;
+    const { originalname, size } = req.file;
+    const ext = originalname.split('.').pop()?.toLowerCase();
+    if (!ext || !ALLOWED_EXTS.has(ext)) {
+      return res.status(400).json({ error: 'Unsupported file type' });
+    }
+    if (size > MAX_FILE_SIZE) {
+      return res.status(400).json({ error: 'File size exceeds 10MB limit' });
+    }
+
+    const blobName = `${clientId}/${instructionRef}/${req.file.originalname}`;
     console.log(`⬆️  Uploading ${blobName}`);
 
     const blockBlob = containerClient.getBlockBlobClient(blobName);
     await blockBlob.uploadData(req.file.buffer);
 
     console.log(`✅ Uploaded ${blobName}`);
+
+    const pool = await getSqlPool();
+    await pool.request()
+      .input('InstructionRef', sql.NVarChar, instructionRef)
+//      .input('ClientId', sql.NVarChar, clientId)  // fix here!
+      .input('FileName', sql.NVarChar, req.file.originalname)
+      .input('BlobUrl', sql.NVarChar, blockBlob.url)
+      .query('INSERT INTO Documents (InstructionRef, ClientId, FileName, BlobUrl) VALUES (@InstructionRef, @ClientId, @FileName, @BlobUrl)');
+
     res.json({ blobName, url: blockBlob.url });
   } catch (err) {
     console.error('❌ Upload error:', err);

@@ -4,7 +4,7 @@ import '../styles/ClientDetails.css';
 interface ClientDetailsProps {
   workType: string; // you can remove this prop if unused elsewhere
   clientId: string;
-  instructionId: string;
+  instructionRef: string;
   stage: string;
   onAnimationEnd?: () => void;
 }
@@ -12,7 +12,7 @@ interface ClientDetailsProps {
 const ClientDetails: React.FC<ClientDetailsProps> = ({
   // workType, ← removed
   clientId,
-  instructionId,
+  instructionRef,
   stage,
   onAnimationEnd
 }) => {
@@ -37,7 +37,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   // Only two detail items now
   const detailItems = [
     { label: 'Client ID', value: clientId || '—' },
-    { label: 'Instruction ID', value: instructionId || '—' }
+    { label: 'Instruction Ref', value: instructionRef || '—' }
   ];
 
   return (

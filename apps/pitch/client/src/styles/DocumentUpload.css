@@ -175,6 +175,11 @@
   color: var(--helix-highlight);
   font-size: 0.9em;
 }
+.upload-error {
+  margin-left: 8px;
+  color: red;
+  font-size: 0.9em;
+}
 .remove-icon {
   margin-left: 4px;
   color: var(--helix-blue);

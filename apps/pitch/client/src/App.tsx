@@ -12,7 +12,7 @@ const params = new URLSearchParams(window.location.search);
 
 const App: React.FC = () => {
   const [clientId, setClientId] = useState(params.get('pid') || '');
-  const [instructionId, setInstructionId] = useState(() => {
+  const [instructionRef, setInstructionRef] = useState(() => {
     const pid = params.get('pid');
     if (!pid) return '';
     const now = new Date();
@@ -38,7 +38,7 @@ const App: React.FC = () => {
             <ClientDetails
               workType="—"
               clientId={clientId}
-              instructionId={instructionId}
+              instructionRef={instructionRef}
               stage="Confirmation of Instruction"
               onAnimationEnd={() => {
                 setTimeout(() => setStep1Reveal(true), 550);
@@ -58,14 +58,14 @@ const App: React.FC = () => {
                 <IDAuth
                   clientId={clientId}
                   setClientId={setClientId}
-                  setInstructionId={setInstructionId}
+                  setInstructionRef={setInstructionRef}
                   onConfirm={() => setConfirmed(true)}
                 />
               ) : (
                 <HomePage
                   step1Reveal={step1Reveal}
                   clientId={clientId}
-                  instructionId={instructionId}
+                  instructionRef={instructionRef}
                 />
               )
             }

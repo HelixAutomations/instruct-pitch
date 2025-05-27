@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "tsc"
   },
-    "engines": {
+  "engines": {
     "node": ">=18"
   },
   "dependencies": {
@@ -15,6 +16,10 @@
     "multer": "^1.4.5-lts.1",
     "@azure/identity": "^3.3.0",
     "@azure/keyvault-secrets": "^4.9.0",
-    "@azure/storage-blob": "^12.14.0"
+    "@azure/storage-blob": "^12.14.0",
+    "mssql": "^11.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
   }
 }

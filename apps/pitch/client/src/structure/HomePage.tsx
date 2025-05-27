@@ -49,7 +49,7 @@ import SummaryReview from './SummaryReview';
 interface HomePageProps {
   step1Reveal?: boolean;
   clientId: string;
-  instructionId: string;
+  instructionRef: string;
 }
 
 interface StepHeaderProps {
@@ -126,13 +126,13 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   );
 };
 
-const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionId }) => {
+const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionRef }) => {
   const params = new URLSearchParams(window.location.search);
   const aliasId = params.get('Alias.AliasId');
   const orderId = params.get('Alias.OrderId');
   const shaSign = params.get('SHASign');
   const [instruction] = useState({
-    instructionId,
+    instructionRef,
     amount: 0.99,
     product: 'instruction-pitch',
     workType: 'Shareholder Dispute',
@@ -199,7 +199,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionI
   useEffect(() => {
     const params: Record<string,string> = {
       'ACCOUNT.PSPID':           PSPID,
-      'ALIAS.ORDERID':           instruction.instructionId,
+      'ALIAS.ORDERID':           instruction.instructionRef,
       'PARAMETERS.ACCEPTURL':    ACCEPT_URL,
       'PARAMETERS.EXCEPTIONURL': EXCEPTION_URL,
       'CARD.PAYMENTMETHOD':      'CreditCard',
@@ -396,7 +396,7 @@ function getPulseClass(step: number, done: boolean) {
                     setUploadSkipped={setUploadSkipped}
                     isUploadSkipped={isUploadSkipped}
                     clientId={clientId}
-                    instructionId={instruction.instructionId}
+                    instructionRef={instruction.instructionRef}
                   />
                 )}
               </div>
@@ -420,7 +420,7 @@ function getPulseClass(step: number, done: boolean) {
                       onNext={next}
                       onError={(code) => console.error('Payment error', code)}
                       pspid={PSPID}
-                      orderId={instruction.instructionId}
+                      orderId={instruction.instructionRef}
                       amount={instruction.amount}
                       product={instruction.product}
                       workType={instruction.workType}
@@ -679,6 +679,12 @@ function getPulseClass(step: number, done: boolean) {
                       />
                     ) : undefined}
                     isMobile={isMobile}
+                    clientId={clientId}
+                    instructionRef={instruction.instructionRef}
+                    proofData={proofData}
+                    amount={instruction.amount}
+                    product={instruction.product}
+                    workType={instruction.workType}
                   />
                 )}
               </div>

@@ -1,4 +1,3 @@
-// D:/helix projects/workspace/vsc/helix-payments-hub/client/src/forms/form components/StepProgress.tsx
 import React from 'react';
 import './StepProgress.css';
 

@@ -33,7 +33,7 @@ interface DocumentUploadProps {
   setUploadSkipped: Dispatch<SetStateAction<boolean>>;
   isUploadSkipped: boolean;
   clientId: string;
-  instructionId: string;
+  instructionRef: string;
 }
 
 interface DocItem {
@@ -44,6 +44,7 @@ interface DocItem {
   isCollapsed: boolean;
   isUploading?: boolean;
   hasError?: boolean;
+  errorMessage?: string;
   isEditing?: boolean;
 }
 
@@ -123,7 +124,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   setUploadSkipped,
   isUploadSkipped,
   clientId,
-  instructionId
+  instructionRef
 }) => {
   const [documents, setDocuments] = useState<DocItem[]>(() =>
     uploadedFiles.length
@@ -133,7 +134,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           blobUrl: uf.uploaded ? 'uploaded' : undefined,
           title: uf.file.name,
           isCollapsed: false,
-          isEditing: false
+          isEditing: false,
+          errorMessage: undefined
         }))
       : []
   );
@@ -149,7 +151,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (isUploadSkipped || allSuccess) {
       setIsComplete(true);
       sessionStorage.setItem(
-        `uploadedDocs-${clientId}-${instructionId}`,
+        `uploadedDocs-${clientId}-${instructionRef}`,
         'true'
       );
     } else {
@@ -165,7 +167,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         .filter(d => d.file)
         .map(d => ({ file: d.file!, uploaded: !!d.blobUrl }))
     );
-  }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, clientId, instructionId]);
+  }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, clientId, instructionRef]);
 
   // Add new files to the document list
   const addExtraDocuments = (files: File[]) =>
@@ -176,7 +178,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         file: f,
         title: f.name,
         isCollapsed: true,
-        isEditing: false
+        isEditing: false,
+        errorMessage: undefined
       }))
     ]);
 
@@ -204,7 +207,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     const formData = new FormData();
     formData.append('file', doc.file);
     formData.append('clientId', clientId);
-    formData.append('instructionId', instructionId);
+    formData.append('instructionRef', instructionRef);
 
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
@@ -213,17 +216,26 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       setUploadedFiles(prev =>
         prev.map(u => (u.file === doc.file ? { ...u, uploaded: true } : u))
       );
-      return { ...doc, blobUrl: data.url, isUploading: false, hasError: false };
+      return {
+        ...doc,
+        blobUrl: data.url,
+        isUploading: false,
+        hasError: false,
+        errorMessage: undefined,
+      };
     } catch (err) {
       console.error('❌ Upload failed for', doc.title, err);
-      return { ...doc, isUploading: false, hasError: true };
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      return { ...doc, isUploading: false, hasError: true, errorMessage: msg };
     }
   };
 
   const handleRetry = async (id: number) => {
     setDocuments(docs =>
       docs.map(doc =>
-        doc.id === id ? { ...doc, isUploading: true, hasError: false } : doc
+        doc.id === id
+          ? { ...doc, isUploading: true, hasError: false, errorMessage: undefined }
+          : doc
       )
     );
     const target = documents.find(d => d.id === id);
@@ -349,8 +361,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 <span className="upload-status">Uploaded</span>
               )}
               {doc.hasError && !doc.isUploading && (
-                <span style={{ color: 'red', marginLeft: 8 }}>
-                  – upload failed
+                <span className="upload-error">
+                  – {doc.errorMessage || 'upload failed'}
                   <button
                     onClick={() => handleRetry(doc.id)}
                     className="retry-button"
@@ -416,7 +428,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             onClick={() => {
               setUploadSkipped(true);
               setIsComplete(true);
-              sessionStorage.setItem(`uploadedDocs-${clientId}-${instructionId}`, 'true');
+              sessionStorage.setItem(`uploadedDocs-${clientId}-${instructionRef}`, 'true');
               setUploadedFiles([]);
               onNext();
             }}
