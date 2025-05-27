@@ -197,11 +197,14 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, []);
 
   useEffect(() => {
+    const encodedAccept    = encodeURIComponent(ACCEPT_URL);
+    const encodedException = encodeURIComponent(EXCEPTION_URL);
+
     const params: Record<string,string> = {
       'ACCOUNT.PSPID':           PSPID,
       'ALIAS.ORDERID':           instruction.instructionRef,
-      'PARAMETERS.ACCEPTURL':    ACCEPT_URL,
-      'PARAMETERS.EXCEPTIONURL': EXCEPTION_URL,
+      'PARAMETERS.ACCEPTURL':    encodedAccept,
+      'PARAMETERS.EXCEPTIONURL': encodedException,
       'CARD.PAYMENTMETHOD':      'CreditCard',
       'LAYOUT.TEMPLATENAME':     'master.htm',
       'LAYOUT.LANGUAGE':         'en_GB',
@@ -217,8 +220,12 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
           });
           const json = await res.json();
           if (res.ok && json.shasign) {
-            const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
-            setPreloadedFlexUrl(`https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`);
+            const query = Object.entries({ ...params, SHASIGN: json.shasign })
+              .map(([k, v]) => `${encodeURIComponent(k)}=${v}`)
+              .join('&');
+            setPreloadedFlexUrl(
+              `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
+            );
           }
         } catch (err) {
           console.error('Failed to preload payment form:', err);

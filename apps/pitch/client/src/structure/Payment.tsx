@@ -70,11 +70,14 @@ const Payment: React.FC<PaymentProps> = ({
     if (!pspid || !orderId || !acceptUrl || !exceptionUrl) return;
 
     const generateShasignUrl = async () => {
+      const encodedAcceptUrl    = encodeURIComponent(acceptUrl);
+      const encodedExceptionUrl = encodeURIComponent(exceptionUrl);
+
       const params: Record<string, string> = {
         'ACCOUNT.PSPID':           pspid,
         'ALIAS.ORDERID':           orderId,
-        'PARAMETERS.ACCEPTURL':    acceptUrl,
-        'PARAMETERS.EXCEPTIONURL': exceptionUrl,
+        'PARAMETERS.ACCEPTURL':    encodedAcceptUrl,
+        'PARAMETERS.EXCEPTIONURL': encodedExceptionUrl,
         /* Let the gateway show *all* card brands */
         'CARD.PAYMENTMETHOD':      'CreditCard',
         'LAYOUT.TEMPLATENAME':     'master.htm',
@@ -92,8 +95,12 @@ const Payment: React.FC<PaymentProps> = ({
         if (!res.ok || !json.shasign) {
           throw new Error(`SHA-sign service returned ${res.status}`);
         }
-        const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
-        setFlexUrl(`https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`);
+        const query = Object.entries({ ...params, SHASIGN: json.shasign })
+          .map(([k, v]) => `${encodeURIComponent(k)}=${v}`)
+          .join('&');
+        setFlexUrl(
+          `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
+        );
       } catch (err) {
         console.error(err);
         setError('Failed to load payment form. Please try again.');
