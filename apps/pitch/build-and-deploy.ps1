@@ -17,7 +17,9 @@ Pop-Location
 # Compile backend utilities (if any)
 if (Test-Path .\backend\utilities) {
     npx --prefix .\client tsc -p .\backend
-    Copy-Item -Recurse -Force .\backend\utilities ..\..\utilities
+    # Ensure utilities directory exists at root
+    New-Item -ItemType Directory -Path ..\..\utilities -Force | Out-Null
+    Copy-Item -Recurse -Force .\backend\utilities\* ..\..\utilities\
 }
 
 # Copy built frontend to root-level client/dist
@@ -39,6 +41,11 @@ Copy-Item .\backend\sqlClient.js ..\..\ -Force
 Copy-Item .\backend\package.json ..\..\ -Force
 Copy-Item .\backend\web.config ..\..\ -Force
 Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
+
+# --- NEW: Copy instructionStore.js to root so require('./instructionStore') works ---
+Copy-Item .\backend\instructionStore.js ..\..\instructionStore.js -Force
+
+# --- NEW: Ensure utilities/normalize.js copied above via * (if utilities exists) ---
 
 # Copy backend dist (compiled TypeScript output) to root-level dist
 Copy-Item -Recurse -Force .\backend\dist ..\..\dist
@@ -64,6 +71,7 @@ Compress-Archive -Path `
   .\package.json, `
   .\.env, `
   .\utilities, `
+  .\instructionStore.js, `        # <--- include this for completeness!
   .\node_modules `
   -DestinationPath push-package.zip -Force
 
@@ -76,7 +84,7 @@ az webapp deployment source config-zip `
 # Optional cleanup
 $shouldClean = $true
 if ($shouldClean) {
-  Remove-Item .\server.js, .\upload.js, .\sqlClient.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
+  Remove-Item .\server.js, .\upload.js, .\sqlClient.js, .\package.json, .\web.config, .\.env, .\instructionStore.js -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue

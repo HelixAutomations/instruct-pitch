@@ -126,7 +126,7 @@ html body #payment-data-container {
 #payment-data-container #payment-submit {
   background: var(--helix-highlight);
   color: #fff;
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.98rem;
   padding: 0.45rem 1.1rem;
   min-height: 36px;

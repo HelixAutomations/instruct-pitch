@@ -12,6 +12,8 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
+const { getInstruction, upsertInstruction } = require('./instructionStore');
+const { normalizeInstruction } = require('./utilities/normalize');
 
 const app = express();
 app.use(express.json());
@@ -125,30 +127,45 @@ app.post('/pitch/confirm-payment', async (req, res) => {
   }
 });
 
-// ─── Instruction creation ─────────────────────────────────────────────
-app.post('/api/instruction', async (req, res) => {
-  const { clientId, instructionRef, proofData, amount, product, workType, clientType } = req.body;
-  if (!clientId || !instructionRef || !clientType) {
-    return res.status(400).json({ error: 'Missing clientId, instructionRef, or clientType' });
+// ─── Instruction data upsert ──────────────────────────────────────────
+app.get('/api/instruction', (req, res) => {
+  const ref = req.query.instructionRef;
+  if (!ref) return res.status(400).json({ error: 'Missing instructionRef' });
+  const data = getInstruction(ref);
+  res.json(data || null);
+});
+
+app.post('/api/instruction', (req, res) => {
+  const { instructionRef, stage, ...rest } = req.body;
+  if (!instructionRef) {
+    return res.status(400).json({ error: 'Missing instructionRef' });
   }
-  try {
-    const pool = await getSqlPool();
-    await pool.request()
-      .input('InstructionRef', sql.NVarChar, instructionRef)
-      .input('ClientType', sql.NVarChar, clientType)
-      .input('ClientId', sql.NVarChar, clientId)
-      .input('PaymentAmount', sql.Decimal, amount || 0)
-      .input('PaymentProduct', sql.NVarChar, product || '')
-      .query('INSERT INTO Instructions (InstructionRef, ClientType, ClientId, PaymentAmount, PaymentProduct) VALUES (@InstructionRef, @ClientType, @ClientId, @PaymentAmount, @PaymentProduct)');
-    res.json({ ok: true });
-  } catch (err) {
-    if (err && (err.number === 2627 || err.number === 2601)) {
-      // Duplicate key violation – treat as success
-      return res.json({ ok: true, alreadyExists: true });
-    }
-    console.error('❌ /api/instruction error:', err);
-    res.status(500).json({ error: 'Failed to create instruction' });
+
+  const existing = getInstruction(instructionRef);
+  if (existing && existing.stage === 'completed') {
+    return res.json({ completed: true });
   }
+
+  const normalized = normalizeInstruction(rest);
+  const record = upsertInstruction(instructionRef, {
+    ...normalized,
+    stage: stage || (existing ? existing.stage : 'in_progress'),
+  });
+
+  res.json(record);
+});
+
+app.post('/api/instruction/complete', (req, res) => {
+  const { instructionRef } = req.body;
+  if (!instructionRef) return res.status(400).json({ error: 'Missing instructionRef' });
+
+  const existing = getInstruction(instructionRef) || {};
+  if (existing.stage === 'completed') {
+    return res.json({ completed: true });
+  }
+
+  const record = upsertInstruction(instructionRef, { ...existing, stage: 'completed' });
+  res.json(record);
 });
 
 // ─── Internal fetchInstructionData (server-only) ───────────────────────

@@ -145,6 +145,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3 | 4>(0);
+  const [instructionCompleted, setInstructionCompleted] = useState(false);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -175,6 +176,45 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     idNumber: '',
     helixContact: '',
   });
+
+  const saveInstruction = async (stage: string) => {
+    if (!instruction.instructionRef) return;
+    try {
+      const res = await fetch('/api/instruction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructionRef: instruction.instructionRef, stage, ...proofData })
+      });
+      const data = await res.json();
+      if (data && data.completed) {
+        setInstructionCompleted(true);
+      }
+    } catch (err) {
+      console.error('Failed to save instruction', err);
+    }
+  };
+
+  useEffect(() => {
+    if (instructionCompleted) {
+      setOpenStep(0);
+    }
+  }, [instructionCompleted]);
+
+  useEffect(() => {
+    if (!instruction.instructionRef) return;
+    fetch(`/api/instruction?instructionRef=${instruction.instructionRef}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          const { stage, ...rest } = data;
+          setProofData(prev => ({ ...prev, ...rest }));
+          if (stage === 'completed') setInstructionCompleted(true);
+        } else {
+          saveInstruction('initialised');
+        }
+      })
+      .catch(() => {});
+  }, [instruction.instructionRef]);
 
   useEffect(() => {
     const prefill = window.helixPrefillData;
@@ -372,6 +412,7 @@ function getPulseClass(step: number, done: boolean) {
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
   const next = () => {
+    saveInstruction('in_progress');
     setOpenStep((prev) => (prev < 4 ? (prev + 1) as any : prev));
   };
   const back = () => setOpenStep((prev) => (prev > 1 ? (prev - 1) as any : prev));
@@ -397,6 +438,11 @@ function getPulseClass(step: number, done: boolean) {
 
   return (
     <div className="home-page">
+      {instructionCompleted && (
+        <div className="completed-banner">
+          This instruction has been completed and can no longer be edited.
+        </div>
+      )}
       <main className="main-content">
         <div className="checkout-container">
           <div className="steps-column">
@@ -408,6 +454,7 @@ function getPulseClass(step: number, done: boolean) {
                 complete={isProofDone}
                 open={openStep === 1}
                 toggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
+                locked={instructionCompleted}
               />
               <div
                 className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isProofDone)}`}>
@@ -429,6 +476,7 @@ function getPulseClass(step: number, done: boolean) {
                 complete={isUploadDone}
                 open={openStep === 2}
                 toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
+                locked={instructionCompleted}
               />
               <div className={`step-content${openStep === 2 ? ' active' : ''}${getPulseClass(2, isUploadDone)}`}>
                 {openStep === 2 && (
@@ -457,6 +505,7 @@ function getPulseClass(step: number, done: boolean) {
                 complete={isPaymentDone}
                 open={openStep === 3}
                 toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
+                locked={instructionCompleted}
               />
               <div className={`step-content${openStep === 3 ? ' active payment-noscroll' : ''}${getPulseClass(3, isPaymentDone)}`}>
                 {(prefetchPayment || openStep === 3) && (
@@ -488,6 +537,7 @@ function getPulseClass(step: number, done: boolean) {
                 complete={isProofDone && isUploadDone && isPaymentDone}
                 open={openStep === 4}
                 toggle={() => setOpenStep(openStep === 4 ? 0 : 4)}
+                locked={instructionCompleted}
               />
               <div className={`step-content${openStep === 4 ? ' active' : ''}`}>
                 {openStep === 4 && (
@@ -727,12 +777,8 @@ function getPulseClass(step: number, done: boolean) {
                       />
                     ) : undefined}
                     isMobile={isMobile}
-                    clientId={clientId}
                     instructionRef={instruction.instructionRef}
                     proofData={proofData}
-                    amount={instruction.amount}
-                    product={instruction.product}
-                    workType={instruction.workType}
                   />
                 )}
               </div>
