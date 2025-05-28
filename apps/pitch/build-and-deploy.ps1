@@ -42,9 +42,6 @@ Copy-Item .\backend\package.json ..\..\ -Force
 Copy-Item .\backend\web.config ..\..\ -Force
 Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
 
-# --- NEW: Copy instructionStore.js to root so require('./instructionStore') works ---
-Copy-Item .\backend\instructionStore.js ..\..\instructionStore.js -Force
-
 # --- NEW: Ensure utilities/normalize.js copied above via * (if utilities exists) ---
 
 # Copy backend dist (compiled TypeScript output) to root-level dist
@@ -71,7 +68,6 @@ Compress-Archive -Path `
   .\package.json, `
   .\.env, `
   .\utilities, `
-  .\instructionStore.js, `        # <--- include this for completeness!
   .\node_modules `
   -DestinationPath push-package.zip -Force
 
@@ -84,7 +80,7 @@ az webapp deployment source config-zip `
 # Optional cleanup
 $shouldClean = $true
 if ($shouldClean) {
-  Remove-Item .\server.js, .\upload.js, .\sqlClient.js, .\package.json, .\web.config, .\.env, .\instructionStore.js -ErrorAction SilentlyContinue
+  Remove-Item .\server.js, .\upload.js, .\sqlClient.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue

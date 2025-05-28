@@ -5,6 +5,7 @@ This repository contains a small React client and an Express backend used to dem
 ## Prerequisites
 - Node.js 18+
 - npm
+- SQL Server database with an `Instructions` table and connection variables (`DB_USER`, `DB_PASSWORD`, `DB_SERVER`, `DB_NAME`)
 
 ## Installing dependencies
 Install backend and client dependencies:
@@ -47,6 +48,19 @@ KEY_VAULT_NAME=my-key-vault
 ```
 
 This determines which Azure Key Vault the backend connects to.
+
+### Database Environment Variables
+
+The backend connects to a SQL Server instance using the following settings in `apps/pitch/backend/.env`:
+
+```
+DB_USER=myuser
+DB_PASSWORD=mypassword
+DB_SERVER=myserver
+DB_NAME=mydatabase
+```
+
+These variables point the server at a database containing an `Instructions` table.
 
 
 ### Upload Environment Variables

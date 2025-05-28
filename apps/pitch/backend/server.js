@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction } = require('./instructionStore');
+const { getInstruction, upsertInstruction, markCompleted } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
 const app = express();
@@ -128,44 +128,57 @@ app.post('/pitch/confirm-payment', async (req, res) => {
 });
 
 // ─── Instruction data upsert ──────────────────────────────────────────
-app.get('/api/instruction', (req, res) => {
+app.get('/api/instruction', async (req, res) => {
   const ref = req.query.instructionRef;
   if (!ref) return res.status(400).json({ error: 'Missing instructionRef' });
-  const data = getInstruction(ref);
-  res.json(data || null);
+  try {
+    const data = await getInstruction(ref);
+    res.json(data || null);
+  } catch (err) {
+    console.error('❌ /api/instruction GET error:', err);
+    res.status(500).json({ error: 'Failed to fetch instruction' });
+  }
 });
 
-app.post('/api/instruction', (req, res) => {
+app.post('/api/instruction', async (req, res) => {
   const { instructionRef, stage, ...rest } = req.body;
   if (!instructionRef) {
     return res.status(400).json({ error: 'Missing instructionRef' });
   }
 
-  const existing = getInstruction(instructionRef);
-  if (existing && existing.stage === 'completed') {
-    return res.json({ completed: true });
+  try {
+    const existing = (await getInstruction(instructionRef)) || {};
+    if (existing.stage === 'completed') {
+      return res.json({ completed: true });
+    }
+
+    const normalized = normalizeInstruction(rest);
+    const merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
+    const record = await upsertInstruction(instructionRef, merged);
+
+    res.json(record);
+  } catch (err) {
+    console.error('❌ /api/instruction POST error:', err);
+    res.status(500).json({ error: 'Failed to save instruction' });
   }
-
-  const normalized = normalizeInstruction(rest);
-  const record = upsertInstruction(instructionRef, {
-    ...normalized,
-    stage: stage || (existing ? existing.stage : 'in_progress'),
-  });
-
-  res.json(record);
 });
 
-app.post('/api/instruction/complete', (req, res) => {
+app.post('/api/instruction/complete', async (req, res) => {
   const { instructionRef } = req.body;
   if (!instructionRef) return res.status(400).json({ error: 'Missing instructionRef' });
 
-  const existing = getInstruction(instructionRef) || {};
-  if (existing.stage === 'completed') {
-    return res.json({ completed: true });
-  }
+  try {
+    const existing = await getInstruction(instructionRef);
+    if (existing && existing.stage === 'completed') {
+      return res.json({ completed: true });
+    }
 
-  const record = upsertInstruction(instructionRef, { ...existing, stage: 'completed' });
-  res.json(record);
+    const record = await markCompleted(instructionRef);
+    res.json(record);
+  } catch (err) {
+    console.error('❌ /api/instruction/complete error:', err);
+    res.status(500).json({ error: 'Failed to update instruction' });
+  }
 });
 
 // ─── Internal fetchInstructionData (server-only) ───────────────────────
