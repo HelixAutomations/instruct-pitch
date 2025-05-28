@@ -41,8 +41,9 @@ Copy-Item .\backend\sqlClient.js ..\..\ -Force
 Copy-Item .\backend\package.json ..\..\ -Force
 Copy-Item .\backend\web.config ..\..\ -Force
 Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
+Copy-Item .\backend\instructionDb.js ..\..\instructionDb.js -Force   # <-- added
 
-# --- NEW: Ensure utilities/normalize.js copied above via * (if utilities exists) ---
+# --- utilities/normalize.js copied above via * (if utilities exists) ---
 
 # Copy backend dist (compiled TypeScript output) to root-level dist
 Copy-Item -Recurse -Force .\backend\dist ..\..\dist
@@ -68,6 +69,7 @@ Compress-Archive -Path `
   .\package.json, `
   .\.env, `
   .\utilities, `
+  .\instructionDb.js, `    # <-- added so it’s in the package
   .\node_modules `
   -DestinationPath push-package.zip -Force
 
@@ -80,7 +82,7 @@ az webapp deployment source config-zip `
 # Optional cleanup
 $shouldClean = $true
 if ($shouldClean) {
-  Remove-Item .\server.js, .\upload.js, .\sqlClient.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
+  Remove-Item .\server.js, .\upload.js, .\sqlClient.js, .\package.json, .\web.config, .\.env, .\instructionDb.js -ErrorAction SilentlyContinue  # <-- cleanup added
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue
