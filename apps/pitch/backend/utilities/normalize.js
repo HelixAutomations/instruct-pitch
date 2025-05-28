@@ -1,3 +1,47 @@
+const ALLOWED_FIELDS = [
+  // Client/instruction level fields
+  'clientId',
+  'clientType',
+  'amount',
+  'product',
+  'workType',
+
+  // Company details
+  'companyName',
+  'companyNumber',
+  'companyHouseNumber',
+  'companyStreet',
+  'companyCity',
+  'companyCounty',
+  'companyPostcode',
+  'companyCountry',
+
+  // Personal details
+  'title',
+  'firstName',
+  'lastName',
+  'nationality',
+  'houseNumber',
+  'street',
+  'city',
+  'county',
+  'postcode',
+  'country',
+  'dob',
+  'gender',
+  'phone',
+  'email',
+
+  // Identification
+  'passportNumber',
+  'driversLicenseNumber',
+  'idType',
+
+  // Misc
+  'helixContact',
+  'agreement',
+];
+
 function toTitleCase(str) {
   return str
     .toLowerCase()
@@ -50,7 +94,16 @@ function normalizeInstruction(data) {
   // idStatus is used by compliance and should not be stored in Instructions
   delete out.idStatus;
 
-  return out;
+  // Build final object containing only allowed fields
+  const finalObj = {};
+  for (const key of ALLOWED_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(out, key)) {
+      const val = out[key];
+      finalObj[key] = typeof val === 'boolean' ? String(val) : val;
+    }
+  }
+
+  return finalObj;
 }
 
 module.exports = { normalizeInstruction };

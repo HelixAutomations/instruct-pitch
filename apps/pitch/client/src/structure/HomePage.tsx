@@ -44,7 +44,35 @@ import { ProofData } from '../context/ProofData';
 import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
 
-
+const ALLOWED_FIELDS = [
+  'isCompanyClient',
+  'idType',
+  'companyName',
+  'companyNumber',
+  'companyHouseNumber',
+  'companyStreet',
+  'companyCity',
+  'companyCounty',
+  'companyPostcode',
+  'companyCountry',
+  'title',
+  'firstName',
+  'lastName',
+  'nationality',
+  'houseNumber',
+  'street',
+  'city',
+  'county',
+  'postcode',
+  'country',
+  'dob',
+  'gender',
+  'phone',
+  'email',
+  'idNumber',
+  'helixContact',
+  'agreement',
+];
 
 interface HomePageProps {
   step1Reveal?: boolean;
@@ -180,10 +208,14 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const saveInstruction = async (stage: string) => {
     if (!instruction.instructionRef) return;
     try {
+      const allowed: Partial<ProofData> = {} as Partial<ProofData>;
+      for (const key of ALLOWED_FIELDS) {
+        if (key in proofData) (allowed as any)[key] = (proofData as any)[key];
+      }
       const res = await fetch('/api/instruction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructionRef: instruction.instructionRef, stage, ...proofData })
+        body: JSON.stringify({ instructionRef: instruction.instructionRef, stage, ...allowed })
       });
       const data = await res.json();
       if (data && data.completed) {
