@@ -20,7 +20,12 @@ async function upsertInstruction(ref, fields) {
     setParts.push(`[${col}] = @${col}`);
     insertCols.push(`[${col}]`);
     insertVals.push(`@${col}`);
-    request.input(col, sql.NVarChar, fields[col]);
+    const val = fields[col];
+    if (typeof val === 'boolean') {
+      request.input(col, sql.Bit, val);
+    } else {
+      request.input(col, sql.NVarChar, val);
+    }
   }
   const updateSql = setParts.length ? `UPDATE Instructions SET ${setParts.join(', ')} WHERE InstructionRef=@ref` : '';
   const insertSql = `INSERT INTO Instructions (${insertCols.join(', ')}) VALUES (${insertVals.join(', ')})`;
