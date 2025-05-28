@@ -1,50 +1,6 @@
 const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 
-// Columns that exist on the Instructions table. Only these fields will be
-// persisted when upserting records.
-const VALID_COLUMNS = [
-  'stage',
-  'idStatus',
-  'isCompanyClient',
-  'idType',
-  'companyName',
-  'companyNumber',
-  'companyHouseNumber',
-  'companyStreet',
-  'companyCity',
-  'companyCounty',
-  'companyPostcode',
-  'companyCountry',
-  'title',
-  'firstName',
-  'lastName',
-  'nationality',
-  'houseNumber',
-  'street',
-  'city',
-  'county',
-  'postcode',
-  'country',
-  'dob',
-  'gender',
-  'phone',
-  'email',
-  'idNumber',
-  'helixContact',
-  'agreement',
-];
-
-function filterInstructionFields(fields) {
-  const out = {};
-  for (const key of Object.keys(fields || {})) {
-    if (VALID_COLUMNS.includes(key)) {
-      out[key] = fields[key];
-    }
-  }
-  return out;
-}
-
 async function getInstruction(ref) {
   const pool = await getSqlPool();
   const result = await pool.request()
@@ -55,8 +11,7 @@ async function getInstruction(ref) {
 
 async function upsertInstruction(ref, fields) {
   const pool = await getSqlPool();
-  const filtered = filterInstructionFields(fields);
-  const cols = Object.keys(filtered);
+  const cols = Object.keys(fields || {});
   const request = pool.request().input('ref', sql.NVarChar, ref);
   const setParts = [];
   const insertCols = ['InstructionRef'];
@@ -65,12 +20,7 @@ async function upsertInstruction(ref, fields) {
     setParts.push(`[${col}] = @${col}`);
     insertCols.push(`[${col}]`);
     insertVals.push(`@${col}`);
-    const val = filtered[col];
-    if (typeof val === 'boolean') {
-      request.input(col, sql.Bit, val);
-    } else {
-      request.input(col, sql.NVarChar, val);
-    }
+    request.input(col, sql.NVarChar, fields[col]);
   }
   const updateSql = setParts.length ? `UPDATE Instructions SET ${setParts.join(', ')} WHERE InstructionRef=@ref` : '';
   const insertSql = `INSERT INTO Instructions (${insertCols.join(', ')}) VALUES (${insertVals.join(', ')})`;
@@ -95,9 +45,4 @@ async function markCompleted(ref) {
   return result.recordset[0];
 }
 
-module.exports = {
-  getInstruction,
-  upsertInstruction,
-  markCompleted,
-  filterInstructionFields,
-};
+module.exports = { getInstruction, upsertInstruction, markCompleted };
