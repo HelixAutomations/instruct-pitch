@@ -78,6 +78,42 @@ These specify where the server stores uploaded documents in Azure Blob Storage.
 
 Uploaded documents are not cached between sessions. Refreshing the page or returning to the upload step shows an empty form and no files are considered uploaded until they are submitted again during that visit.
 
+### Instruction fields
+
+When posting data to `/api/instruction` the backend only persists a known set of
+fields. Any extra properties in the request body are ignored and will not be
+stored. The allowed instruction fields are:
+
+- `idStatus`
+- `isCompanyClient`
+- `idType`
+- `companyName`
+- `companyNumber`
+- `companyHouseNumber`
+- `companyStreet`
+- `companyCity`
+- `companyCounty`
+- `companyPostcode`
+- `companyCountry`
+- `title`
+- `firstName`
+- `lastName`
+- `nationality`
+- `houseNumber`
+- `street`
+- `city`
+- `county`
+- `postcode`
+- `country`
+- `dob`
+- `gender`
+- `phone`
+- `email`
+- `idNumber`
+- `helixContact`
+- `agreement`
+
+
 ## Deploying to Azure
 
 The repository includes a PowerShell script that builds the client and backend
@@ -104,3 +140,41 @@ During packaging `build-and-deploy.ps1` copies `apps/pitch/backend/server.js` an
 `apps/pitch/backend/web.config` to the repository root so they are included in
 `push-package.zip`. Once deployed, access the site via
 `https://<app-domain>/pitch/` rather than `https://<app-domain>/server.js`.
+
+### Allowed fields for `/api/instruction`
+
+The backend only stores recognised fields. Any other properties in a POST request
+are ignored. Supported fields currently include:
+
+- `stage`
+- `clientId`
+- `clientType`
+- `amount`
+- `product`
+- `workType`
+- `companyName`
+- `companyNumber`
+- `companyHouseNumber`
+- `companyStreet`
+- `companyCity`
+- `companyCounty`
+- `companyPostcode`
+- `companyCountry`
+- `title`
+- `firstName`
+- `lastName`
+- `nationality`
+- `houseNumber`
+- `street`
+- `city`
+- `county`
+- `postcode`
+- `country`
+- `dob`
+- `gender`
+- `phone`
+- `email`
+- `helixContact`
+
+Fields like `idStatus`, `idNumber`, `idType` and `isCompanyClient` are currently
+ignored to prevent database errors.

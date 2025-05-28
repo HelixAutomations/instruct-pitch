@@ -12,7 +12,12 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted } = require('./instructionDb');
+const {
+  getInstruction,
+  upsertInstruction,
+  markCompleted,
+  filterInstructionFields,
+} = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
 const app = express();
@@ -153,8 +158,13 @@ app.post('/api/instruction', async (req, res) => {
     }
 
     const normalized = normalizeInstruction(rest);
-    const merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
-    const record = await upsertInstruction(instructionRef, merged);
+    const merged = {
+      ...existing,
+      ...normalized,
+      stage: stage || existing.stage || 'in_progress',
+    };
+    const filtered = filterInstructionFields(merged);
+    const record = await upsertInstruction(instructionRef, filtered);
 
     res.json(record);
   } catch (err) {
