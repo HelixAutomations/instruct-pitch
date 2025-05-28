@@ -154,6 +154,7 @@ app.post('/api/instruction', async (req, res) => {
 
     const normalized = normalizeInstruction(rest);
     const merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
+    const record = await upsertInstruction(instructionRef, merged);
     res.json(record);
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
