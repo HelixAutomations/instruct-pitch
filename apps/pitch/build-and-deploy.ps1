@@ -38,6 +38,7 @@ Pop-Location
 Copy-Item .\backend\server.js ..\..\ -Force
 Copy-Item .\backend\upload.js ..\..\ -Force
 Copy-Item .\backend\sqlClient.js ..\..\ -Force
+Copy-Item .\backend\instructionDb.js ..\..\ -Force
 Copy-Item .\backend\package.json ..\..\ -Force
 Copy-Item .\backend\web.config ..\..\ -Force
 Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
@@ -64,6 +65,7 @@ Compress-Archive -Path `
   .\server.js, `
   .\upload.js, `
   .\sqlClient.js, `
+  .\instructionDb.js, `
   .\web.config, `
   .\package.json, `
   .\.env, `
