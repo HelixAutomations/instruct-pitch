@@ -153,8 +153,10 @@ app.post('/api/instruction', async (req, res) => {
     }
 
     const normalized = normalizeInstruction(rest);
+    // Sanitize merged data to prevent duplicate or unknown columns
     const merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
-    const record = await upsertInstruction(instructionRef, merged);
+    const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
+    const record = await upsertInstruction(instructionRef, sanitized);
     res.json(record);
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
