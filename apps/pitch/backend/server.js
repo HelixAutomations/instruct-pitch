@@ -31,9 +31,9 @@ app.all('/favicon.ico', (_req, res) => {
 // ─── Health probe support ───────────────────────────────────────────────
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
 app.get('/api/generate-instruction-ref', (req, res) => {
-  const pid = req.query.pid;
-  if (!pid) return res.status(400).json({ error: 'Missing pid' });
-  const ref = generateInstructionRef(String(pid));
+  const cid = req.query.cid;
+  if (!cid) return res.status(400).json({ error: 'Missing cid' });
+  const ref = generateInstructionRef(String(cid));
   res.json({ instructionRef: ref });
 });
 
@@ -225,14 +225,14 @@ app.get('/payment/result', (_req, res) => {
 });
 
 // 4) catch-all for /pitch SSR + prefill injection
-app.get(/^\/pitch(?!\/.*\.).*$/, async (req, res) => {
+app.get(['/pitch', '/pitch/:cid', '/pitch/:cid/*'], async (req, res) => {
   try {
     let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
-    const pid = req.query.pid;
-    if (pid && cachedFetchInstructionDataCode) {
+    const cid = req.params.cid;
+    if (cid && cachedFetchInstructionDataCode) {
       const fnUrl  = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
       const fnCode = cachedFetchInstructionDataCode;
-      const url    = `${fnUrl}?cid=${encodeURIComponent(pid)}&code=${fnCode}`;
+      const url    = `${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`;
       const { data } = await axios.get(url, { timeout: 8_000 });
         if (data && Object.keys(data).length > 0) {
           // escape closing script tags so embedded JSON cannot break the page

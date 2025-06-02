@@ -3,15 +3,12 @@ import '../styles/ClientDetails.css';
 
 interface ClientDetailsProps {
   workType: string; // you can remove this prop if unused elsewhere
-  clientId: string;
   instructionRef: string;
   stage: string;
   onAnimationEnd?: () => void;
 }
 
 const ClientDetails: React.FC<ClientDetailsProps> = ({
-  // workType, ← removed
-  clientId,
   instructionRef,
   stage,
   onAnimationEnd
@@ -34,9 +31,8 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
     }
   }, [loaded, onAnimationEnd]);
 
-  // Only two detail items now
+  // Only show the instruction reference
   const detailItems = [
-    { label: 'Client ID', value: clientId || '—' },
     { label: 'Instruction Ref', value: instructionRef || '—' }
   ];
 

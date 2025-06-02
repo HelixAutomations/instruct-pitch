@@ -147,10 +147,10 @@ app.get('/payment/result', (_req, res) => {
     res.sendFile(path_1.default.join(distPath, 'index.html'));
 });
 // catch-all for /pitch SSR + prefill injection
-app.get(/^\/pitch(?!\/.*\.).*$/, async (req, res) => {
+const servePitch = async (req, res) => {
     try {
         let html = fs_1.default.readFileSync(path_1.default.join(distPath, 'index.html'), 'utf8');
-        const pid = req.query.pid;
+        const pid = req.params.cid;
         if (pid && cachedFetchInstructionDataCode) {
             const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
             const fnCode = cachedFetchInstructionDataCode;
@@ -167,7 +167,12 @@ app.get(/^\/pitch(?!\/.*\.).*$/, async (req, res) => {
         console.error('❌ SSR /pitch catch-all error:', err);
         res.status(500).send('Could not load page');
     }
-});
+};
+
+app.get('/pitch', servePitch);
+app.get('/pitch/:cid', servePitch);
+app.get('/pitch/:cid/*', servePitch);
+
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
     app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));

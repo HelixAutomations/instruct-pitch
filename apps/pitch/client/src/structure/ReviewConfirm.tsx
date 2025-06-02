@@ -4,7 +4,7 @@ import { ProofData } from '../context/ProofData';
 import '../styles/ReviewConfirm.css';
 
 interface ReviewConfirmProps {
-  summaryConfirmed: boolean;
+  detailsConfirmed: boolean;
   openSummaryPanel?: () => void;
   summaryContent?: React.ReactNode;
   isMobile?: boolean; // <-- Pass this down from HomePage for clarity!
@@ -14,6 +14,7 @@ interface ReviewConfirmProps {
   amount?: number;
   product?: string;
   workType?: string;
+  onConfirmed?: () => void;
 }
 
 const AccordionSection: React.FC<{
@@ -40,7 +41,7 @@ const AccordionSection: React.FC<{
 };
 
 const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
-  summaryConfirmed,
+  detailsConfirmed,
   openSummaryPanel,
   summaryContent,
   isMobile = false,
@@ -50,6 +51,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   amount,
   product,
   workType,
+  onConfirmed,
 }) => {
   const { clientId: ctxClientId, instructionRef: ctxInstructionRef } = useClient();
   const clientId = propClientId ?? ctxClientId;
@@ -67,6 +69,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instructionRef })
       });
+      if (onConfirmed) onConfirmed();
     } catch (err) {
       console.error('❌ Instruction submit failed', err);
     }
@@ -78,7 +81,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
         <div
           className={
             'summary-confirmation-highlight' +
-            (summaryConfirmed ? ' confirmed' : ' not-confirmed')
+            (detailsConfirmed ? ' confirmed' : ' not-confirmed')
           }
           tabIndex={0}
           role="button"
@@ -90,12 +93,12 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
         >
           <span
             className={
-              summaryConfirmed
+              detailsConfirmed
                 ? 'summary-confirmed-ok'
                 : 'summary-confirmed-missing'
             }
           >
-            {summaryConfirmed
+            {detailsConfirmed
               ? 'Your details are confirmed and ready to submit.'
               : 'Please review and confirm your details in the summary to continue.'}
           </span>
@@ -114,7 +117,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
       <div className="declaration-section no-border">
         <button
           className="cta-declare-btn"
-          disabled={!summaryConfirmed}
+          disabled={!detailsConfirmed}
           onClick={handleSubmit}
         >
           Confirm Identity and Open a Matter

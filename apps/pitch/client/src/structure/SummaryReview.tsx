@@ -4,27 +4,21 @@ import "../styles/SummaryReview.css";
 
 interface SummaryReviewProps {
   proofContent: React.ReactNode;
-  documentsContent: React.ReactNode;
-  summaryConfirmed: boolean;
-  setSummaryConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
+  detailsConfirmed: boolean;
+  setDetailsConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SummaryReview: React.FC<SummaryReviewProps> = ({
   proofContent,
-  documentsContent,
-  summaryConfirmed,
-  setSummaryConfirmed,
+  detailsConfirmed,
+  setDetailsConfirmed,
 }) => {
   /* ---------------------------------------------
-     keep a map of “open” states – start with BOTH
+     only one collapsible section now
      --------------------------------------------- */
-  const [open, setOpen] = useState<Record<number, boolean>>({
-    1: true, // Proof of ID  (open)
-    2: true, // Document upload (open)
-  });
+  const [open, setOpen] = useState<boolean>(true);
 
-  const toggle = (section: 1 | 2) =>
-    setOpen((prev) => ({ ...prev, [section]: !prev[section] }));
+  const toggle = () => setOpen((prev) => !prev);
 
   /* ---------- render ---------- */
   return (
@@ -36,42 +30,19 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
         <button
           className="summary-toggle"
           type="button"
-          onClick={() => toggle(1)}
-          aria-expanded={open[1]}
+          onClick={toggle}
+          aria-expanded={open}
         >
           <span>Proof of ID</span>
           <span className="chevron">
-            {open[1] ? <FiChevronUp /> : <FiChevronDown />}
+            {open ? <FiChevronUp /> : <FiChevronDown />}
           </span>
         </button>
         <hr />
-        {open[1] && (
+        {open && (
           <div className="summary-content">
             {proofContent ?? (
               <span className="summary-empty">No information provided yet.</span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Document Upload */}
-      <div className="summary-subsection">
-        <button
-          className="summary-toggle"
-          type="button"
-          onClick={() => toggle(2)}
-          aria-expanded={open[2]}
-        >
-          <span>Document Upload</span>
-          <span className="chevron">
-            {open[2] ? <FiChevronUp /> : <FiChevronDown />}
-          </span>
-        </button>
-        <hr />
-        {open[2] && (
-          <div className="summary-content">
-            {documentsContent ?? (
-              <span className="summary-empty">No documents uploaded yet.</span>
             )}
           </div>
         )}
@@ -83,8 +54,8 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
           <input
             type="checkbox"
             className="modern-checkbox-input"
-            checked={summaryConfirmed}
-            onChange={(e) => setSummaryConfirmed(e.target.checked)}
+            checked={detailsConfirmed}
+            onChange={(e) => setDetailsConfirmed(e.target.checked)}
           />
           <span className="modern-checkbox-custom" aria-hidden="true">
             <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">

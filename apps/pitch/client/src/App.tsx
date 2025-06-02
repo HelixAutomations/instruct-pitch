@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Header from './structure/Header';
 import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
@@ -8,26 +8,40 @@ import ClientDetails from './structure/ClientDetails';
 import PaymentResult from './structure/PaymentResult';  // ← make sure this import is here
 import './styles/App.css';
 
-const params = new URLSearchParams(window.location.search);
-
 const App: React.FC = () => {
-  const [clientId, setClientId] = useState(params.get('pid') || '');
+  const { cid } = useParams<{ cid?: string }>();
+  const navigate = useNavigate();
+
+  const [clientId, setClientId] = useState(cid || '');
   const [instructionRef, setInstructionRef] = useState(() => {
-    const pid = params.get('pid');
-    if (!pid) return '';
-    const now = new Date();
+    if (!cid) return '';
+    const now  = new Date();
     const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(
       now.getMonth() + 1
     ).padStart(2, '0')}`;
-    return `HLX-${pid}-${ddmm}`;
+    return `HLX-${cid}-${ddmm}`;
   });
-  const [confirmed, setConfirmed] = useState(() => Boolean(params.get('pid')));
   const [step1Reveal, setStep1Reveal] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    if (cid) {
+      const now  = new Date();
+      const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(
+        now.getMonth() + 1
+      ).padStart(2, '0')}`;
+      setClientId(cid);
+      setInstructionRef(`HLX-${cid}-${ddmm}`);
+    }
+  }, [cid]);
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
   }
+
+  const handleConfirm = () => {
+    navigate(`/${clientId}`);
+  };
 
   return (
     <div className="app-page">
@@ -37,7 +51,6 @@ const App: React.FC = () => {
             <Header />
             <ClientDetails
               workType="—"
-              clientId={clientId}
               instructionRef={instructionRef}
               stage="Confirmation of Instruction"
               onAnimationEnd={() => {
@@ -50,24 +63,25 @@ const App: React.FC = () => {
 
       <main className="app-container">
         <Routes>
-          {/* Catch-all routes */}
           <Route
-            path="/*"
+            path="/"
             element={
-              !confirmed ? (
-                <IDAuth
-                  clientId={clientId}
-                  setClientId={setClientId}
-                  setInstructionRef={setInstructionRef}
-                  onConfirm={() => setConfirmed(true)}
-                />
-              ) : (
-                <HomePage
-                  step1Reveal={step1Reveal}
-                  clientId={clientId}
-                  instructionRef={instructionRef}
-                />
-              )
+              <IDAuth
+                clientId={clientId}
+                setClientId={setClientId}
+                setInstructionRef={setInstructionRef}
+                onConfirm={handleConfirm}
+              />
+            }
+          />
+          <Route
+            path="/:cid/*"
+            element={
+              <HomePage
+                step1Reveal={step1Reveal}
+                clientId={clientId}
+                instructionRef={instructionRef}
+              />
             }
           />
         </Routes>

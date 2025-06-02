@@ -172,8 +172,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
-  const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3 | 4>(0);
+  const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
+  const [showReview, setShowReview] = useState(false);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -325,10 +326,10 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [instructionReady, setInstructionReady] = useState(false);
   const [instructionError, setInstructionError] = useState<string | null>(null);
 
-  const [isProofDone, setProofDone] = useState(false);
+  const [isIdReviewDone, setIdReviewDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(false);
-  const [summaryConfirmed, setSummaryConfirmed] = useState(false);
+  const [detailsConfirmed, setDetailsConfirmed] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem('paymentSuccess') === 'true') {
@@ -339,7 +340,13 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, []);
 
   useEffect(() => {
-    setProofDone(isProofComplete());
+    if (isPaymentDone) {
+      setOpenStep(3);
+    }
+  }, [isPaymentDone]);
+
+  useEffect(() => {
+    setIdReviewDone(isIdInfoComplete());
   }, [proofData]);
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
@@ -347,7 +354,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, [uploadedFiles]);
 
   const [pulse, setPulse] = useState(false);
-  const [pulseStep, setPulseStep] = useState<0 | 1 | 2 | 3 | 4>(0);
+  const [pulseStep, setPulseStep] = useState<0 | 1 | 2 | 3>(0);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -398,7 +405,7 @@ function getPulseClass(step: number, done: boolean) {
       clientId &&
       instruction.instructionRef &&
       clientType &&
-      isProofDone
+      isIdReviewDone
     ) {
       fetch('/api/instruction', {
         method: 'POST',
@@ -423,9 +430,9 @@ function getPulseClass(step: number, done: boolean) {
         })
         .catch(() => setInstructionError('Failed to create instruction'));
     }
-  }, [clientId, instruction.instructionRef, proofData.isCompanyClient, isProofDone, instructionReady]);
+  }, [clientId, instruction.instructionRef, proofData.isCompanyClient, isIdReviewDone, instructionReady]);
 
-  function isProofComplete() {
+  function isIdInfoComplete() {
     return [
       proofData.idStatus,
       proofData.title,
@@ -443,11 +450,195 @@ function getPulseClass(step: number, done: boolean) {
   const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
+  const proofSummary = (
+    <>
+      {proofData.isCompanyClient && (
+        <div className="group">
+          <div className="summary-group-header">Company Details</div>
+          <FaCity className="backdrop-icon" />
+          <p>
+            <span className="field-label">Client:</span>{' '}
+            <span className={`field-value${!proofData.isCompanyClient ? ' empty' : ''}`}>Yes</span>
+          </p>
+          <p>
+            <span className="field-label">Name:</span>{' '}
+            <span className={`field-value${!hasCompanyName ? ' empty' : ''}`}>{proofData.companyName?.trim() || '--'}</span>
+          </p>
+          <p>
+            <span className="field-label">Number:</span>{' '}
+            <span className={`field-value${!hasCompanyNumber ? ' empty' : ''}`}>{proofData.companyNumber?.trim() || '--'}</span>
+          </p>
+          <p>
+            <span className="field-label">Address:</span>
+          </p>
+          <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
+            <div>
+              <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyHouseNumber?.trim() || 'House Number'}</span>
+              ,&nbsp;
+              <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyStreet?.trim() || 'Street'}</span>
+            </div>
+            <div>
+              <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyCity?.trim() || 'City'}</span>
+              ,&nbsp;
+              <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyCounty?.trim() || 'County'}</span>
+            </div>
+            <div>
+              <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyPostcode?.trim() || 'Postcode'}</span>
+              ,&nbsp;
+              <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyCountry?.trim() || 'Country'}</span>
+            </div>
+          </div>
+          <hr />
+        </div>
+      )}
+      {proofData.idStatus === 'first-time' && (
+        <div className="group">
+          <div className="summary-status-note">You are providing proof of your identity for the first time.</div>
+          <hr />
+        </div>
+      )}
+      {proofData.idStatus === 'renewing' && (
+        <div className="group">
+          <div className="summary-status-note">You are renewing proof of your identity.</div>
+          <hr />
+        </div>
+      )}
+      <div className="group">
+        <div className="summary-group-header">Personal Details</div>
+        <FaUser className="backdrop-icon" />
+        <p>
+          <span className="field-label">Name:</span>{' '}
+          <span className={`field-value${!hasFullName ? ' empty' : ''}`}>{nameParts.filter(Boolean).join(' ') || '--'}</span>
+        </p>
+        <p>
+          <span className="field-label">Nationality:</span>{' '}
+          <span className={`field-value${!proofData.nationality?.trim() ? ' empty' : ''}`}>{proofData.nationality?.trim() || '--'}</span>
+        </p>
+        <p>
+          <span className="field-label">Date of Birth:</span>{' '}
+          <span className={`field-value${!proofData.dob?.trim() ? ' empty' : ''}`}>{proofData.dob?.trim() || '--'}</span>
+        </p>
+        <p>
+          <span className="field-label">Gender:</span>{' '}
+          <span className={`field-value${!proofData.gender?.trim() ? ' empty' : ''}`}>{proofData.gender?.trim() || '--'}</span>
+        </p>
+        <hr />
+      </div>
+      <div className="group">
+        <div className="summary-group-header">Address</div>
+        <FaMapMarkerAlt className="backdrop-icon" />
+        <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
+          <div>
+            <span className={!proofData.houseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.houseNumber?.trim() || 'House Number'}</span>
+            ,&nbsp;
+            <span className={!proofData.street?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.street?.trim() || 'Street'}</span>
+          </div>
+          <div>
+            <span className={!proofData.city?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.city?.trim() || 'City'}</span>
+            ,&nbsp;
+            <span className={!proofData.county?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.county?.trim() || 'County'}</span>
+          </div>
+          <div>
+            <span className={!proofData.postcode?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.postcode?.trim() || 'Postcode'}</span>
+            ,&nbsp;
+            <span className={!proofData.country?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.country?.trim() || 'Country'}</span>
+          </div>
+        </div>
+        <hr />
+      </div>
+      <div className="group">
+        <div className="summary-group-header">Contact Details</div>
+        <FaPhone className="backdrop-icon" />
+        <p>
+          <span className="field-label">Phone:</span>{' '}
+          <span className={`field-value${!proofData.phone?.trim() ? ' empty' : ''}`}>{proofData.phone?.trim() || '--'}</span>
+        </p>
+        <p>
+          <span className="field-label">Email:</span>{' '}
+          <span className={`field-value${!proofData.email?.trim() ? ' empty' : ''}`}>{proofData.email?.trim() || '--'}</span>
+        </p>
+        <hr />
+      </div>
+      <div className="group">
+        <div className="summary-group-header">ID Details</div>
+        <FaIdCard className="backdrop-icon" />
+        <p>
+          <span className="field-label">Type:</span>{' '}
+          <span className={`field-value${!proofData.idType?.trim() ? ' empty' : ''}`}>{proofData.idType?.trim() || '--'}</span>
+        </p>
+        <p>
+          <span className="field-label">Number:</span>{' '}
+          <span className={`field-value${!proofData.idNumber?.trim() ? ' empty' : ''}`}>{proofData.idNumber?.trim() || '--'}</span>
+        </p>
+        <hr />
+      </div>
+      <div className="group">
+        <div className="summary-group-header">Helix Contact</div>
+        <FaUserTie className="backdrop-icon" />
+        <p>
+          <span className="field-label">Contact:</span>{' '}
+          <span className={`field-value${!proofData.helixContact?.trim() ? ' empty' : ''}`}>{proofData.helixContact?.trim() || '--'}</span>
+        </p>
+      </div>
+    </>
+  );
+
+  const documentsSummary = isUploadSkipped ? (
+    <span className="field-value">File upload skipped.</span>
+  ) : uploadedFiles.length ? (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {uploadedFiles.map((f, i) => (
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            flexWrap: 'nowrap',
+            overflow: 'hidden',
+            minWidth: 0,
+          }}
+        >
+          <span style={{ flexShrink: 0 }}>{getFileIcon(f.file.name)}</span>
+          <span
+            style={{
+              fontSize: '0.95rem',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flexGrow: 1,
+            }}
+            title={f.file.name}
+          >
+            {f.file.name}
+          </span>
+          {f.uploaded ? (
+            <FaCheckCircle className="summary-file-check" />
+          ) : (
+            <FaTimesCircle className="summary-file-check" style={{ color: 'crimson' }} />
+          )}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <span className="field-value">--</span>
+  );
+
   const next = () => {
     saveInstruction('in_progress');
-    setOpenStep((prev) => (prev < 4 ? (prev + 1) as any : prev));
+    if (openStep === 1 && !showReview) {
+      setShowReview(true);
+      return;
+    }
+    setOpenStep((prev) => (prev < 3 ? (prev + 1) as any : prev));
   };
-  const back = () => setOpenStep((prev) => (prev > 1 ? (prev - 1) as any : prev));
+  const back = () => {
+    if (openStep === 1 && showReview) {
+      setShowReview(false);
+      return;
+    }
+    setOpenStep((prev) => (prev > 1 ? (prev - 1) as any : prev));
+  };
 
   useEffect(() => {
     if (aliasId && orderId && shaSign) {
@@ -482,67 +673,56 @@ function getPulseClass(step: number, done: boolean) {
             <div className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
               <StepHeader
                 step={1}
-                title="Verify Your Identity and Open a Matter"
-                complete={isProofDone}
+                title="ID & Review"
+                complete={isIdReviewDone}
                 open={openStep === 1}
                 toggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
                 locked={instructionCompleted}
               />
               <div
-                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isProofDone)}`}>
+                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone)}`}>
                 {openStep === 1 && (
-                  <ProofOfId
-                    value={proofData}
-                    onUpdate={setProofData}
-                    setIsComplete={setProofDone}
-                    onNext={next}
-                  />
+                  !showReview ? (
+                    <ProofOfId
+                      value={proofData}
+                      onUpdate={setProofData}
+                      setIsComplete={setIdReviewDone}
+                      onNext={next}
+                    />
+                  ) : (
+                    <ReviewConfirm
+                      detailsConfirmed={detailsConfirmed}
+                      openSummaryPanel={() => {}}
+                      summaryContent={isMobile ? (
+                        <SummaryReview
+                          proofContent={proofSummary}
+                          documentsContent={documentsSummary}
+                          detailsConfirmed={detailsConfirmed}
+                          setDetailsConfirmed={setDetailsConfirmed}
+                        />
+                      ) : undefined}
+                      isMobile={isMobile}
+                      instructionRef={instruction.instructionRef}
+                      proofData={proofData}
+                      onConfirmed={next}
+                    />
+                  )
                 )}
               </div>
             </div>
 
-            <div className={`step-section${openStep === 2 ? ' active' : ''}`}>
+            <div className={`step-section${openStep === 2 ? ' active' : ''}`}> 
               <StepHeader
                 step={2}
-                title="Upload Your Documents"
-                complete={isUploadDone}
+                title="Pay and Instruct"
+                complete={isPaymentDone}
                 open={openStep === 2}
                 toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
                 locked={instructionCompleted}
               />
-              <div className={`step-content${openStep === 2 ? ' active' : ''}${getPulseClass(2, isUploadDone)}`}>
-                {openStep === 2 && (
-                  <DocumentUpload
-                    uploadedFiles={uploadedFiles}
-                    setUploadedFiles={setUploadedFiles}
-                    setIsComplete={setUploadDone}
-                    onBack={back}
-                    onNext={next}
-                    setUploadSkipped={setUploadSkipped}
-                    isUploadSkipped={isUploadSkipped}
-                    clientId={clientId}
-                    instructionRef={instruction.instructionRef}
-                    instructionReady={instructionReady}
-                    instructionError={instructionError}
-                    
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className={`step-section${openStep === 3 ? ' active' : ''}`}>
-              <StepHeader
-                step={3}
-                title="Pay and Instruct"
-                complete={isPaymentDone}
-                open={openStep === 3}
-                toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
-                locked={instructionCompleted}
-              />
-              <div className={`step-content${openStep === 3 ? ' active payment-noscroll' : ''}${getPulseClass(3, isPaymentDone)}`}>
-                {(prefetchPayment || openStep === 3) && (
-                  <div style={{ display: openStep === 3 ? 'block' : 'none' }}>
-                    <Payment
+              <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
+                {(prefetchPayment || openStep === 2) && (
+                  <div style={{ display: openStep === 2 ? 'block' : 'none' }}>                    <Payment
                       paymentDetails={paymentDetails}
                       setIsComplete={setPaymentDone}
                       onBack={back}
@@ -561,256 +741,29 @@ function getPulseClass(step: number, done: boolean) {
                 )}
               </div>
             </div>
-
-            <div className={`step-section${openStep === 4 ? ' active' : ''}`}>
+            <div className={`step-section${openStep === 3 ? ' active' : ''}`}> 
               <StepHeader
-                step={4}
-                title="Review & Confirm"
-                complete={isProofDone && isUploadDone && isPaymentDone}
-                open={openStep === 4}
-                toggle={() => setOpenStep(openStep === 4 ? 0 : 4)}
+                step={3}
+                title="Upload Your Documents"
+                complete={isUploadDone}
+                open={openStep === 3}
+                toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
                 locked={instructionCompleted}
               />
-              <div className={`step-content${openStep === 4 ? ' active' : ''}`}>
-                {openStep === 4 && (
-                  <ReviewConfirm
-                    summaryConfirmed={summaryConfirmed}
-                    openSummaryPanel={() => {}}
-                    summaryContent={isMobile ? (
-                      <SummaryReview
-                        proofContent={
-                          <>
-                            {proofData.isCompanyClient && (
-                              <div className="group">
-                                <div className="summary-group-header">Company Details</div>
-                                <FaCity className="backdrop-icon" />
-                                <p>
-                                  <span className="field-label">Client:</span>{" "}
-                                  <span className={`field-value${!proofData.isCompanyClient ? " empty" : ""}`}>
-                                    Yes
-                                  </span>
-                                </p>
-                                <p>
-                                  <span className="field-label">Name:</span>{" "}
-                                  <span className={`field-value${!hasCompanyName ? " empty" : ""}`}>
-                                    {proofData.companyName?.trim() || '--'}
-                                  </span>
-                                </p>
-                                <p>
-                                  <span className="field-label">Number:</span>{" "}
-                                  <span className={`field-value${!hasCompanyNumber ? " empty" : ""}`}>
-                                    {proofData.companyNumber?.trim() || '--'}
-                                  </span>
-                                </p>
-                                <p>
-                                  <span className="field-label">Address:</span>
-                                </p>
-                                <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
-                                  <div>
-                                    <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>
-                                      {proofData.companyHouseNumber?.trim() || 'House Number'}
-                                    </span>
-                                    ,&nbsp;
-                                    <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>
-                                      {proofData.companyStreet?.trim() || 'Street'}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>
-                                      {proofData.companyCity?.trim() || 'City'}
-                                    </span>
-                                    ,&nbsp;
-                                    <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>
-                                      {proofData.companyCounty?.trim() || 'County'}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>
-                                      {proofData.companyPostcode?.trim() || 'Postcode'}
-                                    </span>
-                                    ,&nbsp;
-                                    <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>
-                                      {proofData.companyCountry?.trim() || 'Country'}
-                                    </span>
-                                  </div>
-                                </div>
-                                <hr />
-                              </div>
-                            )}
-                            {proofData.idStatus === 'first-time' && (
-                              <div className="group">
-                                <div className="summary-status-note">
-                                  You are providing proof of your identity for the first time.
-                                </div>
-                                <hr />
-                              </div>
-                            )}
-                            {proofData.idStatus === 'renewing' && (
-                              <div className="group">
-                                <div className="summary-status-note">
-                                  You are renewing proof of your identity.
-                                </div>
-                                <hr />
-                              </div>
-                            )}
-                            <div className="group">
-                              <div className="summary-group-header">Personal Details</div>
-                              <FaUser className="backdrop-icon" />
-                              <p>
-                                <span className="field-label">Name:</span>{" "}
-                                <span className={`field-value${!hasFullName ? " empty" : ""}`}>
-                                  {nameParts.filter(Boolean).join(' ') || '--'}
-                                </span>
-                              </p>
-                              <p>
-                                <span className="field-label">Nationality:</span>{" "}
-                                <span className={`field-value${!proofData.nationality?.trim() ? " empty" : ""}`}>
-                                  {proofData.nationality?.trim() || '--'}
-                                </span>
-                              </p>
-                              <p>
-                                <span className="field-label">Date of Birth:</span>{" "}
-                                <span className={`field-value${!proofData.dob?.trim() ? " empty" : ""}`}>
-                                  {proofData.dob?.trim() || '--'}
-                                </span>
-                              </p>
-                              <p>
-                                <span className="field-label">Gender:</span>{" "}
-                                <span className={`field-value${!proofData.gender?.trim() ? " empty" : ""}`}>
-                                  {proofData.gender?.trim() || '--'}
-                                </span>
-                              </p>
-                              <hr />
-                            </div>
-                            <div className="group">
-                              <div className="summary-group-header">Address</div>
-                              <FaMapMarkerAlt className="backdrop-icon" />
-                              <div className="data-text" style={{ color: "inherit", lineHeight: 1.5 }}>
-                                <div>
-                                  <span className={!proofData.houseNumber?.trim() ? "summary-placeholder" : "field-value"}>
-                                    {proofData.houseNumber?.trim() || "House Number"}
-                                  </span>
-                                  ,&nbsp;
-                                  <span className={!proofData.street?.trim() ? "summary-placeholder" : "field-value"}>
-                                    {proofData.street?.trim() || "Street"}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className={!proofData.city?.trim() ? "summary-placeholder" : "field-value"}>
-                                    {proofData.city?.trim() || "City"}
-                                  </span>
-                                  ,&nbsp;
-                                  <span className={!proofData.county?.trim() ? "summary-placeholder" : "field-value"}>
-                                    {proofData.county?.trim() || "County"}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className={!proofData.postcode?.trim() ? "summary-placeholder" : "field-value"}>
-                                    {proofData.postcode?.trim() || "Postcode"}
-                                  </span>
-                                  ,&nbsp;
-                                  <span className={!proofData.country?.trim() ? "summary-placeholder" : "field-value"}>
-                                    {proofData.country?.trim() || "Country"}
-                                  </span>
-                                </div>
-                              </div>
-                              <hr />
-                            </div>
-                            <div className="group">
-                              <div className="summary-group-header">Contact Details</div>
-                              <FaPhone className="backdrop-icon" />
-                              <p>
-                                <span className="field-label">Phone:</span>{" "}
-                                <span className={`field-value${!proofData.phone?.trim() ? " empty" : ""}`}>
-                                  {proofData.phone?.trim() || '--'}
-                                </span>
-                              </p>
-                              <p>
-                                <span className="field-label">Email:</span>{" "}
-                                <span className={`field-value${!proofData.email?.trim() ? " empty" : ""}`}>
-                                  {proofData.email?.trim() || '--'}
-                                </span>
-                              </p>
-                              <hr />
-                            </div>
-                            <div className="group">
-                              <div className="summary-group-header">ID Details</div>
-                              <FaIdCard className="backdrop-icon" />
-                              <p>
-                                <span className="field-label">Type:</span>{" "}
-                                <span className={`field-value${!proofData.idType?.trim() ? " empty" : ""}`}>
-                                  {proofData.idType?.trim() || '--'}
-                                </span>
-                              </p>
-                              <p>
-                                <span className="field-label">Number:</span>{" "}
-                                <span className={`field-value${!proofData.idNumber?.trim() ? " empty" : ""}`}>
-                                  {proofData.idNumber?.trim() || '--'}
-                                </span>
-                              </p>
-                              <hr />
-                            </div>
-                            <div className="group">
-                              <div className="summary-group-header">Helix Contact</div>
-                              <FaUserTie className="backdrop-icon" />
-                              <p>
-                                <span className="field-label">Contact:</span>{" "}
-                                <span className={`field-value${!proofData.helixContact?.trim() ? " empty" : ""}`}>
-                                  {proofData.helixContact?.trim() || '--'}
-                                </span>
-                              </p>
-                            </div>
-                          </>
-                        }
-                        documentsContent={
-                          isUploadSkipped ? (
-                            <span className="field-value">File upload skipped.</span>
-                          ) : uploadedFiles.length ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                              {uploadedFiles.map((f, i) => (
-                                <div
-                                  key={i}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    flexWrap: 'nowrap',
-                                    overflow: 'hidden',
-                                    minWidth: 0,
-                                  }}
-                                >
-                                  <span style={{ flexShrink: 0 }}>{getFileIcon(f.file.name)}</span>
-                                  <span
-                                    style={{
-                                      fontSize: '0.95rem',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                      flexGrow: 1,
-                                    }}
-                                    title={f.file.name}
-                                  >
-                                    {f.file.name}
-                                  </span>
-                                  {f.uploaded ? (
-                                    <FaCheckCircle className="summary-file-check" />
-                                  ) : (
-                                    <FaTimesCircle className="summary-file-check" style={{ color: 'crimson' }} />
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="field-value">--</span>
-                          )
-                        }
-                        summaryConfirmed={summaryConfirmed}
-                        setSummaryConfirmed={setSummaryConfirmed}
-                      />
-                    ) : undefined}
-                    isMobile={isMobile}
+              <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
+                {openStep === 3 && (
+                  <DocumentUpload
+                    uploadedFiles={uploadedFiles}
+                    setUploadedFiles={setUploadedFiles}
+                    setIsComplete={setUploadDone}
+                    onBack={back}
+                    onNext={next}
+                    setUploadSkipped={setUploadSkipped}
+                    isUploadSkipped={isUploadSkipped}
+                    clientId={clientId}
                     instructionRef={instruction.instructionRef}
-                    proofData={proofData}
+                    instructionReady={instructionReady}
+                    instructionError={instructionError}
                   />
                 )}
               </div>
@@ -821,194 +774,10 @@ function getPulseClass(step: number, done: boolean) {
           {!isMobile && (
             <aside className="summary-column">
               <SummaryReview
-                proofContent={
-                  <>
-                    {proofData.isCompanyClient && (
-                      <div className="group">
-                        <div className="summary-group-header">Company Details</div>
-                        <FaCity className="backdrop-icon" />
-                        <p>
-                          <span className="field-label">Client:</span>{" "}
-                          <span className={`field-value${!proofData.isCompanyClient ? " empty" : ""}`}>Yes</span>
-                        </p>
-                        <p>
-                          <span className="field-label">Name:</span>{" "}
-                          <span className={`field-value${!hasCompanyName ? " empty" : ""}`}>{proofData.companyName?.trim() || '--'}</span>
-                        </p>
-                        <p>
-                          <span className="field-label">Number:</span>{" "}
-                          <span className={`field-value${!hasCompanyNumber ? " empty" : ""}`}>{proofData.companyNumber?.trim() || '--'}</span>
-                        </p>
-                        <p>
-                          <span className="field-label">Address:</span>
-                        </p>
-                                                <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
-                          <div>
-                            <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>
-                              {proofData.companyHouseNumber?.trim() || 'House Number'}
-                            </span>
-                            ,&nbsp;
-                            <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>
-                              {proofData.companyStreet?.trim() || 'Street'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>
-                              {proofData.companyCity?.trim() || 'City'}
-                            </span>
-                            ,&nbsp;
-                            <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>
-                              {proofData.companyCounty?.trim() || 'County'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>
-                              {proofData.companyPostcode?.trim() || 'Postcode'}
-                            </span>
-                            ,&nbsp;
-                            <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>
-                              {proofData.companyCountry?.trim() || 'Country'}
-                            </span>
-                          </div>
-                        </div>
-                        <hr />
-                      </div>
-                    )}
-                    {proofData.idStatus === 'first-time' && (
-                      <div className="group">
-                        <div className="summary-status-note">You are providing proof of your identity for the first time.</div>
-                        <hr />
-                      </div>
-                    )}
-                    {proofData.idStatus === 'renewing' && (
-                      <div className="group">
-                        <div className="summary-status-note">You are renewing proof of your identity.</div>
-                        <hr />
-                      </div>
-                    )}
-                    <div className="group">
-                      <div className="summary-group-header">Personal Details</div>
-                      <FaUser className="backdrop-icon" />
-                      <p>
-                        <span className="field-label">Name:</span>{" "}
-                        <span className={`field-value${!hasFullName ? " empty" : ""}`}>{nameValue}</span>
-                      </p>
-                      <p>
-                        <span className="field-label">Nationality:</span>{" "}
-                        <span className={`field-value${!proofData.nationality?.trim() ? " empty" : ""}`}>{proofData.nationality?.trim() || '--'}</span>
-                      </p>
-                      <p>
-                        <span className="field-label">Date of Birth:</span>{" "}
-                        <span className={`field-value${!proofData.dob?.trim() ? " empty" : ""}`}>{proofData.dob?.trim() || '--'}</span>
-                      </p>
-                      <p>
-                        <span className="field-label">Gender:</span>{" "}
-                        <span className={`field-value${!proofData.gender?.trim() ? " empty" : ""}`}>{proofData.gender?.trim() || '--'}</span>
-                      </p>
-                      <hr />
-                    </div>
-                    <div className="group">
-                      <div className="summary-group-header">Address</div>
-                      <FaMapMarkerAlt className="backdrop-icon" />
-                      <div className="data-text" style={{ color: "inherit", lineHeight: 1.5 }}>
-                        <div>
-                          <span className={!proofData.houseNumber?.trim() ? "summary-placeholder" : "field-value"}>{proofData.houseNumber?.trim() || "House Number"}</span>
-                          ,&nbsp;
-                          <span className={!proofData.street?.trim() ? "summary-placeholder" : "field-value"}>{proofData.street?.trim() || "Street"}</span>
-                        </div>
-                        <div>
-                          <span className={!proofData.city?.trim() ? "summary-placeholder" : "field-value"}>{proofData.city?.trim() || "City"}</span>
-                          ,&nbsp;
-                          <span className={!proofData.county?.trim() ? "summary-placeholder" : "field-value"}>{proofData.county?.trim() || "County"}</span>
-                        </div>
-                        <div>
-                          <span className={!proofData.postcode?.trim() ? "summary-placeholder" : "field-value"}>{proofData.postcode?.trim() || "Postcode"}</span>
-                          ,&nbsp;
-                          <span className={!proofData.country?.trim() ? "summary-placeholder" : "field-value"}>{proofData.country?.trim() || "Country"}</span>
-                        </div>
-                      </div>
-                      <hr />
-                    </div>
-                    <div className="group">
-                      <div className="summary-group-header">Contact Details</div>
-                      <FaPhone className="backdrop-icon" />
-                      <p>
-                        <span className="field-label">Phone:</span>{" "}
-                        <span className={`field-value${!proofData.phone?.trim() ? " empty" : ""}`}>{proofData.phone?.trim() || '--'}</span>
-                      </p>
-                      <p>
-                        <span className="field-label">Email:</span>{" "}
-                        <span className={`field-value${!proofData.email?.trim() ? " empty" : ""}`}>{proofData.email?.trim() || '--'}</span>
-                      </p>
-                      <hr />
-                    </div>
-                    <div className="group">
-                      <div className="summary-group-header">ID Details</div>
-                      <FaIdCard className="backdrop-icon" />
-                      <p>
-                        <span className="field-label">Type:</span>{" "}
-                        <span className={`field-value${!proofData.idType?.trim() ? " empty" : ""}`}>{proofData.idType?.trim() || '--'}</span>
-                      </p>
-                      <p>
-                        <span className="field-label">Number:</span>{" "}
-                        <span className={`field-value${!proofData.idNumber?.trim() ? " empty" : ""}`}>{proofData.idNumber?.trim() || '--'}</span>
-                      </p>
-                      <hr />
-                    </div>
-                    <div className="group">
-                      <div className="summary-group-header">Helix Contact</div>
-                      <FaUserTie className="backdrop-icon" />
-                      <p>
-                        <span className="field-label">Contact:</span>{" "}
-                        <span className={`field-value${!proofData.helixContact?.trim() ? " empty" : ""}`}>{proofData.helixContact?.trim() || '--'}</span>
-                      </p>
-                    </div>
-                  </>
-                }
-                documentsContent={
-                  isUploadSkipped ? (
-                    <span className="field-value">File upload skipped.</span>
-                  ) : uploadedFiles.length ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      {uploadedFiles.map((f, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            flexWrap: 'nowrap',
-                            overflow: 'hidden',
-                            minWidth: 0,
-                          }}
-                        >
-                          <span style={{ flexShrink: 0 }}>{getFileIcon(f.file.name)}</span>
-                          <span
-                            style={{
-                              fontSize: '0.95rem',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              flexGrow: 1,
-                            }}
-                          title={f.file.name}
-                          >
-                            {f.file.name}
-                          </span>
-                          {f.uploaded ? (
-                            <FaCheckCircle className="summary-file-check" />
-                          ) : (
-                            <FaTimesCircle className="summary-file-check" style={{ color: 'crimson' }} />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="field-value">--</span>
-                  )
-                }
-                summaryConfirmed={summaryConfirmed}
-                setSummaryConfirmed={setSummaryConfirmed}
+                proofContent={proofSummary}
+                documentsContent={documentsSummary}
+                detailsConfirmed={detailsConfirmed}
+                setDetailsConfirmed={setDetailsConfirmed}
               />
             </aside>
           )}
