@@ -16,7 +16,8 @@ let passwordPromise;
 async function ensureDbPassword() {
   if (process.env.DB_PASSWORD) return process.env.DB_PASSWORD;
   if (!passwordPromise) {
-    passwordPromise = secretClient.getSecret('instructionsadmin-password').then(s => {
+const dbPasswordSecret = process.env.DB_PASSWORD_SECRET || 'instructionsadmin-password';
+passwordPromise = secretClient.getSecret(dbPasswordSecret).then(s => {
       process.env.DB_PASSWORD = s.value;
       return s.value;
     });
