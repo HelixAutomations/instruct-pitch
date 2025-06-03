@@ -3,7 +3,9 @@ const { SecretClient } = require('@azure/keyvault-secrets');
 const sql = require('mssql');
 const { getSqlPool } = require('../sqlClient');
 
-const vaultUrl = process.env.KEY_VAULT_URL || 'https://helix-keys-v1.vault.azure.net/';
+const keyVaultName = process.env.KEY_VAULT_NAME;
+const vaultUrl = process.env.KEY_VAULT_URL ||
+  (keyVaultName ? `https://${keyVaultName}.vault.azure.net/` : 'https://helix-keys-v1.vault.azure.net/');
 const credential = new DefaultAzureCredential();
 const secretClient = new SecretClient(vaultUrl, credential);
 let passwordPromise;

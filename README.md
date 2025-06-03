@@ -49,6 +49,10 @@ KEY_VAULT_NAME=my-key-vault
 
 This determines which Azure Key Vault the backend connects to.
 
+The decoupled `dealCapture` Azure Function uses the same `KEY_VAULT_NAME` (or
+`KEY_VAULT_URL`) setting. If not provided it falls back to the default vault
+`https://helix-keys-v1.vault.azure.net/`.
+
 ### Database Environment Variables
 
 The backend connects to a SQL Server instance using the following settings in `apps/pitch/backend/.env`:
