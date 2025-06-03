@@ -6,6 +6,7 @@
   padding: 1.5rem 1.2rem 1.2rem 1.2rem;
   margin-bottom: 1.2rem;
   border: 1px solid #e3e8ef;
+  position: relative; /* allow completion overlay */
 }
 
 /* Main “Summary” title */

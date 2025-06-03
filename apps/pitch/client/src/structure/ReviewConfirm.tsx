@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCompletion } from '../context/CompletionContext';
 import { useClient } from '../context/ClientContext';
 import { ProofData } from '../context/ProofData';
 import '../styles/ReviewConfirm.css';
@@ -51,6 +52,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
 }) => {
   const { instructionRef: ctxInstructionRef } = useClient();
   const instructionRef = propInstructionRef ?? ctxInstructionRef;
+  const { setSummaryComplete } = useCompletion();
 
   const handleSubmit = async () => {
     try {
@@ -64,6 +66,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instructionRef })
       });
+      setSummaryComplete(true);
       if (onConfirmed) onConfirmed();
     } catch (err) {
       console.error('❌ Instruction submit failed', err);

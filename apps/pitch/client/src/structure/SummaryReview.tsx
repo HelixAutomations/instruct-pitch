@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useCompletion } from "../context/CompletionContext";
+import SummaryCompleteOverlay from "./SummaryCompleteOverlay";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import "../styles/SummaryReview.css";
 
@@ -14,6 +16,7 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
   detailsConfirmed,
   setDetailsConfirmed,
 }) => {
+  const { summaryComplete } = useCompletion();
   /* ---------------------------------------------
      only one collapsible section now
      --------------------------------------------- */
@@ -24,6 +27,7 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
   /* ---------- render ---------- */
   return (
     <section className="summary-pane">
+      {summaryComplete && <SummaryCompleteOverlay />}
       <h2 className="summary-title-main">Summary</h2>
 
       {/* Proof of ID */}

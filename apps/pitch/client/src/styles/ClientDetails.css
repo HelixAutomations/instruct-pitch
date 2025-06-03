@@ -31,7 +31,7 @@
 .client-details-bar {
   display: flex;
   align-items: stretch;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 2rem;
   min-height: 56px;
 }
@@ -50,7 +50,7 @@
 }
 
 .details-item {
-  text-align: center;
+  text-align: left;
 }
 
 /* Detail item staggered animation */
@@ -143,7 +143,7 @@
 
   .client-details-bar {
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 1rem;
   }
 

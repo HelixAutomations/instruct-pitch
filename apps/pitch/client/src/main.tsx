@@ -4,13 +4,16 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import { ClientProvider } from './context/ClientContext'; // 🆕
 import './styles/global.css';
+import { CompletionProvider } from './context/CompletionContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter basename="/pitch">
-      <ClientProvider> {/* 🆕 wrap App */}
-        <App />
-      </ClientProvider>
+      <CompletionProvider>
+        <ClientProvider>
+          <App />
+        </ClientProvider>
+      </CompletionProvider>
     </BrowserRouter>
   </StrictMode>
 );
