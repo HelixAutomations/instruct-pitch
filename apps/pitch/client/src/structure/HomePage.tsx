@@ -331,6 +331,13 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [isPaymentDone, setPaymentDone] = useState(false);
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
 
+  // Clear any persisted progress on first load so refreshing starts clean
+  useEffect(() => {
+    sessionStorage.removeItem('paymentDone');
+    sessionStorage.removeItem(`uploadedDocs-${clientId}-${instructionRef}`);
+    setDetailsConfirmed(false);
+  }, [clientId, instructionRef]);
+
   useEffect(() => {
     if (localStorage.getItem('paymentSuccess') === 'true') {
       setPaymentDone(true);
