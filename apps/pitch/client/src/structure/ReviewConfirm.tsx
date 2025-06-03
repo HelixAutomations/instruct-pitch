@@ -45,16 +45,11 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   openSummaryPanel,
   summaryContent,
   isMobile = false,
-  clientId: propClientId,
   instructionRef: propInstructionRef,
   proofData,
-  amount,
-  product,
-  workType,
   onConfirmed,
 }) => {
-  const { clientId: ctxClientId, instructionRef: ctxInstructionRef } = useClient();
-  const clientId = propClientId ?? ctxClientId;
+  const { instructionRef: ctxInstructionRef } = useClient();
   const instructionRef = propInstructionRef ?? ctxInstructionRef;
 
   const handleSubmit = async () => {

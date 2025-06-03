@@ -4,6 +4,7 @@ import "../styles/SummaryReview.css";
 
 interface SummaryReviewProps {
   proofContent: React.ReactNode;
+  documentsContent?: React.ReactNode;
   detailsConfirmed: boolean;
   setDetailsConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
 }

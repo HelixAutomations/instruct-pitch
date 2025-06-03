@@ -340,12 +340,6 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, []);
 
   useEffect(() => {
-    if (isPaymentDone) {
-      setOpenStep(3);
-    }
-  }, [isPaymentDone]);
-
-  useEffect(() => {
     setIdReviewDone(isIdInfoComplete());
   }, [proofData]);
   useEffect(() => {
@@ -445,7 +439,6 @@ function getPulseClass(step: number, done: boolean) {
 
   const nameParts = [proofData.title, proofData.firstName, proofData.lastName];
   const hasFullName = nameParts.every(p => p && p.trim());
-  const nameValue = nameParts.filter(Boolean).join(' ') || '--';
 
   const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
@@ -722,7 +715,8 @@ function getPulseClass(step: number, done: boolean) {
               />
               <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
                 {(prefetchPayment || openStep === 2) && (
-                  <div style={{ display: openStep === 2 ? 'block' : 'none' }}>                    <Payment
+                  <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
+                    <Payment
                       paymentDetails={paymentDetails}
                       setIsComplete={setPaymentDone}
                       onBack={back}
