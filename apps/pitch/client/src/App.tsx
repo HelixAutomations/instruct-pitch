@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate, useMatch } from 'react-router-dom';
 import Header from './structure/Header';
 import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
@@ -9,7 +9,8 @@ import PaymentResult from './structure/PaymentResult';  // ← make sure this im
 import './styles/App.css';
 
 const App: React.FC = () => {
-  const { cid } = useParams<{ cid?: string }>();
+  const match = useMatch('/:cid/*');
+  const cid = match?.params.cid;
   const navigate = useNavigate();
 
   const [clientId, setClientId] = useState(cid || '');
