@@ -14,15 +14,15 @@ export const useCompletion = () => {
 };
 
 export const CompletionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [summaryComplete, setSummaryCompleteState] = useState(
-    typeof window !== 'undefined' && sessionStorage.getItem('summaryComplete') === 'true'
-  );
+  // summary completion only lasts for the current session and should
+  // reset if the page reloads. Previously this value was persisted in
+  // sessionStorage which meant refreshing the page kept the summary in a
+  // completed state. The state is now purely in-memory so a reload will
+  // clear it automatically.
+  const [summaryComplete, setSummaryCompleteState] = useState(false);
 
   const setSummaryComplete = (done: boolean) => {
     setSummaryCompleteState(done);
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('summaryComplete', done ? 'true' : 'false');
-    }
   };
 
   return (
