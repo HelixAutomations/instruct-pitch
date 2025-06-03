@@ -4,8 +4,11 @@ const sql = require('mssql');
 const { getSqlPool } = require('../sqlClient');
 
 const keyVaultName = process.env.KEY_VAULT_NAME;
+if (!keyVaultName && !process.env.KEY_VAULT_URL) {
+  throw new Error('Key Vault not specified! Set KEY_VAULT_NAME or KEY_VAULT_URL');
+}
 const vaultUrl = process.env.KEY_VAULT_URL ||
-  (keyVaultName ? `https://${keyVaultName}.vault.azure.net/` : 'https://helix-keys-v1.vault.azure.net/');
+  `https://${keyVaultName}.vault.azure.net/`;
 const credential = new DefaultAzureCredential();
 const secretClient = new SecretClient(vaultUrl, credential);
 let passwordPromise;
@@ -13,7 +16,7 @@ let passwordPromise;
 async function ensureDbPassword() {
   if (process.env.DB_PASSWORD) return process.env.DB_PASSWORD;
   if (!passwordPromise) {
-    passwordPromise = secretClient.getSecret('database-password').then(s => {
+    passwordPromise = secretClient.getSecret('instructionsadmin-password').then(s => {
       process.env.DB_PASSWORD = s.value;
       return s.value;
     });
