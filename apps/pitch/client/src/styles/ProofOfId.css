@@ -218,16 +218,15 @@
 }
 
 .info-icon {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
-  text-align: center;
-  background: #666;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #ffffff;
+  color: var(--helix-dark-blue);
   border-radius: 50%;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 16px;
   margin-left: 8px;
   cursor: help;
   position: relative;
@@ -236,7 +235,7 @@
 }
 
 .info-icon:hover {
-  background: #555;
+  background: #f5f5f7;
 }
 
 .info-icon .help-text {
@@ -483,8 +482,12 @@
 }
 
 .paper-input::placeholder,
-.paper-input-select,
 .paper-input[type="date"]:not(.filled)::-webkit-datetime-edit {
+  color: #999 !important;
+  font-style: italic !important;
+}
+
+.paper-input-select:not(.filled) {
   color: #999 !important;
   font-style: italic !important;
 }
@@ -504,8 +507,12 @@
 }
 
 .paper-input-select.filled {
-  color: #7DBB7D !important;
-  font-style: normal !important;
+  color: #333;
+  font-style: normal;
+}
+
+.paper-input-select.filled:focus {
+  border-bottom-color: #7DBB7D;
 }
 
 .paper-input.filled:not([type="date"])::after,
@@ -772,6 +779,12 @@
 
 .paper-input[type="date"]:focus {
   outline: none;
+}
+
+.paper-input[type="date"]::selection,
+.apple-input[type="date"]::selection {
+  background-color: #dbeafe;
+  color: inherit;
 }
 
 @media (max-width: 600px) {

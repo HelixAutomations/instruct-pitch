@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaIdCard, FaUserTie, FaChevronDown } from 'react-icons/fa';
+import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaIdCard, FaUserTie, FaChevronDown, FaInfoCircle } from 'react-icons/fa';
 import '../styles/ProofOfId.css';
 import { ProofData } from '../context/ProofData';
 import { countries, titles, genders } from '../data/referenceData';
@@ -113,16 +113,14 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
   ) => {
     const isCompleted = checkSectionCompletion(sectionFields);
     if (isCompleted) {
-      setTimeout(() => {
-        setSectionStates((prev) => ({
-          ...prev,
-          [sectionKey]: {
-            ...prev[sectionKey],
-            collapsed: true,
-            completed: true,
-          },
-        }));
-      }, 1000);
+      setSectionStates((prev) => ({
+        ...prev,
+        [sectionKey]: {
+          ...prev[sectionKey],
+          // Mark the section as completed without collapsing automatically
+          completed: true,
+        },
+      }));
     }
   };
 
@@ -237,7 +235,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
           <div className="form-group step1-centered">
             <label className="radio-question">
               Are you providing ID for the first time or have you been asked to renew ID?
-              <span className="info-icon">i
+              <span className="info-icon">
+                <FaInfoCircle aria-hidden="true" />
                 <span className="help-text">
                   Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
                 </span>
@@ -266,7 +265,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
           <div className="form-group step1-centered">
             <label className="radio-question">
               Who are you proving identity for?
-              <span className="info-icon">i
+              <span className="info-icon">
+                <FaInfoCircle aria-hidden="true" />
                 <span className="help-text">
                   Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
                 </span>

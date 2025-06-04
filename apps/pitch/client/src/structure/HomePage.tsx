@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-import React, { useState, useEffect, JSX } from 'react';
+import React, { useState, useEffect, useRef, JSX } from 'react';
 import { useCompletion } from '../context/CompletionContext';
 import {
   FaUser,
@@ -90,6 +90,7 @@ interface StepHeaderProps {
   toggle: () => void;
   locked?: boolean;
   onEdit?: () => void;
+  highlight?: boolean;
 }
 
 interface UploadedFile {
@@ -129,6 +130,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   toggle,
   locked = false,
   onEdit,
+  highlight = false,
 }) => {
   // dark-blue skin when the step is CLOSED and NOT complete
   const attention = !open && !complete;
@@ -140,7 +142,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   return (
     <div
       className={
-        `step-header${open ? ' active' : ''}${locked ? ' locked' : ''}${attention ? ' attention' : ''}`
+        `step-header${open ? ' active' : ''}${locked ? ' locked' : ''}${attention ? ' attention' : ''}${highlight ? ' pulse-edit' : ''}`
       }
       onClick={() => { if (!locked) toggle(); }}
       style={locked ? { cursor: 'not-allowed', opacity: 0.5 } : undefined}
@@ -207,6 +209,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [restartId, setRestartId] = useState(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
   const [showReview, setShowReview] = useState(false);
+  const step1Ref = useRef<HTMLDivElement>(null);
+  const [highlightStep, setHighlightStep] = useState<0 | 1 | 2 | 3>(0);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -398,6 +402,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     setShowReview(false);
     setOpenStep(1);
     setRestartId((r) => r + 1);
+    setHighlightStep(1);
+    step1Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => setHighlightStep(0), 1100);
   };
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
@@ -636,13 +643,17 @@ function getPulseClass(step: number, done: boolean) {
         <div className="summary-group-header">
           Helix Contact
         </div>
-        <FaUserTie className="backdrop-icon" />
-        <p>
-          <span className="field-label">Contact:</span>{' '}
-          <span className={`field-value${!proofData.helixContact?.trim() ? ' empty' : ''}`}>{proofData.helixContact?.trim() || '--'}</span>
-        </p>
-      </div>
-    </>
+      <FaUserTie className="backdrop-icon" />
+      <p>
+        <span className="field-label">Contact:</span>{' '}
+        <span className={`field-value${!proofData.helixContact?.trim() ? ' empty' : ''}`}>{proofData.helixContact?.trim() || '--'}</span>
+      </p>
+      <p className="system-info">
+        <span className="field-label">Instruction Ref:</span>{' '}
+        <span className="system-info-text">{instruction.instructionRef}</span>
+      </p>
+    </div>
+  </>
   );
 
   const documentsSummary = isUploadSkipped ? (
@@ -732,7 +743,7 @@ function getPulseClass(step: number, done: boolean) {
         <div className="checkout-container">
           <div className="steps-column">
 
-            <div className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
+            <div ref={step1Ref} className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
               <StepHeader
                 step={1}
                 title="ID & Review"
@@ -741,9 +752,10 @@ function getPulseClass(step: number, done: boolean) {
                 toggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
                 locked={instructionCompleted}
                 onEdit={handleEdit}
+                highlight={highlightStep === 1}
               />
               <div
-                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone)}`}>
+                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone)}${highlightStep === 1 ? ' pulse-edit' : ''}`}>
                 {openStep === 1 && (
                   !showReview ? (
                     <ProofOfId
@@ -776,7 +788,7 @@ function getPulseClass(step: number, done: boolean) {
               </div>
             </div>
 
-            <div className={`step-section${openStep === 2 ? ' active' : ''}`}> 
+            <div className={`step-section${openStep === 2 ? ' active' : ''}`}>
               <StepHeader
                 step={2}
                 title="Pay and Instruct"
@@ -784,8 +796,9 @@ function getPulseClass(step: number, done: boolean) {
                 open={openStep === 2}
                 toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
                 locked={instructionCompleted}
+                highlight={highlightStep === 2}
               />
-              <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
+              <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}${highlightStep === 2 ? ' pulse-edit' : ''}`}>
                 {(prefetchPayment || openStep === 2) && (
                   <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
                     <Payment
@@ -807,7 +820,7 @@ function getPulseClass(step: number, done: boolean) {
                 )}
               </div>
             </div>
-            <div className={`step-section${openStep === 3 ? ' active' : ''}`}> 
+            <div className={`step-section${openStep === 3 ? ' active' : ''}`}>
               <StepHeader
                 step={3}
                 title="Upload Your Documents"
@@ -815,8 +828,9 @@ function getPulseClass(step: number, done: boolean) {
                 open={openStep === 3}
                 toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
                 locked={instructionCompleted}
+                highlight={highlightStep === 3}
               />
-              <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
+              <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}${highlightStep === 3 ? ' pulse-edit' : ''}`}>
                 {openStep === 3 && (
                   <DocumentUpload
                     uploadedFiles={uploadedFiles}

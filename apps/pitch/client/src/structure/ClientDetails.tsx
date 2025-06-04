@@ -31,26 +31,26 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
     }
   }, [loaded, onAnimationEnd]);
 
-  // Only show the instruction reference
-  const detailItems = [
-    { label: 'Instruction Ref', value: instructionRef || '—' }
-  ];
+  // No details shown in the hero section for now
+  const detailItems: { label: string; value: string }[] = [];
 
   return (
     <div className="client-hero">
       <div className={`client-hero-inner center${loaded ? ' loaded' : ''}`}>
         <h1 className={`stage-title${loaded ? ' loaded' : ''}`}>{stage}</h1>
-        <div className="client-details-bar">
-          {detailItems.map((item, idx) => (
-            <React.Fragment key={item.label}>
-              <div className={`details-item detail-animate detail-animate-${idx}${loaded ? ' loaded' : ''}`}>
-                <span className="label">{item.label}</span>
-                <span className="value">{item.value}</span>
-              </div>
-              {idx < detailItems.length - 1 && <div className="pipe" />}
-            </React.Fragment>
-          ))}
-        </div>
+        {detailItems.length > 0 && (
+          <div className="client-details-bar">
+            {detailItems.map((item, idx) => (
+              <React.Fragment key={item.label}>
+                <div className={`details-item detail-animate detail-animate-${idx}${loaded ? ' loaded' : ''}`}>
+                  <span className="label">{item.label}</span>
+                  <span className="value">{item.value}</span>
+                </div>
+                {idx < detailItems.length - 1 && <div className="pipe" />}
+              </React.Fragment>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
