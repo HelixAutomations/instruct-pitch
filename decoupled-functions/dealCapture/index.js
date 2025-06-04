@@ -82,7 +82,8 @@ module.exports = async function (context, req) {
       for (const c of clients) {
         await pool.request()
           .input('DealId', sql.Int, dealId)
-          .input('ClientEmail', sql.NVarChar(255), c.email || '')
+          // Support both `email` and `clientEmail` field names
+          .input('ClientEmail', sql.NVarChar(255), c.clientEmail || c.email || '')
           .query('INSERT INTO DealJointClients (DealId, ClientEmail) VALUES (@DealId, @ClientEmail)');
       }
     }
