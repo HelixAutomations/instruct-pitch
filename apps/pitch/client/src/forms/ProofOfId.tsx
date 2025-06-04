@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/ProofOfId.css';
+import { countries, titles, genders } from '../data/referenceData';
 
 interface ProofOfIdProps {
   onUpdate: (data: any) => void;
@@ -11,7 +12,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
   const [step, setStep] = useState<number>(1);
   const [idStatus, setIdStatus] = useState<string>('first-time');
   const [isCompanyClient, setIsCompanyClient] = useState<boolean>(false);
-  const [idType, setIdType] = useState<string | null>(null);
+  const [idType, setIdType] = useState<string | null>('passport');
   const [idConfirmationError, setIdConfirmationError] = useState<string | null>(null);
   const [value, setvalue] = useState({
     companyName: '',
@@ -22,18 +23,23 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
     companyCounty: '',
     companyPostcode: '',
     companyCountry: 'United Kingdom',
+    companyCountryCode: 'GB',
     title: '',
+    titleId: undefined,
     firstName: '',
     lastName: '',
     nationality: '',
+    nationalityCode: undefined,
     houseNumber: '',
     street: '',
     city: '',
     county: '',
     postcode: '',
     country: 'United Kingdom',
+    countryCode: 'GB',
     dob: '',
     gender: '',
+    genderId: undefined,
     phone: '',
     email: '',
     idNumber: '',
@@ -80,7 +86,32 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
   ) => {
     const { id, value } = e.target;
     setvalue((prev) => {
-      const updatedData = { ...prev, [id]: value, idStatus, isCompanyClient, idType };
+      const updatedData: any = { ...prev, [id]: value, idStatus, isCompanyClient, idType };
+
+      if (id === 'title') {
+        const found = titles.find(t => t.name === value);
+        updatedData.titleId = found?.id;
+      }
+
+      if (id === 'gender') {
+        const found = genders.find(g => g.name === value);
+        updatedData.genderId = found?.id;
+      }
+
+      if (id === 'country') {
+        const found = countries.find(c => c.name === value);
+        updatedData.countryCode = found?.code;
+      }
+
+      if (id === 'companyCountry') {
+        const found = countries.find(c => c.name === value);
+        updatedData.companyCountryCode = found?.code;
+      }
+
+      if (id === 'nationality') {
+        const found = countries.find(c => c.name === value);
+        updatedData.nationalityCode = found?.code;
+      }
       onUpdate(updatedData);
       return updatedData;
     });
@@ -92,9 +123,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
     onUpdate(updatedData);
   };
 
-  const handleCompanyClientChange = (value: boolean) => {
-    setIsCompanyClient(value);
-    const updatedData = { ...value, idStatus, isCompanyClient: value, idType };
+  const handleCompanyClientChange = (isCompany: boolean) => {
+    setIsCompanyClient(isCompany);
+    const updatedData = { ...value, idStatus, isCompanyClient: isCompany, idType };
     onUpdate(updatedData);
   };
 
@@ -328,8 +359,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                       value={value.companyCountry}
                       onChange={handleInputChange}
                     >
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="Other">Other</option>
+                      {countries.map(c => (
+                        <option key={c.id} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -350,14 +384,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 <label className="form-label" htmlFor="title">
                   Title
                 </label>
-                <input
-                  type="text"
+                <select
                   id="title"
-                  className="apple-input"
+                  className="apple-input-select"
                   value={value.title}
                   onChange={handleInputChange}
-                  placeholder="Enter title"
-                />
+                >
+                  <option value="">Select title</option>
+                  {titles.map(t => (
+                    <option key={t.id} value={t.name}>{t.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="firstName">
@@ -396,8 +433,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   onChange={handleInputChange}
                 >
                   <option value="">Select nationality</option>
-                  <option value="British">British</option>
-                  <option value="Other">Other</option>
+                  {countries.map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">
@@ -423,9 +461,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   onChange={handleInputChange}
                 >
                   <option value="">Select gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
+                  {genders.map(g => (
+                    <option key={g.id} value={g.name}>{g.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -507,8 +545,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                     value={value.country}
                     onChange={handleInputChange}
                   >
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Other">Other</option>
+                    {countries.map(c => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
