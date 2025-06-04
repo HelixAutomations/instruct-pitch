@@ -10,7 +10,8 @@ export const colours = {
     helixGrey: '#F4F4F6',           // or 'rgb(244, 244, 246)'
   
     // Additional placeholders not in your color list but used in the ButtonStyles snippet:
-    green: '#28a745', // For "sharedDraftConfirmedButtonStyles"
+    green: '#7DBB7D', // For "sharedDraftConfirmedButtonStyles"
+    lockedBg: 'rgba(125,187,125,0.1)',
     secondaryButtonBackground: '#EBEBEB', // or any fallback color you like
   };
   

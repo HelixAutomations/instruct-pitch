@@ -375,7 +375,7 @@
 
 .form-group-section .group-header .completion-tick {
   margin-left: 8px;
-  color: #28a745;
+  color: #7DBB7D;
   font-size: 14px;
 }
 
@@ -459,7 +459,7 @@
 
 .paper-input.filled,
 .paper-input-select.filled {
-  border-bottom-color: #28a745;
+  border-bottom-color: #7DBB7D;
   position: relative;
 }
 
@@ -475,7 +475,7 @@
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  color: #28a745;
+  color: #7DBB7D;
   font-size: 14px;
   opacity: 0.7;
 }

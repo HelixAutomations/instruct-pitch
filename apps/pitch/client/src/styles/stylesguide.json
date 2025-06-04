@@ -29,7 +29,7 @@
             "description": "Light neutral color for backgrounds, derived from helixGrey"
           },
           "success": {
-            "value": "#28A745",
+            "value": "#7DBB7D",
             "description": "Color for success states and confirmations, derived from green"
           },
           "error": {
@@ -262,31 +262,31 @@
               "padding": "6px 12px",
               "borderRadius": "4px",
               "backgroundColor": "transparent",
-              "color": "#28A745",
+              "color": "#7DBB7D",
               "fontSize": "14px",
               "fontWeight": "600",
-              "border": "2px solid #28A745",
+              "border": "2px solid #7DBB7D",
               "cursor": "pointer",
               "height": "40px",
               "transition": "background 0.3s ease, box-shadow 0.3s ease"
             },
             "hover": {
-              "backgroundColor": "#28A745CC",
+              "backgroundColor": "#7DBB7DCC",
               "boxShadow": "inset 0 0 5px rgba(0,0,0,0.3)"
             },
             "active": {
-              "backgroundColor": "#28A745B3",
+              "backgroundColor": "#7DBB7DB3",
               "boxShadow": "inset 0 0 8px rgba(0,0,0,0.3)"
             },
             "focus": {
               "outline": "none",
               "backgroundColor": "transparent",
-              "border": "2px solid #28A745"
+              "border": "2px solid #7DBB7D"
             },
             "disabled": {
               "backgroundColor": "transparent",
-              "color": "#28A745",
-              "border": "2px solid #28A745",
+              "color": "#7DBB7D",
+              "border": "2px solid #7DBB7D",
               "cursor": "not-allowed"
             }
           }

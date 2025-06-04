@@ -148,7 +148,7 @@
 }
 
 .step-header.active .completion-tick {
-  color: #3cd27c;           /* keep green tick visible on dark background */
+  color: #7DBB7D;           /* keep green tick visible on dark background */
 }
 
 /* ========== STEP CONTENT =================================================== */
@@ -169,14 +169,14 @@
 
 /* ---------- GREEN PULSE (complete) ---------- */
 @keyframes borderPulseGreen {
-  0%   { border-color:#38c172; box-shadow:0 4px 24px rgba(56,193,114,0.18); }
-  70%  { border-color:#38c172; box-shadow:0 2px 12px rgba(56,193,114,0.10); }
+  0%   { border-color:#7DBB7D; box-shadow:0 4px 24px rgba(125,187,125,0.18); }
+  70%  { border-color:#7DBB7D; box-shadow:0 2px 12px rgba(125,187,125,0.10); }
   100% { border-color:rgba(211,211,211,0.5); box-shadow:0 4px 18px rgba(0,0,0,0.09); }
 }
 
 .step-content.pulse-green {
   animation: borderPulseGreen 1.1s cubic-bezier(0.44, 0.15, 0.16, 1);
-  border: 2px solid #38c172 !important;
+  border: 2px solid #7DBB7D !important;
 }
 
 /* ---------- RED PULSE REMOVED ---------- */
@@ -297,8 +297,8 @@
   margin-right: 8px;
   cursor: pointer;
   background: #fff;
-  color: #28a745;
-  border: 1px solid #28a745;
+  color: #7DBB7D;
+  border: 1px solid #7DBB7D;
   font-size: 12px;
   opacity: 0;
   transform: scale(0);

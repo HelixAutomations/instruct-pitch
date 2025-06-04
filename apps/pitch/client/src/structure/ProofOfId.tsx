@@ -27,6 +27,18 @@ interface SectionStates {
   helixContact: SectionState;
 }
 
+// All fields that must be completed before the entire company section collapses
+const COMPANY_SECTION_FIELDS = [
+  'companyName',
+  'companyNumber',
+  'companyHouseNumber',
+  'companyStreet',
+  'companyCity',
+  'companyCounty',
+  'companyPostcode',
+  'companyCountry',
+];
+
 const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, onNext }) => {
   const [step, setStep] = useState<number>(1);
   const idStatus = value.idStatus || '';
@@ -48,7 +60,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
   // Effect to re-evaluate section completion status when value changes
   useEffect(() => {
     const sections: { key: keyof SectionStates; fields: string[] }[] = [
-      { key: 'companyDetails', fields: ['companyName', 'companyNumber'] },
+      { key: 'companyDetails', fields: COMPANY_SECTION_FIELDS },
       {
         key: 'companyAddress',
         fields: [
@@ -94,13 +106,22 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
   };
 
   // Function to handle blur event and collapse section if all fields are filled
-  const handleBlur = (sectionKey: keyof SectionStates, sectionFields: string[]) => {
+  const handleBlur = (
+    sectionKey: keyof SectionStates,
+    sectionFields: string[]
+  ) => {
     const isCompleted = checkSectionCompletion(sectionFields);
     if (isCompleted) {
-      setSectionStates((prev) => ({
-        ...prev,
-        [sectionKey]: { collapsed: true, completed: true },
-      }));
+      setTimeout(() => {
+        setSectionStates((prev) => ({
+          ...prev,
+          [sectionKey]: {
+            ...prev[sectionKey],
+            collapsed: true,
+            completed: true,
+          },
+        }));
+      }, 1500);
     }
   };
 
@@ -172,9 +193,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
     const updatedData = { ...value, idType: type };
     onUpdate(updatedData);
     // Auto-expand the section when picking an ID type
-    setSectionStates(prev => ({
+    setSectionStates((prev) => ({
       ...prev,
-      idDetails: { ...prev.idDetails, collapsed: false }
+      idDetails: { ...prev.idDetails, collapsed: false },
     }));
   };
 
@@ -189,91 +210,88 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
 
   const handleBack = () => {
     setStep(1);
-    // No value reset at all.
   };
 
   return (
     <div className="form-container apple-form">
-    {step === 1 && (
-      <>
-        {/* BOTH Step 1 questions, always visible */}
-        <div className="form-group step1-centered">
-          <label className="radio-question">
-            Are you providing ID for the first time or have you been asked to renew ID?
-            <span className="info-icon">i
-              <span className="help-text">
-                Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
+      {step === 1 && (
+        <>
+          {/* BOTH Step 1 questions, always visible */}
+          <div className="form-group step1-centered">
+            <label className="radio-question">
+              Are you providing ID for the first time or have you been asked to renew ID?
+              <span className="info-icon">i
+                <span className="help-text">
+                  Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
+                </span>
               </span>
-            </span>
-          </label>
-          <div className="modern-toggle-group">
+            </label>
+            <div className="modern-toggle-group">
+              <button
+                type="button"
+                className={`modern-toggle-button ${idStatus === 'first-time' ? 'active' : ''}`}
+                onClick={() => handleIdStatusChange('first-time')}
+              >
+                First-Time ID
+              </button>
+              <button
+                type="button"
+                className={`modern-toggle-button ${idStatus === 'renewing' ? 'active' : ''}`}
+                onClick={() => handleIdStatusChange('renewing')}
+              >
+                Renewing ID
+              </button>
+            </div>
+          </div>
+
+          <hr className="step1-separator" />
+
+          <div className="form-group step1-centered">
+            <label className="radio-question">
+              Who are you proving identity for?
+              <span className="info-icon">i
+                <span className="help-text">
+                  Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
+                </span>
+              </span>
+            </label>
+            <div className="modern-toggle-group">
+              <button
+                type="button"
+                className={`modern-toggle-button ${isCompanyClient === false ? 'active' : ''}`}
+                onClick={() => handleCompanyClientChange(false)}
+              >
+                <FaUser className="button-icon" />
+                For Myself
+              </button>
+              <button
+                type="button"
+                className={`modern-toggle-button ${isCompanyClient === true ? 'active' : ''}`}
+                onClick={() => handleCompanyClientChange(true)}
+              >
+                <FaCity className="button-icon" />
+                For a Company
+              </button>
+            </div>
+          </div>
+
+          {/* Next button at bottom */}
+          <div className="button-group">
             <button
               type="button"
-              className={`modern-toggle-button ${idStatus === 'first-time' ? 'active' : ''}`}
-              onClick={() => handleIdStatusChange('first-time')}
+              className="btn primary"
+              disabled={!(idStatus && isCompanyClient !== null)}
+              onClick={() => setStep(2)}
+              aria-label="Proceed to next step"
             >
-              First-Time ID
-            </button>
-            <button
-              type="button"
-              className={`modern-toggle-button ${idStatus === 'renewing' ? 'active' : ''}`}
-              onClick={() => handleIdStatusChange('renewing')}
-            >
-              Renewing ID
+              Next
             </button>
           </div>
-        </div>
-
-        <hr className="step1-separator" />
-
-        <div className="form-group step1-centered">
-          <label className="radio-question">
-            Who are you proving identity for?
-            <span className="info-icon">i
-              <span className="help-text">
-                Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
-              </span>
-            </span>
-          </label>
-          <div className="modern-toggle-group">
-            <button
-              type="button"
-              className={`modern-toggle-button ${isCompanyClient === false ? 'active' : ''}`}
-              onClick={() => handleCompanyClientChange(false)}
-            >
-              <FaUser className="button-icon" />
-              For Myself
-            </button>
-            <button
-              type="button"
-              className={`modern-toggle-button ${isCompanyClient === true ? 'active' : ''}`}
-              onClick={() => handleCompanyClientChange(true)}
-            >
-              <FaCity className="button-icon" />
-              For a Company
-            </button>
-          </div>
-        </div>
-
-        {/* Next button at bottom */}
-        <div className="button-group">
-          <button
-            type="button"
-            className="btn primary"
-            disabled={!(idStatus && isCompanyClient !== null)}
-            onClick={() => setStep(2)}
-            aria-label="Proceed to next step"
-          >
-            Next
-          </button>
-        </div>
-      </>
-    )}
-
+        </>
+      )}
 
       {step === 2 && (
         <div className="form-content">
-
           {isCompanyClient && (
             <>
               <div className="form-group-section">
@@ -288,7 +306,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
                 <hr className="section-divider" />
-                {!sectionStates.companyDetails.collapsed && (
+                <div
+                  className={`collapsible-content ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''}`}
+                >
                   <div className="form-grid">
                     <div className="form-group">
                       <input
@@ -299,7 +319,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         onChange={handleInputChange}
                         placeholder="Company Name"
                         onBlur={() =>
-                          handleBlur('companyDetails', ['companyName', 'companyNumber'])
+                          handleBlur('companyDetails', COMPANY_SECTION_FIELDS)
                         }
                       />
                     </div>
@@ -312,13 +332,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         onChange={handleInputChange}
                         placeholder="Company Number"
                         onBlur={() =>
-                          handleBlur('companyDetails', ['companyName', 'companyNumber'])
+                          handleBlur('companyDetails', COMPANY_SECTION_FIELDS)
                         }
                       />
                     </div>
                   </div>
-                )}
-                {!sectionStates.companyDetails.collapsed && (
                   <div className="form-section address-section">
                     <div
                       className="group-header"
@@ -334,7 +352,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                       />
                     </div>
                     <hr className="section-divider" />
-                    {!sectionStates.companyAddress.collapsed && (
+                    <div
+                      className={`collapsible-content ${sectionStates.companyAddress.collapsed ? 'collapsed' : ''}`}
+                    >
                       <div className="form-grid">
                         <div className="form-group">
                           <input
@@ -344,7 +364,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyHouseNumber}
                             onChange={handleInputChange}
                             placeholder="House/Building Number"
-                            onBlur={() =>
+                            onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -352,8 +372,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ])
-                            }
+                              ]);
+                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
+                            }}
                           />
                         </div>
                         <div className="form-group">
@@ -364,7 +385,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyStreet}
                             onChange={handleInputChange}
                             placeholder="Street"
-                            onBlur={() =>
+                            onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -372,8 +393,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ])
-                            }
+                              ]);
+                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
+                            }}
                           />
                         </div>
                         <div className="form-group">
@@ -384,7 +406,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyCity}
                             onChange={handleInputChange}
                             placeholder="City/Town"
-                            onBlur={() =>
+                            onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -392,8 +414,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ])
-                            }
+                              ]);
+                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
+                            }}
                           />
                         </div>
                         <div className="form-group">
@@ -404,7 +427,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyCounty}
                             onChange={handleInputChange}
                             placeholder="County"
-                            onBlur={() =>
+                            onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -412,8 +435,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ])
-                            }
+                              ]);
+                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
+                            }}
                           />
                         </div>
                         <div className="form-group">
@@ -424,7 +448,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyPostcode}
                             onChange={handleInputChange}
                             placeholder="Post Code"
-                            onBlur={() =>
+                            onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -432,8 +456,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ])
-                            }
+                              ]);
+                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
+                            }}
                           />
                         </div>
                         <div className="form-group">
@@ -442,7 +467,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             className={`paper-input-select ${value.companyCountry ? 'filled' : ''}`}
                             value={value.companyCountry}
                             onChange={handleInputChange}
-                            onBlur={() =>
+                            onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -450,8 +475,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ])
-                            }
+                              ]);
+                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
+                            }}
                           >
                             <option value="">Country</option>
                             <option value="United Kingdom">United Kingdom</option>
@@ -459,9 +485,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                           </select>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
               <hr />
             </>
@@ -479,156 +505,156 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            {!sectionStates.personalDetails.collapsed && (
-              <>
-                {isCompanyClient && (
-                  <p className="disclaimer">
-                    Please use your personal details if you are a director of the company.
-                  </p>
-                )}
-                <div className="form-grid">
-                  <div className="form-group">
-  <select
-    id="title"
-    className={`paper-input-select ${value.title ? 'filled' : ''}`}
-    value={value.title}
-    onChange={handleInputChange}
-    onBlur={() =>
-      handleBlur('personalDetails', [
-        'title',
-        'firstName',
-        'lastName',
-        'nationality',
-        'dob',
-        'gender',
-      ])
-    }
-  >
-    <option value="">Title</option>
-    <option value="Mr">Mr</option>
-    <option value="Mrs">Mrs</option>
-    <option value="Miss">Miss</option>
-    <option value="Ms">Ms</option>
-    <option value="Dr">Dr</option>
-    <option value="Mx">Mx</option>
-    <option value="Rev">Rev</option>
-    <option value="Prof">Prof</option>
-    <option value="Sir">Sir</option>
-    <option value="Dame">Dame</option>
-    <option value="Lord">Lord</option>
-    <option value="Lady">Lady</option>
-  </select>
-</div>
-                  <div className="form-group">
-                    <input
-                      type="text"
-                      id="firstName"
-                      className={`paper-input ${value.firstName ? 'filled' : ''}`}
-                      value={value.firstName}
-                      onChange={handleInputChange}
-                      placeholder="First Name"
-                      onBlur={() =>
-                        handleBlur('personalDetails', [
-                          'title',
-                          'firstName',
-                          'lastName',
-                          'nationality',
-                          'dob',
-                          'gender',
-                        ])
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <input
-                      type="text"
-                      id="lastName"
-                      className={`paper-input ${value.lastName ? 'filled' : ''}`}
-                      value={value.lastName}
-                      onChange={handleInputChange}
-                      placeholder="Last Name"
-                      onBlur={() =>
-                        handleBlur('personalDetails', [
-                          'title',
-                          'firstName',
-                          'lastName',
-                          'nationality',
-                          'dob',
-                          'gender',
-                        ])
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <select
-                      id="nationality"
-                      className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
-                      value={value.nationality}
-                      onChange={handleInputChange}
-                      onBlur={() =>
-                        handleBlur('personalDetails', [
-                          'title',
-                          'firstName',
-                          'lastName',
-                          'nationality',
-                          'dob',
-                          'gender',
-                        ])
-                      }
-                    >
-                      <option value="">Nationality</option>
-                      <option value="British">British</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <input
-                      type={dobFocused || value.dob ? 'date' : 'text'}
-                      id="dob"
-                      className={`paper-input ${value.dob ? 'filled' : ''}`}
-                      value={value.dob}
-                      onChange={handleInputChange}
-                      placeholder="Date of Birth"
-                      onFocus={() => setDobFocused(true)}
-                      onBlur={() => {
-                        setDobFocused(false);
-                        handleBlur('personalDetails', [
-                          'title',
-                          'firstName',
-                          'lastName',
-                          'nationality',
-                          'dob',
-                          'gender',
-                        ]);
-                      }}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <select
-                      id="gender"
-                      className={`paper-input-select ${value.gender ? 'filled' : ''}`}
-                      value={value.gender}
-                      onChange={handleInputChange}
-                      onBlur={() =>
-                        handleBlur('personalDetails', [
-                          'title',
-                          'firstName',
-                          'lastName',
-                          'nationality',
-                          'dob',
-                          'gender',
-                        ])
-                      }
-                    >
-                      <option value="">Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
+            <div
+              className={`collapsible-content ${sectionStates.personalDetails.collapsed ? 'collapsed' : ''}`}
+            >
+              {isCompanyClient && (
+                <p className="disclaimer">
+                  Please use your personal details if you are a director of the company.
+                </p>
+              )}
+              <div className="form-grid">
+                <div className="form-group">
+                  <select
+                    id="title"
+                    className={`paper-input-select ${value.title ? 'filled' : ''}`}
+                    value={value.title}
+                    onChange={handleInputChange}
+                    onBlur={() =>
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'nationality',
+                        'dob',
+                        'gender',
+                      ])
+                    }
+                  >
+                    <option value="">Title</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Ms">Ms</option>
+                    <option value="Dr">Dr</option>
+                    <option value="Mx">Mx</option>
+                    <option value="Rev">Rev</option>
+                    <option value="Prof">Prof</option>
+                    <option value="Sir">Sir</option>
+                    <option value="Dame">Dame</option>
+                    <option value="Lord">Lord</option>
+                    <option value="Lady">Lady</option>
+                  </select>
                 </div>
-              </>
-            )}
+                <div className="form-group">
+                  <input
+                    type="text"
+                    id="firstName"
+                    className={`paper-input ${value.firstName ? 'filled' : ''}`}
+                    value={value.firstName}
+                    onChange={handleInputChange}
+                    placeholder="First Name"
+                    onBlur={() =>
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'nationality',
+                        'dob',
+                        'gender',
+                      ])
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="text"
+                    id="lastName"
+                    className={`paper-input ${value.lastName ? 'filled' : ''}`}
+                    value={value.lastName}
+                    onChange={handleInputChange}
+                    placeholder="Last Name"
+                    onBlur={() =>
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'nationality',
+                        'dob',
+                        'gender',
+                      ])
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <select
+                    id="nationality"
+                    className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
+                    value={value.nationality}
+                    onChange={handleInputChange}
+                    onBlur={() =>
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'nationality',
+                        'dob',
+                        'gender',
+                      ])
+                    }
+                  >
+                    <option value="">Nationality</option>
+                    <option value="British">British</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <input
+                    type={dobFocused || value.dob ? 'date' : 'text'}
+                    id="dob"
+                    className={`paper-input ${value.dob ? 'filled' : ''}`}
+                    value={value.dob}
+                    onChange={handleInputChange}
+                    placeholder="Date of Birth"
+                    onFocus={() => setDobFocused(true)}
+                    onBlur={() => {
+                      setDobFocused(false);
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'nationality',
+                        'dob',
+                        'gender',
+                      ]);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <select
+                    id="gender"
+                    className={`paper-input-select ${value.gender ? 'filled' : ''}`}
+                    value={value.gender}
+                    onChange={handleInputChange}
+                    onBlur={() =>
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'nationality',
+                        'dob',
+                        'gender',
+                      ])
+                    }
+                  >
+                    <option value="">Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
           <hr />
 
@@ -644,7 +670,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            {!sectionStates.addressDetails.collapsed && (
+            <div
+              className={`collapsible-content ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''}`}
+            >
               <div className="form-grid">
                 <div className="form-group">
                   <input
@@ -769,7 +797,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   </select>
                 </div>
               </div>
-            )}
+            </div>
           </div>
           <hr />
 
@@ -785,7 +813,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            {!sectionStates.contactDetails.collapsed && (
+            <div
+              className={`collapsible-content ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''}`}
+            >
               <div className="form-grid">
                 <div className="form-group">
                   <input
@@ -810,7 +840,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
               </div>
-            )}
+            </div>
           </div>
           <hr />
 
@@ -826,7 +856,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            {!sectionStates.idDetails.collapsed && (
+            <div
+              className={`collapsible-content ${sectionStates.idDetails.collapsed ? 'collapsed' : ''}`}
+            >
               <div className="form-group">
                 <div className="apple-toggle-group">
                   <button
@@ -858,7 +890,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
           <hr />
 
@@ -874,7 +906,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            {!sectionStates.helixContact.collapsed && (
+            <div
+              className={`collapsible-content ${sectionStates.helixContact.collapsed ? 'collapsed' : ''}`}
+            >
               <div className="form-group">
                 <select
                   id="helixContact"
@@ -888,7 +922,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   <option value="Jane Smith">Jane Smith</option>
                 </select>
               </div>
-            )}
+            </div>
           </div>
           <hr />
 
