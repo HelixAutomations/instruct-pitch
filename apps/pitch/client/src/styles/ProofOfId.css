@@ -504,7 +504,7 @@
 }
 
 .paper-input-select.filled {
-  color: var(--helix-dark-blue) !important;
+  color: #7DBB7D !important;
   font-style: normal !important;
 }
 
@@ -522,7 +522,7 @@
 
 .paper-input:focus,
 .paper-input-select:focus {
-  border-bottom-color: #007bff;
+  border-bottom-color: var(--helix-highlight, #3690CE);
 }
 
 .paper-input-select {
@@ -811,7 +811,7 @@
 }
 
 .helix-datepicker-input:focus {
-  border-bottom-color: #007bff;
+  border-bottom-color: var(--helix-highlight, #3690CE);
   background-color: #f9fafb;
 }
 

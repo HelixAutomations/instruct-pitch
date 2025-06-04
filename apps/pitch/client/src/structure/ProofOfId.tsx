@@ -492,13 +492,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                           />
                         </div>
                         <div className="form-group">
-                          <input
-                            list="countriesList"
+                          <select
                             id="companyCountry"
                             className={`paper-input-select ${value.companyCountry ? 'filled' : ''}`}
                             value={value.companyCountry}
                             onChange={handleInputChange}
-                            placeholder="Country"
                             onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
@@ -510,7 +508,12 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                               ]);
                               handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
                             }}
-                          />
+                          >
+                            <option value="">Country</option>
+                            {countries.map(c => (
+                              <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -619,13 +622,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
                 <div className="form-group">
-                  <input
-                    list="countriesList"
+                  <select
                     id="nationality"
                     className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
                     value={value.nationality}
                     onChange={handleInputChange}
-                    placeholder="Nationality"
                     onBlur={() =>
                       handleBlur('personalDetails', [
                         'title',
@@ -636,7 +637,12 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         'gender',
                       ])
                     }
-                  />
+                  >
+                    <option value="">Nationality</option>
+                    {countries.map(c => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
                   <input
@@ -818,13 +824,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
                 <div className="form-group">
-                  <input
-                    list="countriesList"
+                  <select
                     id="country"
                     className={`paper-input-select ${value.country ? 'filled' : ''}`}
                     value={value.country}
                     onChange={handleInputChange}
-                    placeholder="Country"
                     onBlur={() =>
                       handleBlur('addressDetails', [
                         'houseNumber',
@@ -835,7 +839,12 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         'country',
                       ])
                     }
-                  />
+                  >
+                    <option value="">Country</option>
+                    {countries.map(c => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -1027,11 +1036,6 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
           </div>
         </div>
       )}
-      <datalist id="countriesList">
-        {countries.map(c => (
-          <option key={c.id} value={c.name} />
-        ))}
-      </datalist>
     </div>
   );
 };

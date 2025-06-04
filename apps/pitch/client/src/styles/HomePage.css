@@ -117,11 +117,18 @@
 
 .step-header .completion-tick {
   margin-left: 8px;
-  font-size: 16px;
+  font-size: 14px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--helix-grey);
+  color: #7DBB7D;
   opacity: 0;
   transform: scale(0);
   transition: opacity 0.3s, transform 0.3s;
-  color: var(--helix-highlight);
 }
 
 .step-header .completion-tick.visible {
@@ -149,6 +156,7 @@
 
 .step-header.active .completion-tick {
   color: #7DBB7D;           /* keep green tick visible on dark background */
+  background: var(--helix-grey);
 }
 
 /* ========== STEP CONTENT =================================================== */

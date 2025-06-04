@@ -16,6 +16,7 @@ export interface Gender {
 }
 
 export const countries: Country[] = [
+  { id: 77, name: 'United Kingdom', code: 'GB' },
   { id: 1, name: 'Andorra', code: 'AD' },
   { id: 2, name: 'United Arab Emirates', code: 'AE' },
   { id: 3, name: 'Afghanistan', code: 'AF' },
@@ -92,7 +93,6 @@ export const countries: Country[] = [
   { id: 74, name: 'Faroe Islands', code: 'FO' },
   { id: 75, name: 'France', code: 'FR' },
   { id: 76, name: 'Gabon', code: 'GA' },
-  { id: 77, name: 'United Kingdom', code: 'GB' },
   { id: 78, name: 'Grenada', code: 'GD' },
   { id: 79, name: 'Georgia', code: 'GE' },
   { id: 80, name: 'French Guiana', code: 'GF' },

@@ -8,12 +8,19 @@ interface SummaryReviewProps {
   documentsContent?: React.ReactNode;
   detailsConfirmed: boolean;
   setDetailsConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
+  /**
+   * Whether to show the confirmation checkbox. By default the
+   * checkbox is visible, but callers can hide it until the user
+   * progresses to the review stage.
+   */
+  showConfirmation?: boolean;
 }
 
 const SummaryReview: React.FC<SummaryReviewProps> = ({
   proofContent,
   detailsConfirmed,
   setDetailsConfirmed,
+  showConfirmation = true,
 }) => {
   const { summaryComplete } = useCompletion();
   /* ---------------------------------------------
@@ -85,32 +92,34 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
           </div>
 
           {/* Confirmation */}
-          <div className="summary-confirmation">
-            <label className="modern-checkbox-label">
-              <input
-                type="checkbox"
-                className="modern-checkbox-input"
-                checked={detailsConfirmed}
-                onChange={(e) => setDetailsConfirmed(e.target.checked)}
-              />
-              <span className="modern-checkbox-custom" aria-hidden="true">
-                <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">
-                  <polyline
-                    className="tick"
-                    points="5,13 10,18 19,7"
-                    fill="none"
-                    stroke="#fff"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-              <span className="modern-checkbox-text">
-                I confirm the above information is accurate.
-              </span>
-            </label>
-          </div>
+          {showConfirmation && (
+            <div className="summary-confirmation">
+              <label className="modern-checkbox-label">
+                <input
+                  type="checkbox"
+                  className="modern-checkbox-input"
+                  checked={detailsConfirmed}
+                  onChange={(e) => setDetailsConfirmed(e.target.checked)}
+                />
+                <span className="modern-checkbox-custom" aria-hidden="true">
+                  <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">
+                    <polyline
+                      className="tick"
+                      points="5,13 10,18 19,7"
+                      fill="none"
+                      stroke="#fff"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span className="modern-checkbox-text">
+                  I confirm the above information is accurate.
+                </span>
+              </label>
+            </div>
+          )}
         </>
       )}
     </section>

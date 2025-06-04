@@ -15,6 +15,7 @@ declare global {
 }
 
 import React, { useState, useEffect, JSX } from 'react';
+import { useCompletion } from '../context/CompletionContext';
 import {
   FaUser,
   FaMapMarkerAlt,
@@ -34,6 +35,7 @@ import {
   FaFileUpload,
   FaCheckCircle,
   FaTimesCircle,
+  FaEdit,
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
@@ -128,6 +130,9 @@ const StepHeader: React.FC<StepHeaderProps> = ({
 }) => {
   // dark-blue skin when the step is CLOSED and NOT complete
   const attention = !open && !complete;
+  const { summaryComplete } = useCompletion();
+
+  const showTick = step === 1 ? summaryComplete : complete;
 
   return (
     <div
@@ -142,7 +147,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
       <div className="step-number">{step}</div>
       <h2>
         {title}
-        {complete && <span className="completion-tick visible">✔</span>}
+        {showTick && <span className="completion-tick visible">✔</span>}
         {locked && (
           <span className="step-lock" style={{ marginLeft: 6, fontSize: '1.07em', verticalAlign: 'middle' }}>
             🔒
@@ -335,6 +340,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [isUploadDone, setUploadDone] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(false);
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
+  const { setSummaryComplete } = useCompletion();
 
   // Clear any persisted progress on first load so refreshing starts clean
   useEffect(() => {
@@ -354,6 +360,13 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   useEffect(() => {
     setIdReviewDone(isIdInfoComplete());
   }, [proofData]);
+
+  const handleEdit = () => {
+    setSummaryComplete(false);
+    setDetailsConfirmed(false);
+    setShowReview(false);
+    setOpenStep(1);
+  };
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
     setUploadDone(isComplete);
@@ -459,7 +472,13 @@ function getPulseClass(step: number, done: boolean) {
     <>
       {proofData.isCompanyClient && (
         <div className="group">
-          <div className="summary-group-header">Company Details</div>
+        <div className="summary-group-header">
+          Company Details
+          <FaEdit
+            className="edit-icon"
+            onClick={handleEdit}
+          />
+        </div>
           <FaCity className="backdrop-icon" />
           <p>
             <span className="field-label">Client:</span>{' '}
@@ -509,7 +528,13 @@ function getPulseClass(step: number, done: boolean) {
         </div>
       )}
       <div className="group">
-        <div className="summary-group-header">Personal Details</div>
+        <div className="summary-group-header">
+          Personal Details
+          <FaEdit
+            className="edit-icon"
+            onClick={handleEdit}
+          />
+        </div>
         <FaUser className="backdrop-icon" />
         <p>
           <span className="field-label">Name:</span>{' '}
@@ -530,7 +555,13 @@ function getPulseClass(step: number, done: boolean) {
         <hr />
       </div>
       <div className="group">
-        <div className="summary-group-header">Address</div>
+        <div className="summary-group-header">
+          Address
+          <FaEdit
+            className="edit-icon"
+            onClick={handleEdit}
+          />
+        </div>
         <FaMapMarkerAlt className="backdrop-icon" />
         <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
           <div>
@@ -552,7 +583,13 @@ function getPulseClass(step: number, done: boolean) {
         <hr />
       </div>
       <div className="group">
-        <div className="summary-group-header">Contact Details</div>
+        <div className="summary-group-header">
+          Contact Details
+          <FaEdit
+            className="edit-icon"
+            onClick={handleEdit}
+          />
+        </div>
         <FaPhone className="backdrop-icon" />
         <p>
           <span className="field-label">Phone:</span>{' '}
@@ -565,7 +602,13 @@ function getPulseClass(step: number, done: boolean) {
         <hr />
       </div>
       <div className="group">
-        <div className="summary-group-header">ID Details</div>
+        <div className="summary-group-header">
+          ID Details
+          <FaEdit
+            className="edit-icon"
+            onClick={handleEdit}
+          />
+        </div>
         <FaIdCard className="backdrop-icon" />
         <p>
           <span className="field-label">Type:</span>{' '}
@@ -578,7 +621,13 @@ function getPulseClass(step: number, done: boolean) {
         <hr />
       </div>
       <div className="group">
-        <div className="summary-group-header">Helix Contact</div>
+        <div className="summary-group-header">
+          Helix Contact
+          <FaEdit
+            className="edit-icon"
+            onClick={handleEdit}
+          />
+        </div>
         <FaUserTie className="backdrop-icon" />
         <p>
           <span className="field-label">Contact:</span>{' '}
@@ -704,6 +753,7 @@ function getPulseClass(step: number, done: boolean) {
                           documentsContent={documentsSummary}
                           detailsConfirmed={detailsConfirmed}
                           setDetailsConfirmed={setDetailsConfirmed}
+                          showConfirmation={showReview}
                         />
                       ) : undefined}
                       isMobile={isMobile}
@@ -784,6 +834,7 @@ function getPulseClass(step: number, done: boolean) {
                 documentsContent={documentsSummary}
                 detailsConfirmed={detailsConfirmed}
                 setDetailsConfirmed={setDetailsConfirmed}
+                showConfirmation={showReview}
               />
             </aside>
           )}
