@@ -30,7 +30,7 @@ function formatDate(date) {
 }
 
 function formatTime(date) {
-  return date.toTimeString().slice(0, 8);
+  return date.toISOString().slice(11, 19); // "HH:MM:SS"
 }
 
 module.exports = async function (context, req) {
@@ -64,11 +64,11 @@ module.exports = async function (context, req) {
       .input('AreaOfWork', sql.NVarChar(100), areaOfWork)
       .input('PitchedBy', sql.NVarChar(100), pitchedBy)
       .input('PitchedDate', sql.Date, formatDate(now))
-      .input('PitchedTime', sql.Time, formatTime(now))
+      .input('PitchedTime', sql.Time, now)
       .input('PitchValidUntil', sql.Date, formatDate(pitchValidUntil))
       .input('Status', sql.NVarChar(20), 'pitched')
       .input('IsMultiClient', sql.Bit, isMultiClient ? 1 : 0)
-      .input('LeadClientId', sql.Int, null)
+      .input('LeadClientId', sql.Int, prospectId || null)
       .input('LeadClientEmail', sql.NVarChar(255), leadClientEmail || null)
       .input('CloseDate', sql.Date, null)
       .input('CloseTime', sql.Time, null)
@@ -78,15 +78,12 @@ module.exports = async function (context, req) {
 
     const dealId = dealResult.recordset[0].DealId;
 
-    if (Array.isArray(clients)) {
+    if (isMultiClient && Array.isArray(clients)) {
       for (const c of clients) {
         await pool.request()
           .input('DealId', sql.Int, dealId)
-          .input('ClientId', sql.Int, c.clientId || null)
-          .input('ProspectId', sql.Int, c.prospectId || null)
-          .input('ClientEmail', sql.NVarChar(255), c.clientEmail || '')
-          .input('IsLeadClient', sql.Bit, c.isLeadClient ? 1 : 0)
-          .query('INSERT INTO DealJointClients (DealId, ClientId, ProspectId, ClientEmail, IsLeadClient) VALUES (@DealId, @ClientId, @ProspectId, @ClientEmail, @IsLeadClient)');
+          .input('ClientEmail', sql.NVarChar(255), c.email || '')
+          .query('INSERT INTO DealJointClients (DealId, ClientEmail) VALUES (@DealId, @ClientEmail)');
       }
     }
 
