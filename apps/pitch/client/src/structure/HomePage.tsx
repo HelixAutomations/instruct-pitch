@@ -89,6 +89,7 @@ interface StepHeaderProps {
   open: boolean;
   toggle: () => void;
   locked?: boolean;
+  onEdit?: () => void;
 }
 
 interface UploadedFile {
@@ -127,12 +128,14 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   open,
   toggle,
   locked = false,
+  onEdit,
 }) => {
   // dark-blue skin when the step is CLOSED and NOT complete
   const attention = !open && !complete;
   const { summaryComplete } = useCompletion();
 
   const showTick = step === 1 ? summaryComplete : complete;
+  const showEdit = !open && !locked && showTick;
 
   return (
     <div
@@ -147,13 +150,36 @@ const StepHeader: React.FC<StepHeaderProps> = ({
       <div className="step-number">{step}</div>
       <h2>
         {title}
-        {showTick && <span className="completion-tick visible">✔</span>}
+        {showTick && (
+          <span className="completion-tick visible">
+            <svg viewBox="0 0 24 24">
+              <polyline
+                points="5,13 10,18 19,7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        )}
         {locked && (
           <span className="step-lock" style={{ marginLeft: 6, fontSize: '1.07em', verticalAlign: 'middle' }}>
             🔒
           </span>
         )}
       </h2>
+      {showEdit && (
+        <FaEdit
+          className="edit-step"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit?.();
+            toggle();
+          }}
+        />
+      )}
       <span className="toggle-icon">{open ? '−' : '+'}</span>
     </div>
   );
@@ -178,6 +204,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
+  const [restartId, setRestartId] = useState(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
   const [showReview, setShowReview] = useState(false);
 
@@ -357,15 +384,20 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     }
   }, []);
 
+  // Once ID details are marked complete, keep the state unless the user
+  // explicitly clears required fields and tries to proceed again.
   useEffect(() => {
-    setIdReviewDone(isIdInfoComplete());
-  }, [proofData]);
+    if (!isIdReviewDone && isIdInfoComplete()) {
+      setIdReviewDone(true);
+    }
+  }, [proofData, isIdReviewDone]);
 
   const handleEdit = () => {
     setSummaryComplete(false);
     setDetailsConfirmed(false);
     setShowReview(false);
     setOpenStep(1);
+    setRestartId((r) => r + 1);
   };
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
@@ -474,10 +506,6 @@ function getPulseClass(step: number, done: boolean) {
         <div className="group">
         <div className="summary-group-header">
           Company Details
-          <FaEdit
-            className="edit-icon"
-            onClick={handleEdit}
-          />
         </div>
           <FaCity className="backdrop-icon" />
           <p>
@@ -530,10 +558,6 @@ function getPulseClass(step: number, done: boolean) {
       <div className="group">
         <div className="summary-group-header">
           Personal Details
-          <FaEdit
-            className="edit-icon"
-            onClick={handleEdit}
-          />
         </div>
         <FaUser className="backdrop-icon" />
         <p>
@@ -557,10 +581,6 @@ function getPulseClass(step: number, done: boolean) {
       <div className="group">
         <div className="summary-group-header">
           Address
-          <FaEdit
-            className="edit-icon"
-            onClick={handleEdit}
-          />
         </div>
         <FaMapMarkerAlt className="backdrop-icon" />
         <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
@@ -585,10 +605,6 @@ function getPulseClass(step: number, done: boolean) {
       <div className="group">
         <div className="summary-group-header">
           Contact Details
-          <FaEdit
-            className="edit-icon"
-            onClick={handleEdit}
-          />
         </div>
         <FaPhone className="backdrop-icon" />
         <p>
@@ -604,10 +620,6 @@ function getPulseClass(step: number, done: boolean) {
       <div className="group">
         <div className="summary-group-header">
           ID Details
-          <FaEdit
-            className="edit-icon"
-            onClick={handleEdit}
-          />
         </div>
         <FaIdCard className="backdrop-icon" />
         <p>
@@ -623,10 +635,6 @@ function getPulseClass(step: number, done: boolean) {
       <div className="group">
         <div className="summary-group-header">
           Helix Contact
-          <FaEdit
-            className="edit-icon"
-            onClick={handleEdit}
-          />
         </div>
         <FaUserTie className="backdrop-icon" />
         <p>
@@ -732,12 +740,14 @@ function getPulseClass(step: number, done: boolean) {
                 open={openStep === 1}
                 toggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
                 locked={instructionCompleted}
+                onEdit={handleEdit}
               />
               <div
                 className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone)}`}>
                 {openStep === 1 && (
                   !showReview ? (
                     <ProofOfId
+                      key={restartId}
                       value={proofData}
                       onUpdate={setProofData}
                       setIsComplete={setIdReviewDone}

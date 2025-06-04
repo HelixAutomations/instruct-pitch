@@ -107,28 +107,56 @@
   margin: 0;
   display: flex;
   align-items: center;
+  flex-grow: 1;
 }
 
 .step-header .toggle-icon {
-  margin-left: auto;
+  margin-left: 8px;
   font-size: 18px;
   color: inherit;
 }
 
 .step-header .completion-tick {
   margin-left: 8px;
-  font-size: 14px;
   width: 20px;
   height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--helix-grey);
-  color: #7DBB7D;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #20b26c;
   opacity: 0;
   transform: scale(0);
   transition: opacity 0.3s, transform 0.3s;
+}
+.step-header .completion-tick svg {
+  width: 14px;
+  height: 14px;
+}
+.step-header .edit-step {
+  margin-left: auto;
+  margin-right: 12px;
+  font-size: 14px;
+  color: var(--helix-blue);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: color 0.2s;
+}
+.step-header .edit-step:hover {
+  color: var(--helix-highlight);
+}
+.step-header .edit-step {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--helix-blue);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: color 0.2s;
+}
+.step-header .edit-step:hover {
+  color: var(--helix-highlight);
 }
 
 .step-header .completion-tick.visible {
@@ -157,6 +185,8 @@
 .step-header.active .completion-tick {
   color: #7DBB7D;           /* keep green tick visible on dark background */
   background: var(--helix-grey);
+  color: #20b26c; /* keep green tick visible on dark background */
+  background: #fff;
 }
 
 /* ========== STEP CONTENT =================================================== */
@@ -314,8 +344,6 @@
 }
 .summary-header .verify-tick.visible { opacity: 1; transform: scale(1); }
 .summary-header .verify-tick.pressed { background: #fff; }
-.summary-header .edit-icon           { font-size: 16px; color: var(--helix-blue); margin-left: 8px; cursor: pointer; transition: color 0.3s; }
-.summary-header .edit-icon:hover     { color: var(--helix-highlight); }
 
 /* Collapse by default */
 .summary-column .summary-header + .summary-content {
