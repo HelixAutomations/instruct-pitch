@@ -27,19 +27,6 @@ interface SectionStates {
   helixContact: SectionState;
 }
 
-// All fields that must be completed before the entire company section collapses
-const COMPANY_SECTION_FIELDS = [
-  'companyName',
-  'companyNumber',
-  'companyHouseNumber',
-  'companyStreet',
-  'companyCity',
-  'companyCounty',
-  'companyPostcode',
-  'companyCountry',
-];
-
-
 const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, onNext }) => {
   const [step, setStep] = useState<number>(1);
   const idStatus = value.idStatus || '';
@@ -61,7 +48,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
   // Effect to re-evaluate section completion status when value changes
   useEffect(() => {
     const sections: { key: keyof SectionStates; fields: string[] }[] = [
-      { key: 'companyDetails', fields: COMPANY_SECTION_FIELDS },
+      { key: 'companyDetails', fields: ['companyName', 'companyNumber'] },
       {
         key: 'companyAddress',
         fields: [
@@ -110,12 +97,10 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
   const handleBlur = (sectionKey: keyof SectionStates, sectionFields: string[]) => {
     const isCompleted = checkSectionCompletion(sectionFields);
     if (isCompleted) {
-      setTimeout(() => {
-        setSectionStates((prev) => ({
-          ...prev,
-          [sectionKey]: { ...prev[sectionKey], collapsed: true, completed: true },
-        }));
-      }, 1500);
+      setSectionStates((prev) => ({
+        ...prev,
+        [sectionKey]: { collapsed: true, completed: true },
+      }));
     }
   };
 
@@ -282,8 +267,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
             Next
           </button>
         </div>
-        </>
-      )}
+      </>
+    )}
 
 
       {step === 2 && (
@@ -303,9 +288,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
                 <hr className="section-divider" />
-                <div
-                  className={`collapsible-content ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''}`}
-                >
+                {!sectionStates.companyDetails.collapsed && (
                   <div className="form-grid">
                     <div className="form-group">
                       <input
@@ -316,7 +299,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         onChange={handleInputChange}
                         placeholder="Company Name"
                         onBlur={() =>
-                          handleBlur('companyDetails', COMPANY_SECTION_FIELDS)
+                          handleBlur('companyDetails', ['companyName', 'companyNumber'])
                         }
                       />
                     </div>
@@ -329,11 +312,13 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         onChange={handleInputChange}
                         placeholder="Company Number"
                         onBlur={() =>
-                          handleBlur('companyDetails', COMPANY_SECTION_FIELDS)
+                          handleBlur('companyDetails', ['companyName', 'companyNumber'])
                         }
                       />
                     </div>
                   </div>
+                )}
+                {!sectionStates.companyDetails.collapsed && (
                   <div className="form-section address-section">
                     <div
                       className="group-header"
@@ -349,9 +334,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                       />
                     </div>
                     <hr className="section-divider" />
-                    <div
-                      className={`collapsible-content ${sectionStates.companyAddress.collapsed ? 'collapsed' : ''}`}
-                    >
+                    {!sectionStates.companyAddress.collapsed && (
                       <div className="form-grid">
                         <div className="form-group">
                           <input
@@ -361,7 +344,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyHouseNumber}
                             onChange={handleInputChange}
                             placeholder="House/Building Number"
-                            onBlur={() => {
+                            onBlur={() =>
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -369,9 +352,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
+                              ])
+                            }
                           />
                         </div>
                         <div className="form-group">
@@ -382,7 +364,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyStreet}
                             onChange={handleInputChange}
                             placeholder="Street"
-                            onBlur={() => {
+                            onBlur={() =>
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -390,9 +372,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
+                              ])
+                            }
                           />
                         </div>
                         <div className="form-group">
@@ -403,7 +384,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyCity}
                             onChange={handleInputChange}
                             placeholder="City/Town"
-                            onBlur={() => {
+                            onBlur={() =>
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -411,9 +392,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
+                              ])
+                            }
                           />
                         </div>
                         <div className="form-group">
@@ -424,7 +404,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyCounty}
                             onChange={handleInputChange}
                             placeholder="County"
-                            onBlur={() => {
+                            onBlur={() =>
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -432,9 +412,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
+                              ])
+                            }
                           />
                         </div>
                         <div className="form-group">
@@ -445,7 +424,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             value={value.companyPostcode}
                             onChange={handleInputChange}
                             placeholder="Post Code"
-                            onBlur={() => {
+                            onBlur={() =>
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -453,9 +432,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
+                              ])
+                            }
                           />
                         </div>
                         <div className="form-group">
@@ -464,7 +442,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                             className={`paper-input-select ${value.companyCountry ? 'filled' : ''}`}
                             value={value.companyCountry}
                             onChange={handleInputChange}
-                            onBlur={() => {
+                            onBlur={() =>
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
                                 'companyStreet',
@@ -472,9 +450,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                                 'companyCounty',
                                 'companyPostcode',
                                 'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
+                              ])
+                            }
                           >
                             <option value="">Country</option>
                             <option value="United Kingdom">United Kingdom</option>
@@ -487,8 +464,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                 )}
               </div>
               <hr />
-                </div>
-              )}
+            </>
+          )}
 
           <div className="form-group-section">
             <div className="group-header" onClick={() => toggleSection('personalDetails')}>
@@ -502,15 +479,14 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.personalDetails.collapsed ? 'collapsed' : ''}`}
-            >
-              {isCompanyClient && (
-                <p className="disclaimer">
-                  Please use your personal details if you are a director of the company.
-                </p>
-              )}
-              <div className="form-grid">
+            {!sectionStates.personalDetails.collapsed && (
+              <>
+                {isCompanyClient && (
+                  <p className="disclaimer">
+                    Please use your personal details if you are a director of the company.
+                  </p>
+                )}
+                <div className="form-grid">
                   <div className="form-group">
   <select
     id="title"
@@ -651,8 +627,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                     </select>
                   </div>
                 </div>
-                </div>
-              )}
+              </>
+            )}
           </div>
           <hr />
 
@@ -668,9 +644,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''}`}
-            >
+            {!sectionStates.addressDetails.collapsed && (
               <div className="form-grid">
                 <div className="form-group">
                   <input
@@ -795,7 +769,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   </select>
                 </div>
               </div>
-            </div>
+            )}
           </div>
           <hr />
 
@@ -811,9 +785,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''}`}
-            >
+            {!sectionStates.contactDetails.collapsed && (
               <div className="form-grid">
                 <div className="form-group">
                   <input
@@ -838,7 +810,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
               </div>
-            </div>
+            )}
           </div>
           <hr />
 
@@ -854,9 +826,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.idDetails.collapsed ? 'collapsed' : ''}`}
-            >
+            {!sectionStates.idDetails.collapsed && (
               <div className="form-group">
                 <div className="apple-toggle-group">
                   <button
@@ -888,7 +858,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
           <hr />
 
@@ -904,9 +874,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
               />
             </div>
             <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.helixContact.collapsed ? 'collapsed' : ''}`}
-            >
+            {!sectionStates.helixContact.collapsed && (
               <div className="form-group">
                 <select
                   id="helixContact"
@@ -920,7 +888,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   <option value="Jane Smith">Jane Smith</option>
                 </select>
               </div>
-            </div>
+            )}
           </div>
           <hr />
 

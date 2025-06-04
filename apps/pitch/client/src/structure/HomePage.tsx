@@ -179,7 +179,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
     isCompanyClient: false,
-    idType: null,
+    idType: 'passport',
     companyName: '',
     companyNumber: '',
     companyHouseNumber: '',

@@ -123,9 +123,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
     onUpdate(updatedData);
   };
 
-  const handleCompanyClientChange = (isCompany: boolean) => {
-    setIsCompanyClient(isCompany);
-    const updatedData = { ...value, idStatus, isCompanyClient: isCompany, idType };
+  const handleCompanyClientChange = (clientValue: boolean) => {
+    setIsCompanyClient(clientValue);
+    const updatedData = { ...value, idStatus, isCompanyClient: clientValue, idType };
     onUpdate(updatedData);
   };
 
