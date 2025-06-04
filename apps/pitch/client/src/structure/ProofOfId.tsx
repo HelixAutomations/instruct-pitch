@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaIdCard, FaUserTie, FaChevronDown } from 'react-icons/fa';
 import '../styles/ProofOfId.css';
 import { ProofData } from '../context/ProofData';
+import { countries, titles, genders } from '../data/referenceData';
 
 interface ProofOfIdProps {
   value: ProofData;
@@ -121,7 +122,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
             completed: true,
           },
         }));
-      }, 1500);
+      }, 1000);
     }
   };
 
@@ -175,7 +176,23 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { id, value: inputValue } = e.target;
-    const updatedData = { ...value, [id]: inputValue, idStatus, isCompanyClient, idType };
+    const updatedData: any = { ...value, [id]: inputValue, idStatus, isCompanyClient, idType };
+
+    if (id === 'country') {
+      const found = countries.find(c => c.name === inputValue);
+      updatedData.countryCode = found?.code;
+    }
+
+    if (id === 'companyCountry') {
+      const found = countries.find(c => c.name === inputValue);
+      updatedData.companyCountryCode = found?.code;
+    }
+
+    if (id === 'nationality') {
+      const found = countries.find(c => c.name === inputValue);
+      updatedData.nationalityCode = found?.code;
+    }
+
     onUpdate(updatedData);
   };
 
@@ -294,12 +311,25 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
         <div className="form-content">
           {isCompanyClient && (
             <>
-              <div className="form-group-section">
+              <div
+                className={`form-group-section ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''} ${sectionStates.companyDetails.completed ? 'completed' : ''}`}
+              >
                 <div className="group-header" onClick={() => toggleSection('companyDetails')}>
                   <FaCity className="section-icon" />
                   <span>Company Details</span>
                   {sectionStates.companyDetails.completed && (
-                    <span className="completion-tick">✔</span>
+                    <span className="completion-tick">
+                      <svg viewBox="0 0 24 24">
+                        <polyline
+                          points="5,13 10,18 19,7"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
                   )}
                   <FaChevronDown
                     className={`dropdown-icon ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''}`}
@@ -462,11 +492,13 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                           />
                         </div>
                         <div className="form-group">
-                          <select
+                          <input
+                            list="countriesList"
                             id="companyCountry"
                             className={`paper-input-select ${value.companyCountry ? 'filled' : ''}`}
                             value={value.companyCountry}
                             onChange={handleInputChange}
+                            placeholder="Country"
                             onBlur={() => {
                               handleBlur('companyAddress', [
                                 'companyHouseNumber',
@@ -478,11 +510,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                               ]);
                               handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
                             }}
-                          >
-                            <option value="">Country</option>
-                            <option value="United Kingdom">United Kingdom</option>
-                            <option value="Other">Other</option>
-                          </select>
+                          />
                         </div>
                       </div>
                     </div>
@@ -493,12 +521,25 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
             </>
           )}
 
-          <div className="form-group-section">
+          <div
+            className={`form-group-section ${sectionStates.personalDetails.collapsed ? 'collapsed' : ''} ${sectionStates.personalDetails.completed ? 'completed' : ''}`}
+          >
             <div className="group-header" onClick={() => toggleSection('personalDetails')}>
               <FaUser className="section-icon" />
               <span>Personal Details</span>
               {sectionStates.personalDetails.completed && (
-                <span className="completion-tick">✔</span>
+                <span className="completion-tick">
+                  <svg viewBox="0 0 24 24">
+                    <polyline
+                      points="5,13 10,18 19,7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               )}
               <FaChevronDown
                 className={`dropdown-icon ${sectionStates.personalDetails.collapsed ? 'collapsed' : ''}`}
@@ -532,18 +573,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                     }
                   >
                     <option value="">Title</option>
-                    <option value="Mr">Mr</option>
-                    <option value="Mrs">Mrs</option>
-                    <option value="Miss">Miss</option>
-                    <option value="Ms">Ms</option>
-                    <option value="Dr">Dr</option>
-                    <option value="Mx">Mx</option>
-                    <option value="Rev">Rev</option>
-                    <option value="Prof">Prof</option>
-                    <option value="Sir">Sir</option>
-                    <option value="Dame">Dame</option>
-                    <option value="Lord">Lord</option>
-                    <option value="Lady">Lady</option>
+                    {titles.map(t => (
+                      <option key={t.id} value={t.name}>{t.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group">
@@ -587,11 +619,13 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
                 <div className="form-group">
-                  <select
+                  <input
+                    list="countriesList"
                     id="nationality"
                     className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
                     value={value.nationality}
                     onChange={handleInputChange}
+                    placeholder="Nationality"
                     onBlur={() =>
                       handleBlur('personalDetails', [
                         'title',
@@ -602,11 +636,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         'gender',
                       ])
                     }
-                  >
-                    <option value="">Nationality</option>
-                    <option value="British">British</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  />
                 </div>
                 <div className="form-group">
                   <input
@@ -648,9 +678,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                     }
                   >
                     <option value="">Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    {genders.map(g => (
+                      <option key={g.id} value={g.name}>{g.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -658,12 +688,25 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
           </div>
           <hr />
 
-          <div className="form-group-section">
+          <div
+            className={`form-group-section ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''} ${sectionStates.addressDetails.completed ? 'completed' : ''}`}
+          >
             <div className="group-header" onClick={() => toggleSection('addressDetails')}>
               <FaMapMarkerAlt className="section-icon" />
               <span>Address Details</span>
               {sectionStates.addressDetails.completed && (
-                <span className="completion-tick">✔</span>
+                <span className="completion-tick">
+                  <svg viewBox="0 0 24 24">
+                    <polyline
+                      points="5,13 10,18 19,7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               )}
               <FaChevronDown
                 className={`dropdown-icon ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''}`}
@@ -775,11 +818,13 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   />
                 </div>
                 <div className="form-group">
-                  <select
+                  <input
+                    list="countriesList"
                     id="country"
                     className={`paper-input-select ${value.country ? 'filled' : ''}`}
                     value={value.country}
                     onChange={handleInputChange}
+                    placeholder="Country"
                     onBlur={() =>
                       handleBlur('addressDetails', [
                         'houseNumber',
@@ -790,23 +835,32 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         'country',
                       ])
                     }
-                  >
-                    <option value="">Country</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  />
                 </div>
               </div>
             </div>
           </div>
           <hr />
 
-          <div className="form-group-section">
+          <div
+            className={`form-group-section ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''} ${sectionStates.contactDetails.completed ? 'completed' : ''}`}
+          >
             <div className="group-header" onClick={() => toggleSection('contactDetails')}>
               <FaPhone className="section-icon" />
               <span>Contact Details</span>
               {sectionStates.contactDetails.completed && (
-                <span className="completion-tick">✔</span>
+                <span className="completion-tick">
+                  <svg viewBox="0 0 24 24">
+                    <polyline
+                      points="5,13 10,18 19,7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               )}
               <FaChevronDown
                 className={`dropdown-icon ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''}`}
@@ -844,12 +898,25 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
           </div>
           <hr />
 
-          <div className="form-group-section">
+          <div
+            className={`form-group-section ${sectionStates.idDetails.collapsed ? 'collapsed' : ''} ${sectionStates.idDetails.completed ? 'completed' : ''}`}
+          >
             <div className="group-header" onClick={() => toggleSection('idDetails')}>
               <FaIdCard className="section-icon" />
               <span>ID Details</span>
               {sectionStates.idDetails.completed && (
-                <span className="completion-tick">✔</span>
+                <span className="completion-tick">
+                  <svg viewBox="0 0 24 24">
+                    <polyline
+                      points="5,13 10,18 19,7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               )}
               <FaChevronDown
                 className={`dropdown-icon ${sectionStates.idDetails.collapsed ? 'collapsed' : ''}`}
@@ -894,12 +961,25 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
           </div>
           <hr />
 
-          <div className="form-group-section">
+          <div
+            className={`form-group-section ${sectionStates.helixContact.collapsed ? 'collapsed' : ''} ${sectionStates.helixContact.completed ? 'completed' : ''}`}
+          >
             <div className="group-header" onClick={() => toggleSection('helixContact')}>
               <FaUserTie className="section-icon" />
               <span>Helix Contact</span>
               {sectionStates.helixContact.completed && (
-                <span className="completion-tick">✔</span>
+                <span className="completion-tick">
+                  <svg viewBox="0 0 24 24">
+                    <polyline
+                      points="5,13 10,18 19,7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               )}
               <FaChevronDown
                 className={`dropdown-icon ${sectionStates.helixContact.collapsed ? 'collapsed' : ''}`}
@@ -947,6 +1027,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
           </div>
         </div>
       )}
+      <datalist id="countriesList">
+        {countries.map(c => (
+          <option key={c.id} value={c.name} />
+        ))}
+      </datalist>
     </div>
   );
 };

@@ -375,8 +375,24 @@
 
 .form-group-section .group-header .completion-tick {
   margin-left: 8px;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  align-items: center;
+  justify-content: center;
+}
+
+.form-group-section .group-header .completion-tick svg {
+  width: 12px;
+  height: 12px;
   color: #7DBB7D;
-  font-size: 14px;
+}
+
+.form-group-section.collapsed .group-header {
+  margin-bottom: 0;
 }
 
 .form-group-section .group-header .dropdown-icon {
@@ -389,6 +405,16 @@
 .form-group-section .group-header .dropdown-icon.collapsed {
   transform: rotate(180deg);
 }
+/* Collapsible section animation */
+.collapsible-content {
+  overflow: hidden;
+  max-height: 1000px;
+  transition: max-height 0.5s ease-in-out;
+}
+
+.collapsible-content.collapsed {
+  max-height: 0;
+}
 
 .form-group-section .section-divider {
   border: none;
@@ -396,10 +422,24 @@
   margin: 12px 0;
 }
 
+.form-group-section.collapsed .section-divider {
+  display: none;
+  margin: 0;
+}
+
+.form-group-section.collapsed + hr {
+  display: none;
+  margin: 0;
+}
+
 .form-content hr {
   border: none;
   border-top: 1px solid rgba(211, 211, 211, 0.3);
   margin: 20px 0;
+}
+
+.collapsible-content.collapsed {
+  display: none;
 }
 
 .form-group-section .form-grid,
