@@ -3,13 +3,11 @@ import '../styles/ClientDetails.css';
 
 interface ClientDetailsProps {
   workType: string; // you can remove this prop if unused elsewhere
-  instructionRef: string;
   stage: string;
   onAnimationEnd?: () => void;
 }
 
 const ClientDetails: React.FC<ClientDetailsProps> = ({
-  instructionRef,
   stage,
   onAnimationEnd
 }) => {

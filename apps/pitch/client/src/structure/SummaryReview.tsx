@@ -34,6 +34,13 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
     setOpen(!summaryComplete);
   }, [summaryComplete]);
 
+  // Ensure the summary is visible when confirmation must be displayed
+  useEffect(() => {
+    if (showConfirmation) {
+      setOpen(true);
+    }
+  }, [showConfirmation]);
+
   const toggle = () => setOpen((prev) => !prev);
 
   /* ---------- render ---------- */
@@ -51,11 +58,12 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
         </span>
       </button>
 
-      {summaryComplete && !open && (
+      {summaryComplete && (
         <button
           type="button"
           className="summary-complete-header"
-          onClick={() => setOpen(true)}
+          onClick={() => setOpen((prev) => !prev)}
+          aria-expanded={open}
         >
           <span className="summary-complete-small" aria-hidden="true">
             <svg viewBox="0 0 24 24">
@@ -71,7 +79,7 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
           </span>
           <span>Summary complete</span>
           <span className="chevron">
-            <FiChevronDown />
+            {open ? <FiChevronUp /> : <FiChevronDown />}
           </span>
         </button>
       )}

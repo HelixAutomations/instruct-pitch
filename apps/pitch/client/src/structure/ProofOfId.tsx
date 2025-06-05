@@ -45,7 +45,6 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
   const idStatus = value.idStatus || '';
   const isCompanyClient = value.isCompanyClient ?? null;
   const idType = value.idType || null;
-  const [dobFocused, setDobFocused] = useState(false);
 
   // State to track collapsed and completed status for each section
   const [sectionStates, setSectionStates] = useState<SectionStates>({
