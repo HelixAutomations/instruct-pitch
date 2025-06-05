@@ -1,5 +1,5 @@
 import React from 'react';
-import './StepProgress.css';
+import '../../styles/StepProgress.css';
 
 interface StepProgressProps {
   currentStep: number;
