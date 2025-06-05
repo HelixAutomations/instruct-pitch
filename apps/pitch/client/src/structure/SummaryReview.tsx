@@ -39,7 +39,17 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
   /* ---------- render ---------- */
   return (
     <section className="summary-pane">
-      <h2 className="summary-title-main">Summary</h2>
+      <button
+        type="button"
+        className="summary-title-main summary-toggle"
+        onClick={toggle}
+        aria-expanded={open}
+      >
+        <span>Summary</span>
+        <span className="chevron">
+          {open ? <FiChevronUp /> : <FiChevronDown />}
+        </span>
+      </button>
 
       {summaryComplete && !open && (
         <button
@@ -66,29 +76,14 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
         </button>
       )}
 
-      {(!summaryComplete || open) && (
+      {open && (
         <>
-          {/* Proof of ID */}
           <div className="summary-subsection">
-            <button
-              className="summary-toggle"
-              type="button"
-              onClick={toggle}
-              aria-expanded={open}
-            >
-              <span>Proof of ID</span>
-              <span className="chevron">
-                {open ? <FiChevronUp /> : <FiChevronDown />}
-              </span>
-            </button>
-
-            {open && (
-              <div className="summary-content">
-                {proofContent ?? (
-                  <span className="summary-empty">No information provided yet.</span>
-                )}
-              </div>
-            )}
+            <div className="summary-content">
+              {proofContent ?? (
+                <span className="summary-empty">No information provided yet.</span>
+              )}
+            </div>
           </div>
 
           {/* Confirmation */}
