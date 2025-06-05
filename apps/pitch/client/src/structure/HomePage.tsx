@@ -90,7 +90,6 @@ interface StepHeaderProps {
   toggle: () => void;
   locked?: boolean;
   onEdit?: () => void;
-  highlight?: boolean;
 }
 
 interface UploadedFile {
@@ -130,7 +129,6 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   toggle,
   locked = false,
   onEdit,
-  highlight = false,
 }) => {
   // dark-blue skin when the step is CLOSED and NOT complete
   const attention = !open && !complete;
@@ -142,7 +140,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   return (
     <div
       className={
-        `step-header${open ? ' active' : ''}${locked ? ' locked' : ''}${attention ? ' attention' : ''}${highlight ? ' pulse-edit' : ''}`
+        `step-header${open ? ' active' : ''}${locked ? ' locked' : ''}${attention ? ' attention' : ''}`
       }
       onClick={() => { if (!locked) toggle(); }}
       style={locked ? { cursor: 'not-allowed', opacity: 0.5 } : undefined}
@@ -210,7 +208,6 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [instructionCompleted, setInstructionCompleted] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const step1Ref = useRef<HTMLDivElement>(null);
-  const [highlightStep, setHighlightStep] = useState<0 | 1 | 2 | 3>(0);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -402,9 +399,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     setShowReview(false);
     setOpenStep(1);
     setRestartId((r) => r + 1);
-    setHighlightStep(1);
     step1Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => setHighlightStep(0), 1100);
   };
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
@@ -759,10 +754,9 @@ const proofSummary = (
                 toggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
                 locked={instructionCompleted}
                 onEdit={handleEdit}
-                highlight={highlightStep === 1}
               />
               <div
-                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone)}${highlightStep === 1 ? ' pulse-edit' : ''}`}>
+                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone)}`}>
                 {openStep === 1 && (
                   !showReview ? (
                     <ProofOfId
@@ -803,9 +797,8 @@ const proofSummary = (
                 open={openStep === 2}
                 toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
                 locked={instructionCompleted}
-                highlight={highlightStep === 2}
               />
-              <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}${highlightStep === 2 ? ' pulse-edit' : ''}`}>
+              <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
                 {(prefetchPayment || openStep === 2) && (
                   <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
                     <Payment
@@ -835,9 +828,8 @@ const proofSummary = (
                 open={openStep === 3}
                 toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
                 locked={instructionCompleted}
-                highlight={highlightStep === 3}
               />
-              <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}${highlightStep === 3 ? ' pulse-edit' : ''}`}>
+              <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
                 {openStep === 3 && (
                   <DocumentUpload
                     uploadedFiles={uploadedFiles}
