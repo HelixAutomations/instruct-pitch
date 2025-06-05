@@ -507,61 +507,70 @@ function getPulseClass(step: number, done: boolean) {
   const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
-  const proofSummary = (
-    <>
-      {proofData.isCompanyClient && (
-        <div className="group">
-        <div className="summary-group-header">
-          Company Details
-        </div>
-          <FaCity className="backdrop-icon" />
-          <p>
-            <span className="field-label">Client:</span>{' '}
-            <span className={`field-value${!proofData.isCompanyClient ? ' empty' : ''}`}>Yes</span>
-          </p>
-          <p>
-            <span className="field-label">Name:</span>{' '}
-            <span className={`field-value${!hasCompanyName ? ' empty' : ''}`}>{proofData.companyName?.trim() || '--'}</span>
-          </p>
-          <p>
-            <span className="field-label">Number:</span>{' '}
-            <span className={`field-value${!hasCompanyNumber ? ' empty' : ''}`}>{proofData.companyNumber?.trim() || '--'}</span>
-          </p>
-          <p>
-            <span className="field-label">Address:</span>
-          </p>
-          <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
-            <div>
-              <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyHouseNumber?.trim() || 'House Number'}</span>
-              ,&nbsp;
-              <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyStreet?.trim() || 'Street'}</span>
-            </div>
-            <div>
-              <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyCity?.trim() || 'City'}</span>
-              ,&nbsp;
-              <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyCounty?.trim() || 'County'}</span>
-            </div>
-            <div>
-              <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyPostcode?.trim() || 'Postcode'}</span>
-              ,&nbsp;
-              <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.companyCountry?.trim() || 'Country'}</span>
-            </div>
+const proofSummary = (
+  <>
+    {/* Company Details if applicable */}
+    {proofData.isCompanyClient && (hasCompanyName || hasCompanyNumber) && (
+      <div className="group">
+        <div className="summary-group-header">Company Details</div>
+        <FaCity className="backdrop-icon" />
+        <p>
+          <span className="field-label">Client:</span>{' '}
+          <span className="field-value">Yes</span>
+        </p>
+        <p>
+          <span className="field-label">Name:</span>{' '}
+          <span className={`field-value${!hasCompanyName ? ' empty' : ''}`}>{proofData.companyName?.trim() || '--'}</span>
+        </p>
+        <p>
+          <span className="field-label">Number:</span>{' '}
+          <span className={`field-value${!hasCompanyNumber ? ' empty' : ''}`}>{proofData.companyNumber?.trim() || '--'}</span>
+        </p>
+        <p>
+          <span className="field-label">Address:</span>
+        </p>
+        <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
+          <div>
+            <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>
+              {proofData.companyHouseNumber?.trim() || 'House Number'}
+            </span>,&nbsp;
+            <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>
+              {proofData.companyStreet?.trim() || 'Street'}
+            </span>
           </div>
-          <hr />
+          <div>
+            <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>
+              {proofData.companyCity?.trim() || 'City'}
+            </span>,&nbsp;
+            <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>
+              {proofData.companyCounty?.trim() || 'County'}
+            </span>
+          </div>
+          <div>
+            <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>
+              {proofData.companyPostcode?.trim() || 'Postcode'}
+            </span>,&nbsp;
+            <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>
+              {proofData.companyCountry?.trim() || 'Country'}
+            </span>
+          </div>
         </div>
-      )}
-      {proofData.idStatus === 'first-time' && (
-        <div className="group">
-          <div className="summary-status-note">You are providing proof of your identity for the first time.</div>
-          <hr />
+        <hr />
+      </div>
+    )}
+
+    {/* Info prompt always shown after Company Details (if any), before Personal Details */}
+    {(proofData.idStatus === 'first-time' || proofData.idStatus === 'renewing') && (
+      <div className="group">
+        <div className="summary-info-box">
+          {proofData.idStatus === 'first-time'
+            ? 'You are providing proof of your identity for the first time.'
+            : 'You are renewing proof of your identity.'}
         </div>
-      )}
-      {proofData.idStatus === 'renewing' && (
-        <div className="group">
-          <div className="summary-status-note">You are renewing proof of your identity.</div>
-          <hr />
-        </div>
-      )}
+        <hr />
+      </div>
+    )}
+
       <div className="group">
         <div className="summary-group-header">
           Personal Details
@@ -640,16 +649,14 @@ function getPulseClass(step: number, done: boolean) {
         <hr />
       </div>
       <div className="group">
-        <div className="summary-group-header">
-          Helix Contact
-        </div>
+        {/* Solicitor information */}
       <FaUserTie className="backdrop-icon" />
       <p>
-        <span className="field-label">Contact:</span>{' '}
+        <span className="field-label">Solicitor:</span>{' '}
         <span className={`field-value${!proofData.helixContact?.trim() ? ' empty' : ''}`}>{proofData.helixContact?.trim() || '--'}</span>
       </p>
       <p className="system-info">
-        <span className="field-label">Instruction Ref:</span>{' '}
+        <span className="field-label">Ref:</span>{' '}
         <span className="system-info-text">{instruction.instructionRef}</span>
       </p>
     </div>

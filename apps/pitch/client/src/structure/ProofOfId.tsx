@@ -645,16 +645,14 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                   </select>
                 </div>
                 <div className="form-group">
-                  <input
-                    type={dobFocused || value.dob ? 'date' : 'text'}
-                    id="dob"
-                    className={`paper-input ${value.dob ? 'filled' : ''}`}
-                    value={value.dob}
-                    onChange={handleInputChange}
-                    placeholder="Date of Birth"
-                    onFocus={() => setDobFocused(true)}
-                    onBlur={() => {
-                      setDobFocused(false);
+                <input
+                  type="text"
+                  id="dob"
+                  className={`paper-input ${value.dob ? 'filled' : ''}`}
+                  value={value.dob}
+                  onChange={handleInputChange}
+                  placeholder="Date of Birth (dd/mm/yyyy)"
+                    onBlur={() =>
                       handleBlur('personalDetails', [
                         'title',
                         'firstName',
@@ -662,8 +660,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
                         'nationality',
                         'dob',
                         'gender',
-                      ]);
-                    }}
+                      ])
+                    }
                   />
                 </div>
                 <div className="form-group">

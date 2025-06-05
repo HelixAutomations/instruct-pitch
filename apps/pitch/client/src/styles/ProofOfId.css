@@ -248,19 +248,28 @@
   padding: 0.75rem;
   position: absolute;
   z-index: 9999;
-  bottom: 125%;
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
   font-size: 0.875rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  max-width: 90vw;
+  white-space: normal;
 }
 
 .info-icon:hover .help-text {
   visibility: visible;
   opacity: 1;
   transform: translateX(-50%) translateY(-5px);
+}
+
+@media (max-width: 600px) {
+  .info-icon .help-text {
+    left: 0;
+    transform: translateX(-10%);
+  }
 }
 
 .modern-toggle-group {
@@ -767,6 +776,16 @@
   border-radius: 0;
 }
 
+/* Make the default selection highlight for the placeholder more subtle */
+.paper-input[type="date"]::selection {
+  background-color: rgba(54, 144, 206, 0.15);
+  color: inherit;
+}
+.paper-input[type="date"]::-moz-selection {
+  background-color: rgba(54, 144, 206, 0.15);
+  color: inherit;
+}
+
 .paper-input[type="date"]::-webkit-inner-spin-button,
 .paper-input[type="date"]::-webkit-calendar-picker-indicator {
   filter: brightness(0) saturate(100%) invert(36%) sepia(71%) saturate(600%) hue-rotate(172deg) brightness(90%);
@@ -777,14 +796,14 @@
   width: 18px;
 }
 
-.paper-input[type="date"]:focus {
-  outline: none;
+.paper-input[type="date"]::selection,
+.paper-input[type="date"]::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
 }
 
-.paper-input[type="date"]::selection,
-.apple-input[type="date"]::selection {
-  background-color: #dbeafe;
-  color: inherit;
+.paper-input[type="date"]:focus {
+  user-select: none;
 }
 
 @media (max-width: 600px) {

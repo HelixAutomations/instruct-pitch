@@ -81,7 +81,7 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
                 {open ? <FiChevronUp /> : <FiChevronDown />}
               </span>
             </button>
-            <hr />
+
             {open && (
               <div className="summary-content">
                 {proofContent ?? (

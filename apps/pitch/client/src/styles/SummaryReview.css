@@ -51,13 +51,6 @@
   font-size: 1.1rem;
 }
 
-/* Separator line between toggle and content */
-.summary-subsection hr {
-  border: none;
-  border-top: 1px solid #e3e8ef;
-  margin: 1rem 0 1rem 0;
-}
-
 /* The content reveal area */
 .summary-content {
   padding: 0.25em 0.25rem 0.25em 0.25em;
@@ -84,7 +77,7 @@
 .summary-content hr {
   border: none;
   border-top: 1px solid #e3e8ef;
-  margin: 0.2rem 0;
+  margin: 0.5rem 0;
 }
 
 /* Placeholder text when empty */
@@ -185,13 +178,10 @@
   }
 }
 
-/* Cleaner, not-bold, blue summary group headers */
 .summary-group-header {
   color: var(--helix-dark-blue);
   font-weight: 700;
-  font-size: 1.03em; /* slightly smaller */
-  margin-bottom: 0.3em;
-  margin-top: 1em;
+  font-size: 1.03em;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -199,12 +189,14 @@
 /* Field label style */
 .summary-content .field-label {
   font-weight: 400;
+  font-size: 14px;
   color: var(--helix-dark-blue);
 }
 
 /* Data value style - highlight blue */
 .summary-content .field-value {
   font-weight: 400;
+  font-size: 14px;
   color: var(--helix-highlight);
 }
 .summary-content .field-value.empty {
