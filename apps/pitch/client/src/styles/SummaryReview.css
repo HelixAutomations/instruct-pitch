@@ -9,6 +9,24 @@
   position: relative; /* allow completion overlay */
 }
 
+/* Style when the summary is collapsed and complete */
+.summary-pane-collapsed {
+  background: #f5fdf7;
+  border-color: #49B670;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.summary-pane-collapsed .summary-complete-header {
+  background: transparent;
+  border: none;
+  padding: 0.6rem 0.8rem;
+}
+
+.summary-pane-collapsed .summary-complete-header:hover {
+  background: #ecfaf1;
+}
+
 /* Main “Summary” title */
 .summary-title-main {
   font-weight: 600;

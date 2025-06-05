@@ -16,6 +16,8 @@ interface ReviewConfirmProps {
   product?: string;
   workType?: string;
   onConfirmed?: () => void;
+  /** Optional callback when the user wants to edit their details again */
+  onEdit?: () => void;
 }
 
 const AccordionSection: React.FC<{
@@ -49,10 +51,11 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   instructionRef: propInstructionRef,
   proofData,
   onConfirmed,
+  onEdit,
 }) => {
   const { instructionRef: ctxInstructionRef } = useClient();
   const instructionRef = propInstructionRef ?? ctxInstructionRef;
-  const { setSummaryComplete } = useCompletion();
+  const { summaryComplete, setSummaryComplete } = useCompletion();
 
   const handleSubmit = async () => {
     try {
@@ -113,13 +116,23 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
 
       {/* Declaration */}
       <div className="declaration-section no-border">
-        <button
-          className="cta-declare-btn"
-          disabled={!detailsConfirmed}
-          onClick={handleSubmit}
-        >
-          Confirm Identity and Open a Matter
-        </button>
+        {summaryComplete ? (
+          <button
+            type="button"
+            className="cta-declare-btn"
+            onClick={() => onEdit && onEdit()}
+          >
+            Edit Details
+          </button>
+        ) : (
+          <button
+            className="cta-declare-btn"
+            disabled={!detailsConfirmed}
+            onClick={handleSubmit}
+          >
+            Confirm Identity and Open a Matter
+          </button>
+        )}
       </div>
 
       {/* Accordions */}

@@ -9,6 +9,10 @@ interface ProofOfIdProps {
   onUpdate: (data: ProofData) => void;
   setIsComplete: (complete: boolean) => void;
   onNext: () => void;
+  /** Whether this step has already been completed */
+  completed?: boolean;
+  /** Optional edit callback to reset review mode */
+  onEdit?: () => void;
 }
 
 // Define the type for individual section states
@@ -40,7 +44,14 @@ const COMPANY_SECTION_FIELDS = [
   'companyCountry',
 ];
 
-const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, onNext }) => {
+const ProofOfId: React.FC<ProofOfIdProps> = ({
+  value,
+  onUpdate,
+  setIsComplete,
+  onNext,
+  completed = false,
+  onEdit,
+}) => {
   const [step, setStep] = useState<number>(1);
   const idStatus = value.idStatus || '';
   const isCompanyClient = value.isCompanyClient ?? null;
@@ -1021,15 +1032,26 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ value, onUpdate, setIsComplete, o
             >
               Back
             </button>
-            <button
-              type="button"
-              className="btn primary"
-              onClick={handleNextStep}
-              aria-label="Proceed to next step"
-              disabled={!validateForm()}
-            >
-              Next
-            </button>
+            {completed ? (
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => onEdit && onEdit()}
+                aria-label="Edit details"
+              >
+                Edit
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn primary"
+                onClick={handleNextStep}
+                aria-label="Proceed to next step"
+                disabled={!validateForm()}
+              >
+                Next
+              </button>
+            )}
           </div>
         </div>
       )}

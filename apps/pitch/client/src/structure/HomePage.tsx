@@ -765,6 +765,8 @@ const proofSummary = (
                       onUpdate={setProofData}
                       setIsComplete={setIdReviewDone}
                       onNext={next}
+                      completed={isIdReviewDone}
+                      onEdit={handleEdit}
                     />
                   ) : (
                     <ReviewConfirm
@@ -783,6 +785,7 @@ const proofSummary = (
                       instructionRef={instruction.instructionRef}
                       proofData={proofData}
                       onConfirmed={next}
+                      onEdit={handleEdit}
                     />
                   )
                 )}

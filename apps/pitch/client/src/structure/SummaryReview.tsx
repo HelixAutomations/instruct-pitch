@@ -44,25 +44,29 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
   const toggle = () => setOpen((prev) => !prev);
 
   /* ---------- render ---------- */
-  return (
-    <section className="summary-pane">
-      <button
-        type="button"
-        className="summary-title-main summary-toggle"
-        onClick={toggle}
-        aria-expanded={open}
-      >
-        <span>Summary</span>
-        <span className="chevron">
-          {open ? <FiChevronUp /> : <FiChevronDown />}
-        </span>
-      </button>
+  const collapsed = summaryComplete && !open;
 
-      {summaryComplete && (
+  return (
+    <section
+      className={`summary-pane${collapsed ? " summary-pane-collapsed" : ""}`}
+    >
+      {!summaryComplete || open ? (
+        <button
+          type="button"
+          className="summary-title-main summary-toggle"
+          onClick={toggle}
+          aria-expanded={open}
+        >
+          <span>Summary</span>
+          <span className="chevron">
+            {open ? <FiChevronUp /> : <FiChevronDown />}
+          </span>
+        </button>
+      ) : (
         <button
           type="button"
           className="summary-complete-header"
-          onClick={() => setOpen((prev) => !prev)}
+          onClick={toggle}
           aria-expanded={open}
         >
           <span className="summary-complete-small" aria-hidden="true">
