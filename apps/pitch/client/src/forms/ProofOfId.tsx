@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import '../styles/ProofOfId.css';
 import { countries, titles, genders } from '../data/referenceData';
+import { FaInfoCircle } from 'react-icons/fa';
+
 
 interface ProofOfIdProps {
   onUpdate: (data: any) => void;
@@ -173,8 +175,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
             </p>
           </div>
 
-          <div className="form-group">
-            <div className="modern-toggle-group" role="radiogroup" aria-label="ID status selection">
+          <div className="form-group step1-centered question-container">
+            <label id="id-status-label" className="question-banner">
+              Are you providing ID for the first time or have you been asked to renew ID?
+              <span className="info-icon">
+                <FaInfoCircle aria-hidden="true" />
+                <span className="help-text">
+                  Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
+                </span>
+              </span>
+            </label>
+            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="id-status-label">
               <button
                 type="button"
                 className={`modern-toggle-button ${idStatus === 'first-time' ? 'active' : ''}`}
@@ -196,17 +207,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="company-client">
-              Is this Proof of ID for a company client? *
-              <span className="tooltip">
-                <span className="tooltip-icon">?</span>
-                <span className="tooltip-text">
-                  Select "Yes" if you’re submitting this on behalf of a company. Choose "No" if it’s for an individual.
+          <div className="form-group step1-centered question-container">
+            <label id="company-client-label" className="question-banner">
+              Who are you proving identity for?
+              <span className="info-icon">
+                <FaInfoCircle aria-hidden="true" />
+                <span className="help-text">
+                  Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
                 </span>
               </span>
             </label>
-            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="company-client">
+            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="company-client-label">
               <button
                 type="button"
                 className={`modern-toggle-button ${!isCompanyClient ? 'active' : ''}`}
@@ -214,7 +225,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 aria-pressed={!isCompanyClient}
                 role="radio"
               >
-                No
+                For Myself
               </button>
               <button
                 type="button"
@@ -223,7 +234,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 aria-pressed={isCompanyClient}
                 role="radio"
               >
-                Yes
+                For a Company
               </button>
             </div>
           </div>
@@ -379,7 +390,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 Please use your personal details if you are a director of the company.
               </p>
             )}
-            <div className="form-grid">
+            <div className="form-grid personal-grid names-row">
               <div className="form-group">
                 <label className="form-label" htmlFor="title">
                   Title
@@ -422,6 +433,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   placeholder="Enter last name"
                 />
               </div>
+            </div>
+            <div className="form-grid personal-grid">
               <div className="form-group">
                 <label className="form-label" htmlFor="nationality">
                   Nationality
@@ -584,8 +597,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
               </div>
             </div>
 
-            <div className="form-group step1-centered">
-              <label className="radio-question">
+            <div className="form-group step1-centered question-container white">
+              <label id="id-type-label" className="question-banner">
                 Which form of ID are you providing?
                 <span className="tooltip">
                   <span className="tooltip-icon">?</span>
@@ -597,7 +610,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
               <div
                 className="modern-toggle-group"
                 role="radiogroup"
-                aria-label="ID type selection"
+                aria-labelledby="id-type-label"
               >
                 <button
                   type="button"
@@ -606,7 +619,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   aria-pressed={idType === 'passport'}
                   role="radio"
                 >
-                  Passport No
+                  Passport
                 </button>
                 <button
                   type="button"
@@ -615,7 +628,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   aria-pressed={idType === 'driver-license'}
                   role="radio"
                 >
-                  Driver's License No
+                  Driver's License
                 </button>
               </div>
               {(idType === 'passport' || idType === 'driver-license') && (

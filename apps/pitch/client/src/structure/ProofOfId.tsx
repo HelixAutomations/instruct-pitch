@@ -626,7 +626,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                   Please use your personal details if you are a director of the company.
                 </p>
               )}
-              <div className="form-grid">
+              <div className="form-grid personal-grid names-row">
                 <div className="form-group">
                   <select
                     id="title"
@@ -691,6 +691,26 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                   />
                 </div>
                 <div className="form-group">
+                  <input
+                    type="text"
+                    id="dob"
+                    className={`paper-input ${value.dob ? 'filled' : ''}`}
+                    value={value.dob}
+                    onChange={handleInputChange}
+                    placeholder="Date of Birth (dd/mm/yyyy)"
+                    onBlur={() =>
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'nationality',
+                        'dob',
+                        'gender',
+                      ])
+                    }
+                  />
+                </div>
+                <div className="form-group">
                   <select
                     id="nationality"
                     className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
@@ -712,26 +732,6 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                       <option key={c.id} value={c.name}>{c.name}</option>
                     ))}
                   </select>
-                </div>
-                <div className="form-group">
-                <input
-                  type="text"
-                  id="dob"
-                  className={`paper-input ${value.dob ? 'filled' : ''}`}
-                  value={value.dob}
-                  onChange={handleInputChange}
-                  placeholder="Date of Birth (dd/mm/yyyy)"
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'nationality',
-                        'dob',
-                        'gender',
-                      ])
-                    }
-                  />
                 </div>
                 <div className="form-group">
                   <select
