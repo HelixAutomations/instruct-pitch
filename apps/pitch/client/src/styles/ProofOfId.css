@@ -355,6 +355,25 @@
   color: #666;
 }
 
+.question-banner {
+  background: #f8f9fa;
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1f2937;
+  border-left: 3px solid #3690CE;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;   /* Vertically center text */
+  text-align: left;      /* Keep text left-aligned */
+}
+
+.question-banner.white {
+  background: #fff;
+  border-left: 3px solid #3690CE;
+}
+
 .form-group-section {
   margin-bottom: 8px;
   position: relative;

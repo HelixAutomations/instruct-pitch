@@ -584,8 +584,16 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">ID Type (Please choose one)</label>
+            <div className="form-group step1-centered">
+              <label className="radio-question">
+                Which form of ID are you providing?
+                <span className="tooltip">
+                  <span className="tooltip-icon">?</span>
+                  <span className="tooltip-text">
+                    Choose 'Passport' or 'Driver\'s License'.
+                  </span>
+                </span>
+              </label>
               <div
                 className="modern-toggle-group"
                 role="radiogroup"

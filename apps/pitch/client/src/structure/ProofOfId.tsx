@@ -182,7 +182,26 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { id, value: inputValue } = e.target;
+    let newValue = inputValue;
     const updatedData: any = { ...value, [id]: inputValue, idStatus, isCompanyClient, idType };
+
+    if (id === 'dob') {
+      const digits = inputValue.replace(/\D/g, '').slice(0, 8);
+      const day = digits.slice(0, 2);
+      const month = digits.slice(2, 4);
+      const year = digits.slice(4, 8);
+      if (digits.length >= 2) {
+        newValue = day + '/';
+      } else {
+        newValue = day;
+      }
+      if (month) {
+        newValue += month;
+        if (digits.length >= 4) newValue += '/';
+      }
+      if (year) newValue += year;
+      updatedData.dob = newValue;
+    }
 
     if (id === 'country') {
       const found = countries.find(c => c.name === inputValue);
@@ -279,15 +298,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
         <>
           {/* BOTH Step 1 questions, always visible */}
           <div className="form-group step1-centered">
-            <label className="radio-question">
-              Are you providing ID for the first time or have you been asked to renew ID?
-              <span className="info-icon">
-                <FaInfoCircle aria-hidden="true" />
-                <span className="help-text">
-                  Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
+            <div className="question-banner">
+              <label className="radio-question">
+                Are you providing ID for the first time or have you been asked to renew ID?
+                <span className="info-icon">
+                  <FaInfoCircle aria-hidden="true" />
+                  <span className="help-text">
+                    Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+            </div>
             <div className="modern-toggle-group">
               <button
                 type="button"
@@ -309,15 +330,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
           <hr className="step1-separator" />
 
           <div className="form-group step1-centered">
-            <label className="radio-question">
-              Who are you proving identity for?
-              <span className="info-icon">
-                <FaInfoCircle aria-hidden="true" />
-                <span className="help-text">
-                  Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
+            <div className="question-banner">
+              <label className="radio-question">
+                Who are you proving identity for?
+                <span className="info-icon">
+                  <FaInfoCircle aria-hidden="true" />
+                  <span className="help-text">
+                    Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+            </div>
             <div className="modern-toggle-group">
               <button
                 type="button"
@@ -1001,7 +1024,10 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             <div
               className={`collapsible-content ${sectionStates.idDetails.collapsed ? 'collapsed' : ''}`}
             >
-              <div className="form-group">
+              <div className="form-group step1-centered">
+                <div className="question-banner white">
+                  <label className="radio-question">Which form of ID are you providing?</label>
+                </div>
                 <div className="modern-toggle-group">
                   <button
                     type="button"
