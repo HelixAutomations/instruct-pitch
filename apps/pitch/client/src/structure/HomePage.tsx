@@ -368,7 +368,12 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [isUploadDone, setUploadDone] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(false);
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
-  const { setSummaryComplete } = useCompletion();
+  const { summaryComplete, setSummaryComplete } = useCompletion();
+
+  // Track editing state and whether any changes have been made
+  const [editing, setEditing] = useState(false);
+  const [editBaseline, setEditBaseline] = useState<ProofData | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Clear any persisted progress on first load so refreshing starts clean
   useEffect(() => {
@@ -394,8 +399,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, [proofData, isIdReviewDone]);
 
   const handleEdit = () => {
-    setSummaryComplete(false);
-    setDetailsConfirmed(false);
+    setEditBaseline(proofData);
+    setEditing(true);
     setShowReview(false);
     setOpenStep(1);
     setRestartId((r) => r + 1);
@@ -405,6 +410,18 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     const isComplete = uploadedFiles.some(f => f.uploaded);
     setUploadDone(isComplete);
   }, [uploadedFiles]);
+
+  // Watch for changes during an edit session
+  useEffect(() => {
+    if (editing && editBaseline) {
+      const changed = JSON.stringify(proofData) !== JSON.stringify(editBaseline);
+      setHasChanges(changed);
+      if (changed) {
+        setSummaryComplete(false);
+        setDetailsConfirmed(false);
+      }
+    }
+  }, [proofData, editing, editBaseline]);
 
   const [pulse, setPulse] = useState(false);
   const [pulseStep, setPulseStep] = useState<0 | 1 | 2 | 3>(0);
@@ -699,11 +716,19 @@ const proofSummary = (
     <span className="field-value">--</span>
   );
 
-  const next = () => {
+  const next = (skipReview?: boolean) => {
     saveInstruction('in_progress');
     if (openStep === 1 && !showReview) {
-      setShowReview(true);
+      if (skipReview) {
+        setEditing(false);
+        setOpenStep(2);
+      } else {
+        setShowReview(true);
+      }
       return;
+    }
+    if (openStep === 1 && showReview) {
+      setEditing(false);
     }
     setOpenStep((prev) => (prev < 3 ? (prev + 1) as any : prev));
   };
@@ -765,8 +790,8 @@ const proofSummary = (
                       onUpdate={setProofData}
                       setIsComplete={setIdReviewDone}
                       onNext={next}
-                      completed={isIdReviewDone}
-                      onEdit={handleEdit}
+                      editing={editing}
+                      hasChanges={hasChanges}
                     />
                   ) : (
                     <ReviewConfirm
@@ -779,6 +804,7 @@ const proofSummary = (
                           detailsConfirmed={detailsConfirmed}
                           setDetailsConfirmed={setDetailsConfirmed}
                           showConfirmation={showReview}
+                          edited={hasChanges}
                         />
                       ) : undefined}
                       isMobile={isMobile}
@@ -861,6 +887,7 @@ const proofSummary = (
                 detailsConfirmed={detailsConfirmed}
                 setDetailsConfirmed={setDetailsConfirmed}
                 showConfirmation={showReview}
+                edited={hasChanges}
               />
             </aside>
           )}

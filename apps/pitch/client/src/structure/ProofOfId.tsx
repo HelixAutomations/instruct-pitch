@@ -8,11 +8,9 @@ interface ProofOfIdProps {
   value: ProofData;
   onUpdate: (data: ProofData) => void;
   setIsComplete: (complete: boolean) => void;
-  onNext: () => void;
-  /** Whether this step has already been completed */
-  completed?: boolean;
-  /** Optional edit callback to reset review mode */
-  onEdit?: () => void;
+  onNext: (skipReview?: boolean) => void;
+  editing?: boolean;
+  hasChanges?: boolean;
 }
 
 // Define the type for individual section states
@@ -49,8 +47,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   onUpdate,
   setIsComplete,
   onNext,
-  completed = false,
-  onEdit,
+  editing = false,
+  hasChanges = false,
 }) => {
   const [step, setStep] = useState<number>(1);
   const idStatus = value.idStatus || '';
@@ -230,11 +228,49 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     } else {
       setIsComplete(false);
     }
-    onNext();
+    if (editing && !hasChanges) {
+      onNext(true);
+    } else {
+      onNext();
+    }
   };
 
   const handleBack = () => {
-    setStep(1);
+    setStep((prev) => Math.max(1, prev - 1));
+  };
+
+  const validateBasicDetails = () => {
+    const baseFields = [
+      value.title,
+      value.firstName,
+      value.lastName,
+      value.nationality,
+      value.houseNumber,
+      value.street,
+      value.city,
+      value.county,
+      value.postcode,
+      value.country,
+      value.dob,
+      value.gender,
+      value.phone,
+      value.email,
+    ];
+    const companyFields = isCompanyClient
+      ? [
+          value.companyName,
+          value.companyNumber,
+          value.companyHouseNumber,
+          value.companyStreet,
+          value.companyCity,
+          value.companyCounty,
+          value.companyPostcode,
+          value.companyCountry,
+        ]
+      : [];
+    return [...baseFields, ...companyFields].every(
+      (field) => field && field.toString().trim() !== ''
+    );
   };
 
   return (
@@ -913,7 +949,29 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               </div>
             </div>
           </div>
-          <hr />
+          <div className="button-group">
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={handleBack}
+              aria-label="Go back to ID confirmation"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => setStep(3)}
+              aria-label="Proceed to ID details"
+              disabled={!validateBasicDetails()}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+      {step === 3 && (
+        <div className="form-content">
 
           <div
             className={`form-group-section ${sectionStates.idDetails.collapsed ? 'collapsed' : ''} ${sectionStates.idDetails.completed ? 'completed' : ''}`}
@@ -944,18 +1002,22 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               className={`collapsible-content ${sectionStates.idDetails.collapsed ? 'collapsed' : ''}`}
             >
               <div className="form-group">
-                <div className="apple-toggle-group">
+                <div className="modern-toggle-group">
                   <button
                     type="button"
-                    className={`apple-toggle-button ${idType === 'passport' ? 'active' : ''}`}
+                    className={`modern-toggle-button ${idType === 'passport' ? 'active' : ''}`}
                     onClick={() => handleIdTypeChange('passport')}
+                    aria-pressed={idType === 'passport'}
+                    role="radio"
                   >
                     Passport
                   </button>
                   <button
                     type="button"
-                    className={`apple-toggle-button ${idType === 'driver-license' ? 'active' : ''}`}
+                    className={`modern-toggle-button ${idType === 'driver-license' ? 'active' : ''}`}
                     onClick={() => handleIdTypeChange('driver-license')}
+                    aria-pressed={idType === 'driver-license'}
+                    role="radio"
                   >
                     Driver's License
                   </button>
@@ -1028,30 +1090,19 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               type="button"
               className="btn secondary"
               onClick={handleBack}
-              aria-label="Go back to ID confirmation"
+              aria-label="Go back to previous step"
             >
               Back
             </button>
-            {completed ? (
-              <button
-                type="button"
-                className="btn primary"
-                onClick={() => onEdit && onEdit()}
-                aria-label="Edit details"
-              >
-                Edit
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn primary"
-                onClick={handleNextStep}
-                aria-label="Proceed to next step"
-                disabled={!validateForm()}
-              >
-                Next
-              </button>
-            )}
+            <button
+              type="button"
+              className="btn primary"
+              onClick={handleNextStep}
+              aria-label="Proceed to next step"
+              disabled={!validateForm()}
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

@@ -14,6 +14,8 @@ interface SummaryReviewProps {
    * progresses to the review stage.
    */
   showConfirmation?: boolean;
+  /** Whether the user has edited details requiring reconfirmation */
+  edited?: boolean;
 }
 
 const SummaryReview: React.FC<SummaryReviewProps> = ({
@@ -21,6 +23,7 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
   detailsConfirmed,
   setDetailsConfirmed,
   showConfirmation = true,
+  edited = false,
 }) => {
   const { summaryComplete } = useCompletion();
   /* ---------------------------------------------
@@ -45,11 +48,13 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
 
   /* ---------- render ---------- */
   const collapsed = summaryComplete && !open;
-
+  const paneClasses =
+    'summary-pane' +
+    (collapsed ? ' summary-pane-collapsed' : '') +
+    (edited ? ' summary-pane-edited' : '');
+    
   return (
-    <section
-      className={`summary-pane${collapsed ? " summary-pane-collapsed" : ""}`}
-    >
+    <section className={paneClasses}>
       {!summaryComplete || open ? (
         <button
           type="button"

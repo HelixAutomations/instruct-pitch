@@ -586,18 +586,26 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
 
             <div className="form-group">
               <label className="form-label">ID Type (Please choose one)</label>
-              <div className="apple-toggle-group">
+              <div
+                className="modern-toggle-group"
+                role="radiogroup"
+                aria-label="ID type selection"
+              >
                 <button
                   type="button"
-                  className={`apple-toggle-button ${idType === 'passport' ? 'active' : ''}`}
+                  className={`modern-toggle-button ${idType === 'passport' ? 'active' : ''}`}
                   onClick={() => handleIdTypeChange('passport')}
+                  aria-pressed={idType === 'passport'}
+                  role="radio"
                 >
                   Passport No
                 </button>
                 <button
                   type="button"
-                  className={`apple-toggle-button ${idType === 'driver-license' ? 'active' : ''}`}
+                  className={`modern-toggle-button ${idType === 'driver-license' ? 'active' : ''}`}
                   onClick={() => handleIdTypeChange('driver-license')}
+                  aria-pressed={idType === 'driver-license'}
+                  role="radio"
                 >
                   Driver's License No
                 </button>

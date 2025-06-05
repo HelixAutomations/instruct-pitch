@@ -117,13 +117,15 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
       {/* Declaration */}
       <div className="declaration-section no-border">
         {summaryComplete ? (
-          <button
-            type="button"
-            className="cta-declare-btn"
-            onClick={() => onEdit && onEdit()}
-          >
-            Edit Details
-          </button>
+          onEdit && (
+            <button
+              type="button"
+              className="cta-declare-btn"
+              onClick={() => onEdit()}
+            >
+              Edit Details
+            </button>
+          )
         ) : (
           <button
             className="cta-declare-btn"
