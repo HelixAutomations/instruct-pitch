@@ -386,7 +386,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 <div className="group-header" onClick={() => toggleSection('companyDetails')}>
                   <FaCity className="section-icon" />
                   <span>Company Details</span>
-                  {sectionStates.companyDetails.completed && (
+                  {sectionStates.companyDetails.completed &&
+                    sectionStates.companyDetails.collapsed && (
                     <span className="completion-tick visible">
                       <svg viewBox="0 0 24 24">
                         <polyline
@@ -443,7 +444,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     >
                       <FaMapMarkerAlt className="section-icon" />
                       <span>Company Address</span>
-                      {sectionStates.companyAddress.completed && (
+                  {sectionStates.companyAddress.completed &&
+                        sectionStates.companyAddress.collapsed && (
                         <span className="completion-tick visible">✔</span>
                       )}
                       <FaChevronDown
@@ -599,7 +601,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             <div className="group-header" onClick={() => toggleSection('personalDetails')}>
               <FaUser className="section-icon" />
               <span>Personal Details</span>
-              {sectionStates.personalDetails.completed && (
+              {sectionStates.personalDetails.completed &&
+                sectionStates.personalDetails.collapsed && (
                 <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline
@@ -767,7 +770,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             <div className="group-header" onClick={() => toggleSection('addressDetails')}>
               <FaMapMarkerAlt className="section-icon" />
               <span>Address Details</span>
-              {sectionStates.addressDetails.completed && (
+              {sectionStates.addressDetails.completed &&
+                sectionStates.addressDetails.collapsed && (
                 <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline
@@ -924,7 +928,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             <div className="group-header" onClick={() => toggleSection('contactDetails')}>
               <FaPhone className="section-icon" />
               <span>Contact Details</span>
-              {sectionStates.contactDetails.completed && (
+              {sectionStates.contactDetails.completed &&
+                sectionStates.contactDetails.collapsed && (
                 <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline
@@ -1040,7 +1045,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             <div className="group-header" onClick={() => toggleSection('helixContact')}>
               <FaUserTie className="section-icon" />
               <span>Helix Contact</span>
-              {sectionStates.helixContact.completed && (
+              {sectionStates.helixContact.completed &&
+                sectionStates.helixContact.collapsed && (
                 <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline

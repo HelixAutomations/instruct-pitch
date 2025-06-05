@@ -410,6 +410,26 @@
   cursor: pointer;
 }
 
+.form-group-section .group-header span {
+  position: relative;
+}
+
+.form-group-section .group-header span::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  border-bottom: 2px solid currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.form-group-section.collapsed.completed .group-header span::after {
+  transform: scaleX(1);
+}
+
 .form-group-section .group-header .section-icon {
   font-size: 24px;
   color: #3690CE;

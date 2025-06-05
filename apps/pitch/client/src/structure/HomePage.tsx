@@ -529,7 +529,7 @@ function getPulseClass(step: number, done: boolean) {
 const proofSummary = (
   <>
     {/* Company Details if applicable */}
-    {proofData.isCompanyClient && (hasCompanyName || hasCompanyNumber) && (
+    {proofData.isCompanyClient && (
       <div className="group">
         <div className="summary-group-header">Company Details</div>
         <FaCity className="backdrop-icon" />
