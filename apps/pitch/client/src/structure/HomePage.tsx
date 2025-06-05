@@ -527,7 +527,19 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
 const proofSummary = (
-  <>
+  <> 
+    {/* Info prompt always shown at the top */}
+    {(proofData.idStatus === 'first-time' || proofData.idStatus === 'renewing') && (
+      <div className="group">
+        <p>
+          {proofData.idStatus === 'first-time'
+            ? 'You are providing proof of your identity for the first time.'
+            : 'You are renewing proof of your identity.'}
+        </p>
+        <hr />
+      </div>
+    )}
+
     {/* Company Details if applicable */}
     {proofData.isCompanyClient && (
       <div className="group">
@@ -574,18 +586,6 @@ const proofSummary = (
             </span>
           </div>
         </div>
-        <hr />
-      </div>
-    )}
-
-    {/* Info prompt always shown after Company Details (if any), before Personal Details */}
-    {(proofData.idStatus === 'first-time' || proofData.idStatus === 'renewing') && (
-      <div className="group">
-        <p>
-          {proofData.idStatus === 'first-time'
-            ? 'You are providing proof of your identity for the first time.'
-            : 'You are renewing proof of your identity.'}
-        </p>
         <hr />
       </div>
     )}
