@@ -508,7 +508,6 @@
 .completed-banner { background: #fbe9cf; color: #333; padding: 12px; border: 1px solid #f0c36d; border-radius: 4px; margin-bottom: 1rem; }
 
 /* Info box style for both first-time and renewing status */
-.summary-info-box,
 .summary-status-note {
   font-size: 0.95em;
   color: var(--helix-greyText, #5a6473);

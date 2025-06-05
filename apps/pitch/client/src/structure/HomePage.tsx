@@ -449,8 +449,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     };
   }, [openStep]);
 
-function getPulseClass(step: number, done: boolean) {
-  return openStep === step && pulse && pulseStep === step && done
+function getPulseClass(step: number, done: boolean, isEditing = false) {
+  return openStep === step && pulse && pulseStep === step && done && !isEditing
     ? ' pulse-green'
     : '';
 }
@@ -581,11 +581,11 @@ const proofSummary = (
     {/* Info prompt always shown after Company Details (if any), before Personal Details */}
     {(proofData.idStatus === 'first-time' || proofData.idStatus === 'renewing') && (
       <div className="group">
-        <div className="summary-info-box">
+        <p>
           {proofData.idStatus === 'first-time'
             ? 'You are providing proof of your identity for the first time.'
             : 'You are renewing proof of your identity.'}
-        </div>
+        </p>
         <hr />
       </div>
     )}
@@ -788,7 +788,7 @@ const proofSummary = (
                 onEdit={handleEdit}
               />
               <div
-                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone)}`}>
+                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone, editing)}`}>
                 {openStep === 1 && (
                   !showReview ? (
                     <ProofOfId
