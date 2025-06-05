@@ -423,6 +423,13 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     }
   }, [proofData, editing, editBaseline]);
 
+  // Clear change flag once details are reconfirmed
+  useEffect(() => {
+    if (detailsConfirmed) {
+      setHasChanges(false);
+    }
+  }, [detailsConfirmed]);
+
   const [pulse, setPulse] = useState(false);
   const [pulseStep, setPulseStep] = useState<0 | 1 | 2 | 3>(0);
 

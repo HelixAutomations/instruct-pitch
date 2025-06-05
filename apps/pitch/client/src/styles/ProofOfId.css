@@ -361,22 +361,21 @@
   font-weight: 600;
   font-size: 0.95rem;
   color: #1f2937;
-  border-left: 3px solid #3690CE;
+  border-left: 3px solid var(--helix-cta);
   margin-bottom: 0.5rem;
   line-height: 1.2;
   display: flex;
-  align-items: center;   /* Vertically center text */
-  text-align: left;      /* Keep text left-aligned */
+  align-items: center; /* Vertically center text */
+  text-align: left; /* Keep text left-aligned */
 }
 
 .question-banner.white {
   background: #fff;
-  border-left: 3px solid #3690CE;
+  border-left: 3px solid var(--helix-cta);
 }
 
 .question-container {
   background: #f8f9fa;
-  border-left: 3px solid #3690CE;
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
@@ -387,9 +386,6 @@
 }
 
 .question-container .question-banner {
-  background: transparent;
-  border: none;
-  padding: 0;
   margin-bottom: 0.5rem;
 }
 
@@ -429,12 +425,33 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  transform: scale(0);
 }
 
 .form-group-section .group-header .completion-tick svg {
   width: 12px;
   height: 12px;
   color: #7DBB7D;
+}
+
+.form-group-section.completed .group-header .completion-tick {
+  animation: tickPop 0.3s ease;
+}
+
+.form-group-section .group-header .completion-tick.visible {
+  animation: tickPop 0.3s ease-out forwards;
+}
+
+@keyframes tickPop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .form-group-section.collapsed .group-header {

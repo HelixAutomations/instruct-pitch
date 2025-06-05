@@ -129,7 +129,6 @@
   color: #20b26c;
   opacity: 0;
   transform: scale(0);
-  transition: opacity 0.3s, transform 0.3s;
 }
 .step-header .completion-tick svg {
   width: 14px;
@@ -147,21 +146,22 @@
 .step-header .edit-step:hover {
   color: var(--helix-highlight);
 }
-.step-header .edit-step {
-  margin-left: auto;
-  font-size: 14px;
-  color: var(--helix-blue);
-  cursor: pointer;
-  opacity: 0.8;
-  transition: color 0.2s;
-}
-.step-header .edit-step:hover {
-  color: var(--helix-highlight);
-}
 
 .step-header .completion-tick.visible {
   opacity: 1;
   transform: scale(1);
+  animation: tickPop 0.3s ease;
+}
+
+@keyframes tickPop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ---------- HEADER (active / open) ---------- */
@@ -183,8 +183,6 @@
 }
 
 .step-header.active .completion-tick {
-  color: #7DBB7D;           /* keep green tick visible on dark background */
-  background: var(--helix-grey);
   color: #20b26c; /* keep green tick visible on dark background */
   background: #fff;
 }
@@ -269,7 +267,6 @@
 
 .modern-toggle-button:hover        { background: #e0e7ff; }
 .modern-toggle-button.active       {
-  background: var(--helix-dark-blue);
   color: #fff;
   background: var(--helix-dark-blue);
 }
@@ -342,7 +339,11 @@
   transform: scale(0);
   transition: opacity 0.3s, transform 0.3s, border-color 0.3s;
 }
-.summary-header .verify-tick.visible { opacity: 1; transform: scale(1); }
+.summary-header .verify-tick.visible {
+  opacity: 1;
+  transform: scale(1);
+  animation: tickPop 0.3s ease;
+}
 .summary-header .verify-tick.pressed { background: #fff; }
 
 /* Collapse by default */

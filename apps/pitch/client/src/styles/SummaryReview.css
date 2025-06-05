@@ -29,7 +29,8 @@
 
 /* Highlight when details changed but not reconfirmed */
 .summary-pane-edited {
-  box-shadow: inset 0 0 0 2px #f0c36d;
+  /* Match thickness of the green border when confirmed */
+  box-shadow: inset 0 0 0 1px #f0c36d;
 }
 
 /* Main “Summary” title */

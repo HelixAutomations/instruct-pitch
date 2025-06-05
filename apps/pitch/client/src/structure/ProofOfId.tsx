@@ -66,7 +66,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     helixContact: { collapsed: false, completed: false },
   });
 
-  // Effect to re-evaluate section completion status when value changes
+  // Effect to keep section completion in sync when fields are cleared
+  // Once a section is marked complete via blur, it stays complete
+  // until one of its required fields becomes empty again.
   useEffect(() => {
     const sections: { key: keyof SectionStates; fields: string[] }[] = [
       { key: 'companyDetails', fields: COMPANY_SECTION_FIELDS },
@@ -94,15 +96,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
       { key: 'helixContact', fields: ['helixContact'] },
     ];
 
-    sections.forEach(({ key, fields }) => {
-      const isCompleted = checkSectionCompletion(fields);
-      setSectionStates((prev) => ({
-        ...prev,
-        [key]: {
-          ...prev[key],
-          completed: isCompleted,
-        },
-      }));
+    setSectionStates(prev => {
+      let changed = false;
+      const updated = { ...prev };
+      sections.forEach(({ key, fields }) => {
+        const allFilled = checkSectionCompletion(fields);
+        if (!allFilled && updated[key].completed) {
+          updated[key] = { ...updated[key], completed: false };
+          changed = true;
+        }
+      });
+      return changed ? updated : prev;
     });
   }, [value, idType]); // Re-run when value or idType changes
 
@@ -297,19 +301,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
       {step === 1 && (
         <>
           {/* BOTH Step 1 questions, always visible */}
-          <div className="form-group step1-centered">
-            <div className="question-banner">
-              <label className="radio-question">
-                Are you providing ID for the first time or have you been asked to renew ID?
-                <span className="info-icon">
-                  <FaInfoCircle aria-hidden="true" />
-                  <span className="help-text">
-                    Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
-                  </span>
+          <div className="form-group step1-centered question-container">
+            <label id="id-status-label" className="question-banner">
+              Are you providing ID for the first time or have you been asked to renew ID?
+              <span className="info-icon">
+                <FaInfoCircle aria-hidden="true" />
+                <span className="help-text">
+                  Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
                 </span>
-              </label>
-            </div>
-            <div className="modern-toggle-group">
+              </span>
+            </label>
+            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="id-status-label">
               <button
                 type="button"
                 className={`modern-toggle-button ${idStatus === 'first-time' ? 'active' : ''}`}
@@ -329,19 +331,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
 
           <hr className="step1-separator" />
 
-          <div className="form-group step1-centered">
-            <div className="question-banner">
-              <label className="radio-question">
-                Who are you proving identity for?
-                <span className="info-icon">
-                  <FaInfoCircle aria-hidden="true" />
-                  <span className="help-text">
-                    Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
-                  </span>
+          <div className="form-group step1-centered question-container">
+            <label id="company-client-label" className="question-banner">
+              Who are you proving identity for?
+              <span className="info-icon">
+                <FaInfoCircle aria-hidden="true" />
+                <span className="help-text">
+                  Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
                 </span>
-              </label>
-            </div>
-            <div className="modern-toggle-group">
+              </span>
+            </label>
+            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="company-client-label">
               <button
                 type="button"
                 className={`modern-toggle-button ${isCompanyClient === false ? 'active' : ''}`}
@@ -387,7 +387,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                   <FaCity className="section-icon" />
                   <span>Company Details</span>
                   {sectionStates.companyDetails.completed && (
-                    <span className="completion-tick">
+                    <span className="completion-tick visible">
                       <svg viewBox="0 0 24 24">
                         <polyline
                           points="5,13 10,18 19,7"
@@ -444,7 +444,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                       <FaMapMarkerAlt className="section-icon" />
                       <span>Company Address</span>
                       {sectionStates.companyAddress.completed && (
-                        <span className="completion-tick">✔</span>
+                        <span className="completion-tick visible">✔</span>
                       )}
                       <FaChevronDown
                         className={`dropdown-icon ${sectionStates.companyAddress.collapsed ? 'collapsed' : ''}`}
@@ -600,7 +600,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               <FaUser className="section-icon" />
               <span>Personal Details</span>
               {sectionStates.personalDetails.completed && (
-                <span className="completion-tick">
+                <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline
                       points="5,13 10,18 19,7"
@@ -768,7 +768,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               <FaMapMarkerAlt className="section-icon" />
               <span>Address Details</span>
               {sectionStates.addressDetails.completed && (
-                <span className="completion-tick">
+                <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline
                       points="5,13 10,18 19,7"
@@ -925,7 +925,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               <FaPhone className="section-icon" />
               <span>Contact Details</span>
               {sectionStates.contactDetails.completed && (
-                <span className="completion-tick">
+                <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline
                       points="5,13 10,18 19,7"
@@ -996,39 +996,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
       {step === 3 && (
         <div className="form-content">
 
-          <div
-            className={`form-group-section ${sectionStates.idDetails.collapsed ? 'collapsed' : ''} ${sectionStates.idDetails.completed ? 'completed' : ''}`}
-          >
-            <div className="group-header" onClick={() => toggleSection('idDetails')}>
-              <FaIdCard className="section-icon" />
-              <span>ID Details</span>
-              {sectionStates.idDetails.completed && (
-                <span className="completion-tick">
-                  <svg viewBox="0 0 24 24">
-                    <polyline
-                      points="5,13 10,18 19,7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              )}
-              <FaChevronDown
-                className={`dropdown-icon ${sectionStates.idDetails.collapsed ? 'collapsed' : ''}`}
-              />
-            </div>
-            <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.idDetails.collapsed ? 'collapsed' : ''}`}
-            >
-              <div className="form-group step1-centered">
-                <div className="question-banner white">
-                  <label className="radio-question">Which form of ID are you providing?</label>
-                </div>
-                <div className="modern-toggle-group">
+          <div className="form-group step1-centered question-container">
+            <label id="id-type-label" className="question-banner">Which form of ID are you providing?</label>
+            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="id-type-label">
                   <button
                     type="button"
                     className={`modern-toggle-button ${idType === 'passport' ? 'active' : ''}`}
@@ -1048,21 +1018,19 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     Driver's License
                   </button>
                 </div>
-                {(idType === 'passport' || idType === 'driver-license') && (
-                  <div className="form-group">
-                    <input
-                      type="text"
-                      id="idNumber"
-                      className={`paper-input ${value.idNumber ? 'filled' : ''}`}
-                      value={value.idNumber}
-                      onChange={handleInputChange}
-                      placeholder={idType === 'passport' ? 'Passport Number' : "Driver's License Number"}
-                      onBlur={() => handleBlur('idDetails', ['idNumber'])}
-                    />
-                  </div>
-                )}
+            {(idType === 'passport' || idType === 'driver-license') && (
+              <div className="form-group">
+                <input
+                  type="text"
+                  id="idNumber"
+                  className={`paper-input ${value.idNumber ? 'filled' : ''}`}
+                  value={value.idNumber}
+                  onChange={handleInputChange}
+                  placeholder={idType === 'passport' ? 'Passport Number' : "Driver's License Number"}
+                  onBlur={() => handleBlur('idDetails', ['idNumber'])}
+                />
               </div>
-            </div>
+            )}
           </div>
           <hr />
 
@@ -1073,7 +1041,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               <FaUserTie className="section-icon" />
               <span>Helix Contact</span>
               {sectionStates.helixContact.completed && (
-                <span className="completion-tick">
+                <span className="completion-tick visible">
                   <svg viewBox="0 0 24 24">
                     <polyline
                       points="5,13 10,18 19,7"
