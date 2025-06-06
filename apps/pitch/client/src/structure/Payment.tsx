@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
 import { FaClipboardList, FaCreditCard } from 'react-icons/fa';
 import '../styles/payments.css';
 
@@ -48,6 +48,12 @@ const Payment: React.FC<PaymentProps> = ({
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);
   const [iframeHeight, setIframeHeight] = useState<number>(0);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [formReady, setFormReady] = useState(false);
+
+  const submitToIframe = () => {
+    iframeRef.current?.contentWindow?.postMessage({ flexMsg: 'submit' }, '*');
+  };
   // min-height fallback
 
   /* Mark step 3 complete once *your* extra inputs are filled
@@ -57,16 +63,25 @@ const Payment: React.FC<PaymentProps> = ({
     setIsComplete(complete);
   }, [paymentDetails, setIsComplete]);
 
-  /* Resize listener – reacts to messages from master.htm */
+  /* Message listener – resize + submission flow */
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data && e.data.flexMsg === 'size' && typeof e.data.height === 'number') {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.flexMsg === 'size' && typeof e.data.height === 'number') {
         setIframeHeight(e.data.height);
+      } else if (e.data.flexMsg === 'ready') {
+        setFormReady(true);
+      } else if (e.data.flexMsg === 'navigate' && typeof e.data.href === 'string') {
+        if (e.data.href.startsWith(acceptUrl)) {
+          onNext();
+        } else if (e.data.href.startsWith(exceptionUrl)) {
+          onError('SUBMIT_FAILED');
+        }
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, []);
+  }, [acceptUrl, exceptionUrl, onNext, onError]);
 
   /* Build the FlexCheckout URL (unless it’s preloaded) */
   useEffect(() => {
@@ -143,6 +158,7 @@ const Payment: React.FC<PaymentProps> = ({
         <div className="iframe-wrapper">
           {flexUrl ? (
             <iframe
+              ref={iframeRef}
               title="FlexCheckout"
               src={flexUrl}
               style={{ width: '100%', height: `${iframeHeight || 300}px`, border: 0 }}
@@ -156,7 +172,7 @@ const Payment: React.FC<PaymentProps> = ({
          <button className="btn secondary" onClick={onBack}>
            Back
          </button>
-        <button className="btn primary" onClick={onNext} disabled={!flexUrl}>
+        <button className="btn primary" onClick={submitToIframe} disabled={!flexUrl || !formReady}>
           Next
         </button>
        </div>

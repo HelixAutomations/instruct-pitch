@@ -30,6 +30,7 @@
 
 <!-- 2) External resize helper (allowed) -->
 <script src="$$$TP RESOURCES URL$$$/flex-resize.js"></script>
+<script src="$$$TP RESOURCES URL$$$/flex-submit.js"></script>
 
 <!-- 3) Your form placeholders -->
 
@@ -43,7 +44,7 @@ $$$CARDHOLDER NAME INPUT$$$
 $$$CARDHOLDER NAME INFO$$$
 $$$CARDHOLDER NAME ERROR$$$
 
-<div style="display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end; margin-top:1rem;">
+<div id="payment-expirydate-container" class="row">
   $$$EXPIRY DATE MONTH$$$
   $$$EXPIRY DATE YEAR$$$
   $$$CVC LABEL$$$
@@ -52,7 +53,7 @@ $$$CARDHOLDER NAME ERROR$$$
   $$$CVC ERROR$$$
 </div>
 
-<div style="display:flex; gap:1rem; margin-top:1.5rem;">
+<div class="row buttons">
   $$$SUBMIT$$$
   $$$CANCEL$$$
 </div>

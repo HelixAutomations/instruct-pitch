@@ -57,7 +57,7 @@ html body #payment-data-container {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: .9rem;
+  margin-bottom: .7rem;
 }
 .row.buttons { gap: 1rem; }
 
@@ -87,7 +87,7 @@ html body #payment-data-container {
   color: var(--helix-dark-blue);
   padding: 0 8px;
   border: 1px solid var(--helix-highlight);
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   background: #fff;
   margin-bottom: .65rem;
   transition: border .18s;
@@ -152,6 +152,7 @@ html body #payment-data-container {
   padding: 0.45rem 1.1rem;
   min-height: 36px;
   min-width: 90px;
+  height: 36px;  
   border-radius: 0;
   cursor: pointer;
   transition: background 0.18s, transform 0.09s;
