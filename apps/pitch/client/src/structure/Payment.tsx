@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
-import { FaClipboardList, FaCreditCard } from 'react-icons/fa';
+import { FaCreditCard } from 'react-icons/fa';
 import '../styles/payments.css';
 
 interface PaymentDetails {
@@ -140,9 +140,7 @@ const Payment: React.FC<PaymentProps> = ({
     <div className="payment-section">
       <div className="combined-section payment-pane">
         <div className="service-summary-box">
-          <div className="question-banner">
-            <FaClipboardList className="header-icon" /> Service Summary
-          </div>
+          <div className="question-banner">Service Summary</div>
           <div className="service-summary-grid">
             <div className="summary-label">Product</div>
             <div className="summary-value">{product}</div>

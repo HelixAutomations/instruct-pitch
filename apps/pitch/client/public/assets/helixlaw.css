@@ -81,7 +81,7 @@ html body #payment-data-container {
   color: var(--helix-dark-blue);
   font-size: 1rem;
   font-weight: 500;
-  margin-bottom: .25rem;
+  margin-bottom: 0;
 }
 
 .payment-input input,
