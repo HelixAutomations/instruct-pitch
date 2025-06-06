@@ -487,7 +487,7 @@ useEffect(() => {
       body: JSON.stringify({
         clientId,
         instructionRef: instruction.instructionRef,
-        ClientType: clientType,
+        clientType,
         amount: instruction.amount,
         product: instruction.product,
         workType: instruction.workType,
