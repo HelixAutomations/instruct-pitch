@@ -195,6 +195,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     amount: 0.99,
     product: 'instruction-pitch',
     workType: 'Shareholder Dispute',
+    pitchDescription:
+      'x',
   });
 
   const PSPID = 'epdq1717240';
@@ -847,6 +849,7 @@ const proofSummary = (
                       orderId={instruction.instructionRef}
                       amount={instruction.amount}
                       product={instruction.product}
+                      pitchDescription={instruction.pitchDescription}
                       workType={instruction.workType}
                       acceptUrl={ACCEPT_URL}
                       exceptionUrl={EXCEPTION_URL}

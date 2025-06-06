@@ -29,7 +29,7 @@ const AccordionSection: React.FC<{
   return (
     <div className="accordion-wrap">
       <div
-        className="accordion-header"
+        className="accordion-header question-banner"
         onClick={() => setOpen((o) => !o)}
         tabIndex={0}
         aria-expanded={open}

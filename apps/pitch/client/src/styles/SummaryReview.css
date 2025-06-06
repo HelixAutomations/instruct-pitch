@@ -33,6 +33,18 @@
   box-shadow: inset 0 0 0 1px #f0c36d;
 }
 
+/* Smooth expand/collapse for the summary */
+.summary-collapse {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+}
+.summary-collapse.open {
+  max-height: 2000px; /* large enough to show content */
+  opacity: 1;
+}
+
 /* Main “Summary” title */
 .summary-title-main {
   font-weight: 600;
@@ -46,6 +58,8 @@
 .summary-subsection {
   margin-bottom: 0.7rem;
 }
+
+
 
 /* The button that opens/closes subsections */
 .summary-toggle {

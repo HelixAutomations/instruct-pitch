@@ -86,54 +86,53 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
               />
             </svg>
           </span>
-          <span>Summary complete</span>
+          <span>Details confirmed</span>
           <span className="chevron">
             {open ? <FiChevronUp /> : <FiChevronDown />}
           </span>
         </button>
       )}
 
-      {open && (
-        <>
-          <div className="summary-subsection">
-            <div className="summary-content">
-              {proofContent ?? (
-                <span className="summary-empty">No information provided yet.</span>
-              )}
-            </div>
+      <div className={`summary-collapse${open ? ' open' : ''}`}
+           aria-hidden={open ? undefined : true}>
+        <div className="summary-subsection">
+          <div className="summary-content">
+            {proofContent ?? (
+              <span className="summary-empty">No information provided yet.</span>
+            )}
           </div>
+        </div>
 
-          {/* Confirmation */}
-          {showConfirmation && (
-            <div className="summary-confirmation">
-              <label className="modern-checkbox-label">
-                <input
-                  type="checkbox"
-                  className="modern-checkbox-input"
-                  checked={detailsConfirmed}
-                  onChange={(e) => setDetailsConfirmed(e.target.checked)}
-                />
-                <span className="modern-checkbox-custom" aria-hidden="true">
-                  <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">
-                    <polyline
-                      className="tick"
-                      points="5,13 10,18 19,7"
-                      fill="none"
-                      stroke="#fff"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-                <span className="modern-checkbox-text">
-                  I confirm the above information is accurate.
-                </span>
-              </label>
-            </div>
-          )}
-        </>
-      )}
+        {/* Confirmation */}
+        {showConfirmation && (
+          <div className="summary-confirmation">
+            <label className="modern-checkbox-label">
+              <input
+                type="checkbox"
+                className="modern-checkbox-input"
+                checked={detailsConfirmed}
+                onChange={(e) => setDetailsConfirmed(e.target.checked)}
+              />
+              <span className="modern-checkbox-custom" aria-hidden="true">
+                <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">
+                  <polyline
+                    className="tick"
+                    points="5,13 10,18 19,7"
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="modern-checkbox-text">
+                I confirm the above information is accurate.
+              </span>
+            </label>
+          </div>
+        )}
+      </div>
     </section>
   );
 };

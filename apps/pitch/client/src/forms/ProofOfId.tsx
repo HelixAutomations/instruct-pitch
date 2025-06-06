@@ -658,7 +658,10 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 value={value.helixContact}
                 onChange={handleInputChange}
               >
-                <option value="">Select a person</option>
+                <option value="" disabled hidden>
+                  Select a person
+                </option>
+                <option value="Unsure">Unsure</option>
                 <option value="John Doe">John Doe</option>
                 <option value="Jane Smith">Jane Smith</option>
               </select>

@@ -77,6 +77,14 @@
   word-break: break-word;
 }
 
+/* Promotional description shown below the summary grid */
+.pitch-description {
+  margin-top: 0.8rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--helix-dark-blue, #061733);
+}
+
 /* Horizontal line */
 .separator {
   height: 1px;
@@ -139,6 +147,10 @@
     height: 75vh;
     border-radius: 6px;
     box-shadow: none;
+  }
+
+  .pitch-description {
+    font-size: 0.98rem;
   }
 
   .secure-banner {

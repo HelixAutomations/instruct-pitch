@@ -1076,7 +1076,10 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                   onChange={handleInputChange}
                   onBlur={() => handleBlur('helixContact', ['helixContact'])}
                 >
-                  <option value="">Person you have spoken to at Helix Law</option>
+                  <option value="" disabled hidden>
+                    Person you have spoken to at Helix Law
+                  </option>
+                  <option value="Unsure">Unsure</option>
                   <option value="John Doe">John Doe</option>
                   <option value="Jane Smith">Jane Smith</option>
                 </select>
