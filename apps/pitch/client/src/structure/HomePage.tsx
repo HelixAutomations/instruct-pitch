@@ -472,44 +472,39 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    const clientType =
-      proofData.isCompanyClient === true
-        ? 'company'
-        : proofData.isCompanyClient === false
-        ? 'individual'
-        : null;
-    if (
-      !instructionReady &&
-      clientId &&
-      instruction.instructionRef &&
-      clientType &&
-      isIdReviewDone
-    ) {
-      fetch('/api/instruction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId,
-          instructionRef: instruction.instructionRef,
-          clientType,
-          amount: instruction.amount,
-          product: instruction.product,
-          workType: instruction.workType,
-        }),
+useEffect(() => {
+  if (
+    !instructionReady &&
+    clientId &&
+    instruction.instructionRef &&
+    proofData.isCompanyClient !== null &&
+    detailsConfirmed
+  ) {
+    const clientType = proofData.isCompanyClient ? 'company' : 'individual';
+    fetch('/api/instruction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clientId,
+        instructionRef: instruction.instructionRef,
+        ClientType: clientType,
+        amount: instruction.amount,
+        product: instruction.product,
+        workType: instruction.workType,
+      }),
+    })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok || data?.alreadyExists) {
+          setInstructionReady(true);
+          setInstructionError(null);
+        } else {
+          setInstructionError(data?.error || 'Failed to create instruction');
+        }
       })
-        .then(res => res.json().then(data => ({ ok: res.ok, data })))
-        .then(({ ok, data }) => {
-          if (ok || data?.alreadyExists) {
-            setInstructionReady(true);
-            setInstructionError(null);
-          } else {
-            setInstructionError(data?.error || 'Failed to create instruction');
-          }
-        })
-        .catch(() => setInstructionError('Failed to create instruction'));
-    }
-  }, [clientId, instruction.instructionRef, proofData.isCompanyClient, isIdReviewDone, instructionReady]);
+      .catch(() => setInstructionError('Failed to create instruction'));
+  }
+}, [clientId, instruction.instructionRef, proofData.isCompanyClient, detailsConfirmed, instructionReady]);
 
   function isIdInfoComplete() {
     return [
