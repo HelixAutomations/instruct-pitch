@@ -51,26 +51,15 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
   const paneClasses =
     'summary-pane' +
     (collapsed ? ' summary-pane-collapsed' : '') +
+    (!collapsed && summaryComplete ? ' summary-pane-complete' : '') +
     (edited ? ' summary-pane-edited' : '');
     
   return (
     <section className={paneClasses}>
-      {!summaryComplete || open ? (
+      {summaryComplete ? (
         <button
           type="button"
-          className="summary-title-main summary-toggle"
-          onClick={toggle}
-          aria-expanded={open}
-        >
-          <span>Summary</span>
-          <span className="chevron">
-            {open ? <FiChevronUp /> : <FiChevronDown />}
-          </span>
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="summary-complete-header"
+          className={`summary-complete-header${open ? ' summary-complete-header-open' : ''}`}
           onClick={toggle}
           aria-expanded={open}
         >
@@ -87,6 +76,18 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
             </svg>
           </span>
           <span>Details confirmed</span>
+          <span className="chevron">
+            {open ? <FiChevronUp /> : <FiChevronDown />}
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="summary-title-main summary-toggle"
+          onClick={toggle}
+          aria-expanded={open}
+        >
+          <span>Summary</span>
           <span className="chevron">
             {open ? <FiChevronUp /> : <FiChevronDown />}
           </span>

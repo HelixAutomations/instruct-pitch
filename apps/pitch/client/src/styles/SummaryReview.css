@@ -14,7 +14,13 @@
   background: #f5fdf7;
   border-color: #49B670;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 4px;
+}
+
+/* Style when the summary is open but completed */
+.summary-pane-complete {
+  background: #f5fdf7;
+  border-color: #49B670;
 }
 
 .summary-pane-collapsed .summary-complete-header {
@@ -271,12 +277,23 @@
   padding: 0.6rem 0.8rem;
   background: #f5fdf7;
   border: 1px solid #49B670;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
   color: var(--helix-dark-blue);
   transition: background 0.2s ease;
 }
+
+.summary-complete-header-open {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 0.7rem;
+}
+.summary-complete-header-open:hover {
+  background: #eaf0fa;
+}
+
 .summary-complete-header:hover {
   background: #ecfaf1;
 }
