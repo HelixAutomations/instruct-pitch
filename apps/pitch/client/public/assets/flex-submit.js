@@ -1,5 +1,19 @@
 (function(){
+  function hideButtons(){
+    var submit = document.getElementById('payment-submit');
+    if(submit){
+      submit.style.display='none';
+      submit.setAttribute('aria-hidden','true');
+      submit.tabIndex=-1;
+    }
+    var cancel = document.getElementById('payment-cancel-container');
+    if(cancel){
+      cancel.style.display='none';
+      cancel.setAttribute('aria-hidden','true');
+    }
+  }
   function ready() {
+    hideButtons();
     window.parent.postMessage({ flexMsg: 'ready' }, '*');
   }
   function handle(e){

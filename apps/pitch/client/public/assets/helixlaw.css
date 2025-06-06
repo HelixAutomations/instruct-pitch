@@ -304,3 +304,10 @@ body.dark-mode .toggle-links {
 .toggle-links:hover {
   text-decoration: underline;
 }
+
+/* Hide FlexCheckout's built-in submit/cancel buttons when embedded */
+#payment-submit,
+#payment-cancel-container {
+  display: none !important;
+  pointer-events: none !important;
+}
