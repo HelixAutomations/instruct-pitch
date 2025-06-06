@@ -144,7 +144,7 @@
   }
 
   .iframe-wrapper {
-    height: 75vh;
+    height: 100%;
     border-radius: 6px;
     box-shadow: none;
   }
