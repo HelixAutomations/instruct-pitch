@@ -202,7 +202,11 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const PSPID = 'epdq1717240';
   const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`;
   const EXCEPTION_URL = `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`;
-  const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(null);
+  const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(
+    process.env.NODE_ENV === 'development'
+      ? `${window.location.origin}${import.meta.env.BASE_URL}assets/master_creditcard.htm`
+      : null
+  );
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
@@ -310,7 +314,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, []);
 
   useEffect(() => {
-
+    if (process.env.NODE_ENV === 'development') return;
+    
     const params: Record<string,string> = {
       'ACCOUNT.PSPID':           PSPID,
       'ALIAS.ORDERID':           instruction.instructionRef,
