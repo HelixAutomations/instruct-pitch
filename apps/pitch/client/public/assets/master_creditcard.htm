@@ -45,12 +45,20 @@ $$$CARDHOLDER NAME INFO$$$
 $$$CARDHOLDER NAME ERROR$$$
 
 <div id="payment-expirydate-container" class="row">
-  $$$EXPIRY DATE MONTH$$$
-  $$$EXPIRY DATE YEAR$$$
-  $$$CVC LABEL$$$
-  $$$CVC INPUT$$$
-  $$$CVC INFO$$$
-  $$$CVC ERROR$$$
+  <div class="expiry-month">
+    <label class="payment-label">Expiry month</label>
+    $$$EXPIRY DATE MONTH$$$
+  </div>
+  <div class="expiry-year">
+    <label class="payment-label">Expiry year</label>
+    $$$EXPIRY DATE YEAR$$$
+  </div>
+  <div class="cvc-field">
+    $$$CVC LABEL$$$
+    $$$CVC INPUT$$$
+    $$$CVC INFO$$$
+    $$$CVC ERROR$$$
+  </div>
 </div>
 
 <div class="row buttons">

@@ -178,3 +178,129 @@ html body #payment-data-container {
 }
 
 /* iframe wrapper lives in your React app (not here) */
+
+/* ------------------------------------------------------------------
+   Additional field styling based on design guidelines
+   ------------------------------------------------------------------ */
+
+:root {
+  --border-light:        #E1DFDD;
+  --background-light:    #FFFFFF;
+  --input-bg-light:      #F3F2F1;
+  --text-light:          #323130;
+  --header-bg-light:     #0078D4;
+  --header-text-light:   #FFFFFF;
+  --placeholder-light:   #605E5C;
+  --accent-light:        #005A9E;
+
+  --border-dark:         #3C3C3C;
+  --background-dark:     #1B1A19;
+  --input-bg-dark:       #252423;
+  --text-dark:           #F3F2F1;
+  --header-bg-dark:      #005A9E;
+  --header-text-dark:    #FFFFFF;
+  --placeholder-dark:    #A19F9D;
+  --accent-dark:         #0078D4;
+
+  --font-family:         "Raleway", sans-serif;
+  --font-size-label:     13px;
+  --font-size-input:     14px;
+  --font-weight-label:   600;
+  --border-radius:       4px;
+  --header-height:       32px;
+  --header-padding:      0 8px;
+  --input-padding:       8px 12px;
+  --container-margin:    0 0 16px 0;
+}
+
+body.light-mode {
+  background-color: var(--background-light);
+  color: var(--text-light);
+  font-family: var(--font-family);
+}
+
+body.dark-mode {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+  font-family: var(--font-family);
+}
+
+.field-container {
+  width: 100%;
+  margin: var(--container-margin);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  background-color: var(--background-light);
+}
+
+body.dark-mode .field-container {
+  border-color: var(--border-dark);
+  background-color: var(--background-dark);
+}
+
+.field-container .field-header {
+  height: var(--header-height);
+  background-color: var(--header-bg-light);
+  color: var(--header-text-light);
+  display: flex;
+  align-items: center;
+  padding: var(--header-padding);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-label);
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+  position: relative;
+}
+
+body.dark-mode .field-container .field-header {
+  background-color: var(--header-bg-dark);
+  color: var(--header-text-dark);
+}
+
+.field-container input,
+.field-container .ms-TextField-field {
+  width: 100%;
+  border: none !important;
+  outline: none;
+  padding: var(--input-padding);
+  font-size: var(--font-size-input);
+  color: var(--text-light);
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+body.dark-mode .field-container input,
+body.dark-mode .field-container .ms-TextField-field {
+  color: var(--text-dark);
+}
+
+.field-container input::placeholder {
+  color: var(--placeholder-light);
+}
+
+body.dark-mode .field-container input::placeholder {
+  color: var(--placeholder-dark);
+}
+
+.field-container.focused {
+  border-color: var(--accent-light);
+}
+
+body.dark-mode .field-container.focused {
+  border-color: var(--accent-dark);
+}
+
+.toggle-links {
+  font-size: 12px;
+  color: var(--header-bg-light);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+body.dark-mode .toggle-links {
+  color: var(--accent-dark);
+}
+
+.toggle-links:hover {
+  text-decoration: underline;
+}
