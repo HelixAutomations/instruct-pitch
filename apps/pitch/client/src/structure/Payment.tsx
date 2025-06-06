@@ -139,14 +139,18 @@ const Payment: React.FC<PaymentProps> = ({
   return (
     <div className="payment-section">
       <div className="combined-section payment-pane">
-        <div className="group-header">
-          <FaClipboardList className="header-icon" /> Service Summary
-        </div>
-        <div className="service-summary-grid">
-          <div className="summary-label">Product</div>
-          <div className="summary-value">{product}</div>
-          <div className="summary-label">Amount</div>
-          <div className="summary-value">£{amount.toFixed(2)}</div>
+        <div className="service-summary-box">
+          <div className="question-banner">
+            <FaClipboardList className="header-icon" /> Service Summary
+          </div>
+          <div className="service-summary-grid">
+            <div className="summary-label">Product</div>
+            <div className="summary-value">{product}</div>
+            <div className="summary-label">Amount</div>
+            <div className="summary-value">
+              £{amount.toFixed(2)} <span className="summary-note">(inc. VAT)</span>
+            </div>
+          </div>
         </div>
         <p className="pitch-description">{pitchDescription}</p>
 

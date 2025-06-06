@@ -361,7 +361,7 @@
 .question-banner {
   background: linear-gradient(to right, #ffffff, var(--helix-grey, #F4F4F6));
   padding: 0.35rem 0.75rem;
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.95rem;
   color: #1f2937;
   border-left: 3px solid var(--helix-cta);

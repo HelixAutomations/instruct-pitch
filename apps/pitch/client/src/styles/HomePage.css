@@ -110,6 +110,13 @@
   flex-grow: 1;
 }
 
+.step-header .optional {
+  font-weight: normal;
+  font-size: 0.9em;
+  margin-left: 0.4rem;
+  color: #6b7280;
+}
+
 .step-header .toggle-icon {
   margin-left: 8px;
   font-size: 18px;

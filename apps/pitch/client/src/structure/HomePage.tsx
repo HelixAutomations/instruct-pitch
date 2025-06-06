@@ -84,7 +84,7 @@ interface HomePageProps {
 
 interface StepHeaderProps {
   step: number;
-  title: string;
+  title: React.ReactNode;
   complete: boolean;
   open: boolean;
   toggle: () => void;
@@ -842,7 +842,7 @@ const proofSummary = (
             <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}>
               <StepHeader
                 step={2}
-                title="Pay and Instruct"
+                title="Pay"
                 complete={isPaymentDone}
                 open={openStep === 2}
                 toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
@@ -874,7 +874,7 @@ const proofSummary = (
             <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
               <StepHeader
                 step={3}
-                title="Upload Your Documents"
+                title={<>Upload Your Documents <span className="optional">(optional)</span></>}
                 complete={isUploadDone}
                 open={openStep === 3}
                 toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}

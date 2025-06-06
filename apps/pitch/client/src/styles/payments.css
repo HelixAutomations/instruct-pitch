@@ -27,6 +27,27 @@
   margin-right: 0.22em;
 }
 
+/* Service summary in question-style box */
+.service-summary-box {
+  background: var(--helix-grey, #F4F4F6);
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.service-summary-box .question-banner {
+  background: linear-gradient(to right, #ffffff, var(--helix-grey, #F4F4F6));
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1f2937;
+  border-left: 3px solid var(--helix-cta);
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
 /* Summary Section */
 .combined-section {
   background: #fff;
@@ -50,7 +71,7 @@
   font-size: 0.97rem;
   color: #6c7685;
   font-weight: 500;
-  text-align: right;
+  text-align: left;
   padding-right: 0.5em;
   white-space: nowrap;
   letter-spacing: 0.01em;
@@ -62,6 +83,12 @@
   font-weight: 500;
   padding-left: 0.1em;
   word-break: break-word;
+}
+
+.summary-note {
+  font-size: 0.92rem;
+  color: #6b7280;
+  margin-left: 0.4rem;
 }
 
 /* Promotional description shown below the summary grid */
