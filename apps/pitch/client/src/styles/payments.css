@@ -8,19 +8,6 @@
   padding: 2rem;
 }
 
-/* Trust banner */
-.secure-banner {
-  display: block;
-  text-align: center;
-  padding: 0.7rem;
-  background: var(--helix-grey, #f4f7fa);
-  color: var(--helix-dark-blue, #294d69);
-  font-weight: 500;
-  border-radius: 4px;
-  margin-bottom: 1.2rem;
-  font-size: 1.04rem;
-}
-
 /* Group header (used for both sections) */
 .group-header {
   font-size: 1.04rem;
@@ -94,8 +81,8 @@
   border: none;
 }
 
-/* Payment Section (cleaned up) */
-.payment-details-clean {
+/* Payment subsection */
+.payment-details {
   margin-top: 1rem;
 }
 
@@ -153,8 +140,4 @@
     font-size: 0.98rem;
   }
 
-  .secure-banner {
-    font-size: 1rem;
-    padding: 0.6rem;
-  }
 }

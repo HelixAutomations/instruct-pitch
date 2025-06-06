@@ -138,10 +138,7 @@ const Payment: React.FC<PaymentProps> = ({
 
   return (
     <div className="payment-section">
-      <div className="secure-banner">🔒 Secure payment powered by Barclays</div>
-
-      {/* ─────────────────── Service summary ─────────────────── */}
-      <div className="combined-section service-summary-section">
+      <div className="combined-section payment-pane">
         <div className="group-header">
           <FaClipboardList className="header-icon" /> Service Summary
         </div>
@@ -152,15 +149,13 @@ const Payment: React.FC<PaymentProps> = ({
           <div className="summary-value">£{amount.toFixed(2)}</div>
         </div>
         <p className="pitch-description">{pitchDescription}</p>
-      </div>
 
-      <div className="separator" />
+        <div className="separator" />
 
-      {/* ─────────────────── Payment iFrame ─────────────────── */}
-      <div className="payment-details-clean">
-        <div className="group-header">
-          <FaCreditCard className="header-icon" /> Payment
-        </div>
+        <div className="payment-details">
+          <div className="group-header">
+            <FaCreditCard className="header-icon" /> Payment
+          </div>
 
         <div className="iframe-wrapper">
           {flexUrl ? (
@@ -189,6 +184,7 @@ const Payment: React.FC<PaymentProps> = ({
          <button className="btn primary" onClick={onNext} disabled={!paymentDone}>
            Next
          </button>
+       </div>
        </div>
       </div>
     </div>
