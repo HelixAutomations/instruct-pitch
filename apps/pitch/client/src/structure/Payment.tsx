@@ -50,8 +50,11 @@ const Payment: React.FC<PaymentProps> = ({
   const [iframeHeight, setIframeHeight] = useState<number>(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [formReady, setFormReady] = useState(false);
+  const [paymentDone, setPaymentDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const submitToIframe = () => {
+    setSubmitting(true);
     iframeRef.current?.contentWindow?.postMessage({ flexMsg: 'submit' }, '*');
   };
   // min-height fallback
@@ -73,15 +76,19 @@ const Payment: React.FC<PaymentProps> = ({
         setFormReady(true);
       } else if (e.data.flexMsg === 'navigate' && typeof e.data.href === 'string') {
         if (e.data.href.startsWith(acceptUrl)) {
-          onNext();
+          setPaymentDone(true);
+          setSubmitting(false);
+          sessionStorage.setItem('paymentDone', 'true');
+          localStorage.setItem('paymentSuccess', 'true');
         } else if (e.data.href.startsWith(exceptionUrl)) {
+          setSubmitting(false);
           onError('SUBMIT_FAILED');
         }
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [acceptUrl, exceptionUrl, onNext, onError]);
+  }, [acceptUrl, exceptionUrl, onError]);
 
   /* Build the FlexCheckout URL (unless it’s preloaded) */
   useEffect(() => {
@@ -172,9 +179,16 @@ const Payment: React.FC<PaymentProps> = ({
          <button className="btn secondary" onClick={onBack}>
            Back
          </button>
-        <button className="btn primary" onClick={submitToIframe} disabled={!flexUrl || !formReady}>
-          Next
-        </button>
+         <button
+           className="btn primary"
+           onClick={submitToIframe}
+           disabled={!flexUrl || !formReady || submitting || paymentDone}
+         >
+           Pay
+         </button>
+         <button className="btn primary" onClick={onNext} disabled={!paymentDone}>
+           Next
+         </button>
        </div>
       </div>
     </div>

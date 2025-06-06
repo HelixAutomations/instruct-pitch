@@ -114,7 +114,6 @@ html body #payment-data-container {
   border: 1px solid #D65541 !important;
 }
 
-.field-validation-valid,
 .field-validation-error {
   font-size: .95em;
   color: #d22323;
@@ -122,11 +121,14 @@ html body #payment-data-container {
   display: block;
 }
 
+.field-validation-valid {
+  display: none;
+}
+
 #payment-cvc-info-container .help-box,
 .payment-info {
   display: none !important;
 }
-
 
 #payment-data-container #payment-submit {
   background: var(--helix-highlight);
