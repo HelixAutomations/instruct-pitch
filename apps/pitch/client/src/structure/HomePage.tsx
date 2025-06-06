@@ -214,6 +214,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [instructionCompleted, setInstructionCompleted] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const step1Ref = useRef<HTMLDivElement>(null);
+  const step2Ref = useRef<HTMLDivElement>(null);
+  const step3Ref = useRef<HTMLDivElement>(null);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -465,6 +467,16 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
   useEffect(() => {
     if (step1Reveal) setOpenStep(1);
   }, [step1Reveal]);
+
+  useEffect(() => {
+    const refs = [step1Ref, step2Ref, step3Ref];
+    if (openStep > 0) {
+      refs[openStep - 1]?.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  }, [openStep]);
 
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
@@ -827,7 +839,7 @@ const proofSummary = (
               </div>
             </div>
 
-            <div className={`step-section${openStep === 2 ? ' active' : ''}`}>
+            <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}>
               <StepHeader
                 step={2}
                 title="Pay and Instruct"
@@ -859,7 +871,7 @@ const proofSummary = (
                 )}
               </div>
             </div>
-            <div className={`step-section${openStep === 3 ? ' active' : ''}`}>
+            <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
               <StepHeader
                 step={3}
                 title="Upload Your Documents"

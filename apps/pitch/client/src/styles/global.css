@@ -126,7 +126,7 @@ button:focus-visible {
     color: var(--helix-dark-blue);
   }
   .btn.primary {
-    background: var(--helix-highlight);
+    background: var(--helix-cta);
     color: #fff;
   }
 }
