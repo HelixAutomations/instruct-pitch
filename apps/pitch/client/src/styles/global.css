@@ -271,3 +271,10 @@ button:focus-visible {
     opacity: 1;
   }
 }
+
+/* Ensure CTA buttons remain red on small screens */
+@media (max-width: 600px) {
+  .btn.primary {
+    background: var(--helix-cta);
+  }
+}

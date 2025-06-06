@@ -66,6 +66,11 @@ html body #payment-data-container {
   align-items: flex-end;
   gap: .75rem;
 }
+#payment-expirydate-container .cvc-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
 #payment-cvc-input-container input#payment-cvc {
   width: 90px !important;
 }
