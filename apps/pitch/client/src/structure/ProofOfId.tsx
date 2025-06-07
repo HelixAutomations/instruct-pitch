@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaUserTie, FaChevronDown, FaInfoCircle } from 'react-icons/fa';
+import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaUserTie, FaChevronDown } from 'react-icons/fa';
 import InfoPopover from '../components/InfoPopover';
 import '../styles/ProofOfId.css';
 import { ProofData } from '../context/ProofData';
