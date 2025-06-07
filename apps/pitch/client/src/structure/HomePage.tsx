@@ -195,8 +195,6 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     amount: 0.99,
     product: 'instruction-pitch',
     workType: 'Shareholder Dispute',
-    pitchDescription:
-      'x',
   });
 
   const PSPID = 'epdq1717240';
@@ -794,7 +792,7 @@ const proofSummary = (
             <div ref={step1Ref} className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
               <StepHeader
                 step={1}
-                title="ID & Review"
+                title="Prove Your Identity"
                 complete={isIdReviewDone}
                 open={openStep === 1}
                 toggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
@@ -861,7 +859,6 @@ const proofSummary = (
                       orderId={instruction.instructionRef}
                       amount={instruction.amount}
                       product={instruction.product}
-                      pitchDescription={instruction.pitchDescription}
                       workType={instruction.workType}
                       acceptUrl={ACCEPT_URL}
                       exceptionUrl={EXCEPTION_URL}
@@ -874,7 +871,7 @@ const proofSummary = (
             <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
               <StepHeader
                 step={3}
-                title={<>Upload Your Documents <span className="optional">(optional)</span></>}
+                title={<>Upload Files <span className="optional">(optional)</span></>}
                 complete={isUploadDone}
                 open={openStep === 3}
                 toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}

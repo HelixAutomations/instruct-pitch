@@ -1,0 +1,14 @@
+set up app registration for emails
+make emails
+make step 1 wait for payment
+clean up confirmation screen
+send emails based on response
+flesh out the instructions table
+build prefill link for the FE
+deliver link
+
+fetch team list in the last question
+
+fetch data in the hub and build out the instructions module 
+
+start work on consolidating pitch builder templates

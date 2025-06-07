@@ -31,21 +31,26 @@ module.exports = async function (context, req) {
             password: dbPassword,
             server: dbServer,
             database: dbName,
-            options: {
-                encrypt: true // Azure requires this
-            }
+            options: { encrypt: true }
         });
 
-        // 4. Query the record
-        const result = await pool.request()
+        // 4. Query the enquiry
+        const enquiryResult = await pool.request()
             .input('id', sql.NVarChar, cid)
             .query('SELECT * FROM enquiries WHERE ID = @id');
+        const enquiry = enquiryResult.recordset[0] || null;
 
-        // 5. Respond
+        // 5. Query the team list
+        const teamResult = await pool.request()
+            .query('SELECT * FROM team');
+        const team = teamResult.recordset;
+
+        // 6. Respond with both
         context.res = {
             status: 200,
-            body: result.recordset[0] || null
+            body: { enquiry, team }
         };
+
         await pool.close();
     } catch (err) {
         context.log.error('Failed to fetch from SQL:', err.message);
