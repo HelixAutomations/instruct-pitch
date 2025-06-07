@@ -12,6 +12,8 @@ interface ProofOfIdProps {
   onNext: (skipReview?: boolean) => void;
   editing?: boolean;
   hasChanges?: boolean;
+  /** Which internal step to start on when mounted */
+  startStep?: number;
 }
 
 // Define the type for individual section states
@@ -50,8 +52,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   onNext,
   editing = false,
   hasChanges = false,
+  startStep = 1,
 }) => {
-  const [step, setStep] = useState<number>(1);
+  const [step, setStep] = useState<number>(startStep);
   const idStatus = value.idStatus || '';
   const isCompanyClient = value.isCompanyClient ?? null;
   const idType = value.idType || null;
@@ -66,6 +69,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     idDetails: { collapsed: false, completed: false },
     helixContact: { collapsed: false, completed: false },
   });
+
+  // Reset step when parent specifies a new starting step
+  useEffect(() => {
+    setStep(startStep);
+  }, [startStep]);
 
   // Effect to keep section completion in sync when fields are cleared
   // Once a section is marked complete via blur, it stays complete

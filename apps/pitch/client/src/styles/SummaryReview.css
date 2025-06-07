@@ -230,6 +230,24 @@
   font-size: 1.03em;
   letter-spacing: 0;
   text-transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-edit-btn {
+  background: none;
+  border: none;
+  color: var(--helix-blue);
+  cursor: pointer;
+  font-size: 0.85em;
+  display: flex;
+  align-items: center;
+  opacity: 0.75;
+}
+
+.summary-edit-btn:hover {
+  color: var(--helix-highlight);
 }
 
 /* Field label style */

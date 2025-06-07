@@ -247,6 +247,7 @@ export const countries: Country[] = [
   { id: 229, name: 'Tanzania', code: 'TZ' },
   { id: 230, name: 'Ukraine', code: 'UA' },
   { id: 231, name: 'Uganda', code: 'UG' },
+  { id: 251, name: 'United Kingdom', code: 'GB' },
   { id: 232, name: 'United States Minor Outlying Islands', code: 'UM' },
   { id: 233, name: 'United States', code: 'US' },
   { id: 234, name: 'Uruguay', code: 'UY' },

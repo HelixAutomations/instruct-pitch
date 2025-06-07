@@ -209,6 +209,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
+  const [proofStartStep, setProofStartStep] = useState<number>(1);
   const [restartId, setRestartId] = useState(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
   const [showReview, setShowReview] = useState(false);
@@ -412,7 +413,12 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     setShowReview(false);
     setOpenStep(1);
     setRestartId((r) => r + 1);
+    setProofStartStep(1);
     step1Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const handleEditSection = (stepNum: number) => {
+    setProofStartStep(stepNum);
+    handleEdit();
   };
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
@@ -555,8 +561,17 @@ const proofSummary = (
 
     {/* Company Details if applicable */}
     {proofData.isCompanyClient && (
-      <div className="group">
-        <div className="summary-group-header">Company Details</div>
+      <div className="group" id="summary-company">
+        <div className="summary-group-header">
+          <span>Company Details</span>
+          <button
+            type="button"
+            className="summary-edit-btn"
+            onClick={() => handleEditSection(2)}
+          >
+            <FaEdit />
+          </button>
+        </div>
         <FaCity className="backdrop-icon" />
         <p>
           <span className="field-label">Client:</span>{' '}
@@ -603,9 +618,16 @@ const proofSummary = (
       </div>
     )}
 
-      <div className="group">
+      <div className="group" id="summary-personal">
         <div className="summary-group-header">
-          Personal Details
+          <span>Personal Details</span>
+          <button
+            type="button"
+            className="summary-edit-btn"
+            onClick={() => handleEditSection(2)}
+          >
+            <FaEdit />
+          </button>
         </div>
         <FaUser className="backdrop-icon" />
         <p>
@@ -626,9 +648,16 @@ const proofSummary = (
         </p>
         <hr />
       </div>
-      <div className="group">
+      <div className="group" id="summary-address">
         <div className="summary-group-header">
-          Address
+          <span>Address</span>
+          <button
+            type="button"
+            className="summary-edit-btn"
+            onClick={() => handleEditSection(2)}
+          >
+            <FaEdit />
+          </button>
         </div>
         <FaMapMarkerAlt className="backdrop-icon" />
         <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
@@ -650,9 +679,16 @@ const proofSummary = (
         </div>
         <hr />
       </div>
-      <div className="group">
+      <div className="group" id="summary-contact">
         <div className="summary-group-header">
-          Contact Details
+          <span>Contact Details</span>
+          <button
+            type="button"
+            className="summary-edit-btn"
+            onClick={() => handleEditSection(2)}
+          >
+            <FaEdit />
+          </button>
         </div>
         <FaPhone className="backdrop-icon" />
         <p>
@@ -665,9 +701,16 @@ const proofSummary = (
         </p>
         <hr />
       </div>
-      <div className="group">
+      <div className="group" id="summary-id">
         <div className="summary-group-header">
-          ID Details
+          <span>ID Details</span>
+          <button
+            type="button"
+            className="summary-edit-btn"
+            onClick={() => handleEditSection(3)}
+          >
+            <FaEdit />
+          </button>
         </div>
         <FaIdCard className="backdrop-icon" />
         <p>
@@ -680,8 +723,18 @@ const proofSummary = (
         </p>
         <hr />
       </div>
-      <div className="group">
+      <div className="group" id="summary-helix">
         {/* Solicitor information */}
+      <div className="summary-group-header">
+          <span>Helix Contact</span>
+          <button
+            type="button"
+            className="summary-edit-btn"
+            onClick={() => handleEditSection(3)}
+          >
+            <FaEdit />
+          </button>
+        </div> 
       <FaUserTie className="backdrop-icon" />
       <p>
         <span className="field-label">Solicitor:</span>{' '}
@@ -812,6 +865,7 @@ const proofSummary = (
                       onNext={next}
                       editing={editing}
                       hasChanges={hasChanges}
+                      startStep={proofStartStep}
                     />
                   ) : (
                     <ReviewConfirm
