@@ -861,6 +861,7 @@ const proofSummary = (
                       amount={instruction.amount}
                       product={instruction.product}
                       workType={instruction.workType}
+                      contactFirstName={proofData.helixContact.split(' ')[0] || ''}
                       acceptUrl={ACCEPT_URL}
                       exceptionUrl={EXCEPTION_URL}
                       preloadFlexUrl={preloadedFlexUrl}

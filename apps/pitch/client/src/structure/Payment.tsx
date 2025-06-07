@@ -21,6 +21,7 @@ interface PaymentProps {
   amount: number;
   product: string;
   workType: string;
+  contactFirstName: string;
 }
 
 const Payment: React.FC<PaymentProps> = ({
@@ -35,6 +36,7 @@ const Payment: React.FC<PaymentProps> = ({
   preloadFlexUrl,
   amount,
   product,
+  contactFirstName,
   onNext,
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
@@ -134,6 +136,12 @@ const Payment: React.FC<PaymentProps> = ({
         <div className="service-summary-box">
           <div className="question-banner">Service Summary</div>
           <div className="service-summary-grid">
+            {contactFirstName && (
+              <>
+                <div className="summary-label">Contact</div>
+                <div className="summary-value">{contactFirstName}</div>
+              </>
+            )}
             <div className="summary-label">Product</div>
             <div className="summary-value">{product}</div>
             <div className="summary-label">Amount</div>
@@ -141,6 +149,11 @@ const Payment: React.FC<PaymentProps> = ({
               £{amount.toFixed(2)} <span className="summary-note">(inc. VAT)</span>
             </div>
           </div>
+          {contactFirstName && (
+            <p className="pitch-description">
+              {contactFirstName} will begin work once your ID is verified and your matter is open.
+            </p>
+          )}
         </div>
 
         <div className="payment-details">

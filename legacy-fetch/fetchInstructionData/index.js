@@ -39,10 +39,28 @@ module.exports = async function (context, req) {
             .input('id', sql.NVarChar, cid)
             .query('SELECT * FROM enquiries WHERE ID = @id');
         const enquiry = enquiryResult.recordset[0] || null;
+        const contactEmail = enquiry?.Point_of_Contact?.toLowerCase() || '';
+        const matched = team.find(t => (t.Email || '').toLowerCase() === contactEmail);
+        const contactFirstName = matched?.First || '';
 
         // 5. Query the team table
         const teamResult = await pool.request()
-            .query('SELECT * FROM team');
+        .query(`
+            SELECT
+            [Full Name],
+            [Last],
+            [First],
+            [Nickname],
+            [Initials],
+            [Email],
+            [Entra ID],
+            [Clio ID],
+            [Rate],
+            [Role],
+            [AOW],
+            [status]
+            FROM team
+        `);
         const team = teamResult.recordset;
 
         // Derive active team member full names for the dropdown
@@ -53,8 +71,15 @@ module.exports = async function (context, req) {
 
         // 6. Respond with enquiry, full team and active names
         context.res = {
-            status: 200,
-            body: { enquiry, team, activeTeam }
+        status: 200,
+        body: {
+            First_Name: enquiry?.First_Name,
+            Last_Name: enquiry?.Last_Name,
+            Email: enquiry?.Email,
+            Phone_Number: enquiry?.Phone_Number,
+            Point_of_Contact: contactFirstName,
+            activeTeam
+        }
         };
 
         await pool.close();
