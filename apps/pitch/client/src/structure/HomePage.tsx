@@ -392,7 +392,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [isUploadSkipped, setUploadSkipped] = useState(false);
 
   const [instructionReady, setInstructionReady] = useState(false);
-  const [instructionError, setInstructionError] = useState<string | null>(null);
+  const [instructionError] = useState<string | null>(null);
 
   const [isIdReviewDone, setIdReviewDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);

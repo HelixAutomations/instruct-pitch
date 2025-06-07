@@ -178,7 +178,7 @@ const Payment: React.FC<PaymentProps> = ({
           </div>
           {contactFirstName && (
             <p className="pitch-description">
-              {contactFirstName} will begin work on your "{product}" instruction once your ID is verified and your matter is open. The fee is £{amount.toFixed(2)} including VAT.
+              {contactFirstName} will begin work on your {product} once your ID is verified and your matter is open. The fee is £{amount.toFixed(2)} including VAT.
             </p>
           )}
         </div>

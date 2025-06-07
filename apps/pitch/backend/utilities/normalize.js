@@ -63,6 +63,13 @@ function normalizeInstruction(data) {
   if (out.title) out.title = toTitleCase(out.title);
   if (out.email) out.email = String(out.email).toLowerCase();
 
+  if (out.dob && typeof out.dob === 'string') {
+    const m = out.dob.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) {
+      out.dob = `${m[3]}-${m[2]}-${m[1]}`;
+    }
+  }
+
   const tcFields = [
     'houseNumber',
     'street',

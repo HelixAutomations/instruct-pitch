@@ -53,14 +53,11 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   isMobile = false,
   instructionRef: propInstructionRef,
   proofData,
-  amount,
-  product,
   workType,
   aliasId,
   orderId,
   shaSign,
   onConfirmed,
-  onEdit,
 }) => {
   const { instructionRef: ctxInstructionRef } = useClient();
   const instructionRef = propInstructionRef ?? ctxInstructionRef;
@@ -76,7 +73,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
           stage: 'ID Proof',
           ...proofData,
           consentGiven: true,
-          internalStatus: 'Instruction',
+          internalStatus: 'ID Completed',
           submissionTime: new Date().toISOString(),
           aliasId,
           orderId,
