@@ -81,8 +81,6 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
           aliasId,
           orderId,
           shaSign,
-          paymentAmount: amount,
-          paymentProduct: product,
           workType,
         })
       });

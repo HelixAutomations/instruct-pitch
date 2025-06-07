@@ -22,6 +22,7 @@ interface PaymentProps {
   product: string;
   workType: string;
   contactFirstName: string;
+  pitchedAt: string;
 }
 
 const Payment: React.FC<PaymentProps> = ({
@@ -37,6 +38,7 @@ const Payment: React.FC<PaymentProps> = ({
   amount,
   product,
   contactFirstName,
+  pitchedAt,
   onNext,
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
@@ -46,6 +48,26 @@ const Payment: React.FC<PaymentProps> = ({
   const [formReady, setFormReady] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [expiryText, setExpiryText] = useState('');
+
+  useEffect(() => {
+    if (!pitchedAt) return;
+    const pitchDate = new Date(pitchedAt);
+    const expiry = new Date(pitchDate.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    const update = () => {
+      const now = new Date();
+      let diff = expiry.getTime() - now.getTime();
+      if (diff < 0) diff = 0;
+      const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+      const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      setExpiryText(`${days}d ${hours}h`);
+    };
+
+    update();
+    const timer = setInterval(update, 60 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [pitchedAt]);
 
   const submitToIframe = () => {
     setSubmitting(true);
@@ -137,14 +159,21 @@ const Payment: React.FC<PaymentProps> = ({
           <div className="question-banner">Service Summary</div>
           <div className="service-summary-grid">
             {contactFirstName && (
-              <>
+              <div className="summary-item">
                 <div className="summary-label">Contact</div>
                 <div className="summary-value">{contactFirstName}</div>
-              </>
+              </div>
             )}
-            <div className="summary-label">Amount</div>
-            <div className="summary-value">
-              £{amount.toFixed(2)} <span className="summary-note">(inc. VAT)</span>
+            <div className="summary-item">
+              <div className="summary-label">Amount</div>
+              <div className="summary-value">
+                £{amount.toFixed(2)}{' '}
+                <span className="summary-note">(inc. VAT)</span>
+              </div>
+            </div>
+            <div className="summary-item">
+              <div className="summary-label">Expiry</div>
+              <div className="summary-value">{expiryText}</div>
             </div>
           </div>
           {contactFirstName && (

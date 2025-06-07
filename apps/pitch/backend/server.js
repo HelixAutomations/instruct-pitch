@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
 const app = express();
@@ -153,8 +153,21 @@ app.post('/api/instruction', async (req, res) => {
     }
 
     const normalized = normalizeInstruction(rest);
-    // Sanitize merged data to prevent duplicate or unknown columns
-    const merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
+    let merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
+
+    if (!existing.InstructionRef) {
+      const match = /HLX-(\d+)-/.exec(instructionRef);
+      if (match) {
+        const deal = await getLatestDeal(Number(match[1]));
+        if (deal) {
+          merged.paymentAmount = merged.paymentAmount ?? deal.Amount;
+          merged.paymentProduct = merged.paymentProduct ?? deal.ServiceDescription;
+          merged.workType = merged.workType ?? deal.AreaOfWork;
+        }
+      }
+      merged.internalStatus = merged.internalStatus || 'pitch';
+    }
+
     const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
     const record = await upsertInstruction(instructionRef, sanitized);
     res.json(record);

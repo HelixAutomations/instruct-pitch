@@ -60,11 +60,14 @@
 
 /* Summary Grid */
 .service-summary-grid {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  row-gap: 0.43em;
-  column-gap: 1.1em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
   padding: 0.25rem 0 0.05rem 0;
+}
+
+.summary-item {
+  flex: 1 1 120px;
 }
 
 .summary-label {
@@ -153,8 +156,11 @@
   }
 
   .service-summary-grid {
-    grid-template-columns: 95px 1fr;
     font-size: 0.95rem;
+  }
+
+  .summary-item {
+    flex: 1 1 100%;
   }
 
   .iframe-wrapper {

@@ -202,8 +202,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [instruction] = useState({
     instructionRef,
     amount: 0.99,
-    product: 'instruction-pitch',
+    product: 'dispute',
     workType: 'Shareholder Dispute',
+    pitchedAt: new Date().toISOString(),
   });
 
   const PSPID = 'epdq1717240';
@@ -261,23 +262,31 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   });
 
   const saveInstruction = async (stage: string) => {
-    if (!instruction.instructionRef) return;
+    if (!instruction.instructionRef) return Promise.resolve();
     try {
-      const allowed: Partial<ProofData> = {} as Partial<ProofData>;
-      for (const key of ALLOWED_FIELDS) {
-        if (key in proofData) (allowed as any)[key] = (proofData as any)[key];
+      let payload: any = { instructionRef: instruction.instructionRef, stage };
+      if (stage !== 'initialised') {
+        const allowed: Partial<ProofData> = {} as Partial<ProofData>;
+        for (const key of ALLOWED_FIELDS) {
+          if (key in proofData) (allowed as any)[key] = (proofData as any)[key];
+        }
+        payload = { ...payload, ...allowed };
+      } else {
+        payload.internalStatus = 'pitch';
       }
       const res = await fetch('/api/instruction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructionRef: instruction.instructionRef, stage, ...allowed })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data && data.completed) {
         setInstructionCompleted(true);
       }
+      return data;
     } catch (err) {
       console.error('Failed to save instruction', err);
+      throw err;
     }
   };
 
@@ -296,8 +305,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
           const { stage, ...rest } = data;
           setProofData(prev => ({ ...prev, ...rest }));
           if (stage === 'completed') setInstructionCompleted(true);
+          setInstructionReady(true);
         } else {
-          saveInstruction('initialised');
+          saveInstruction('initialised').then(() => setInstructionReady(true));
         }
       })
       .catch(() => {});
@@ -315,8 +325,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
         helixContact: prefill.Point_of_Contact ?? prev.helixContact,
       }));
       if (instruction.instructionRef) {
-        saveInstruction('initialised');
-      } 
+        saveInstruction('initialised').then(() => setInstructionReady(true));
+      }
       if (process.env.NODE_ENV !== 'production') {
         console.log('✅ Prefilled data from backend:', prefill);
       }
@@ -503,40 +513,6 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-useEffect(() => {
-  if (
-    !instructionReady &&
-    clientId &&
-    instruction.instructionRef &&
-    proofData.isCompanyClient !== null &&
-    detailsConfirmed
-  ) {
-    const clientType = proofData.isCompanyClient ? 'company' : 'individual';
-    fetch('/api/instruction', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        clientId,
-        instructionRef: instruction.instructionRef,
-        clientType,
-        amount: instruction.amount,
-        product: instruction.product,
-        workType: instruction.workType,
-      }),
-    })
-      .then(res => res.json().then(data => ({ ok: res.ok, data })))
-      .then(({ ok, data }) => {
-        if (ok || data?.alreadyExists) {
-          setInstructionReady(true);
-          setInstructionError(null);
-        } else {
-          setInstructionError(data?.error || 'Failed to create instruction');
-        }
-      })
-      .catch(() => setInstructionError('Failed to create instruction'));
-  }
-}, [clientId, instruction.instructionRef, proofData.isCompanyClient, detailsConfirmed, instructionReady]);
 
   function isIdInfoComplete() {
     return [
@@ -949,6 +925,7 @@ const proofSummary = (
                       product={instruction.product}
                       workType={instruction.workType}
                       contactFirstName={proofData.helixContact.split(' ')[0] || ''}
+                      pitchedAt={instruction.pitchedAt}
                       acceptUrl={ACCEPT_URL}
                       exceptionUrl={EXCEPTION_URL}
                       preloadFlexUrl={preloadedFlexUrl}

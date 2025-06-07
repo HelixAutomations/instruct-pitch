@@ -9,6 +9,17 @@ async function getInstruction(ref) {
   return result.recordset[0];
 }
 
+async function getLatestDeal(prospectId) {
+  const pool = await getSqlPool();
+  const result = await pool.request()
+    .input('pid', sql.Int, prospectId)
+    .query(`SELECT TOP 1 ServiceDescription, Amount, AreaOfWork
+            FROM Deals
+            WHERE ProspectId = @pid
+            ORDER BY DealId DESC`);
+  return result.recordset[0];
+}
+
 async function upsertInstruction(ref, fields) {
   const pool = await getSqlPool();
   const allowed = new Set([
@@ -70,4 +81,4 @@ async function markCompleted(ref) {
   return result.recordset[0];
 }
 
-module.exports = { getInstruction, upsertInstruction, markCompleted };
+module.exports = { getInstruction, upsertInstruction, markCompleted, getLatestDeal };
