@@ -684,6 +684,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     }
                   />
                 </div>
+              </div>
+              <div className="form-grid personal-grid">
                 <div className="form-group">
                   <input
                     type="text"
