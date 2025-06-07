@@ -52,3 +52,11 @@
   opacity: 0.15;
   z-index: 2;
 }
+
+/*
+@media (min-width: 1200px) {
+  .page-hero::before {
+    right: calc((100vw - 1200px) / 2);
+  }
+}
+*/
