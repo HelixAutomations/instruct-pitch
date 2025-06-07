@@ -247,7 +247,14 @@
   padding: 0;
   min-width: 0;
   min-height: 0;
+  opacity: 0;
+  transform: scale(0);
+}
+
+.summary-edit-btn.visible {
   opacity: 0.7;
+  transform: scale(1);
+  animation: tickPop 0.3s ease;
 }
 
 .summary-edit-btn:hover,

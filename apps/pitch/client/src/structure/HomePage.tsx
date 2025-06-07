@@ -566,7 +566,7 @@ const proofSummary = (
           {showReview && (
             <button
               type="button"
-              className="summary-edit-btn"
+              className="summary-edit-btn visible"
               onClick={() => handleEditSection(2)}
             >
               <FaEdit />
@@ -626,7 +626,7 @@ const proofSummary = (
           {showReview && (
             <button
               type="button"
-              className="summary-edit-btn"
+              className="summary-edit-btn visible"
               onClick={() => handleEditSection(2)}
             >
               <FaEdit />
@@ -659,7 +659,7 @@ const proofSummary = (
           {showReview && (
             <button
               type="button"
-              className="summary-edit-btn"
+              className="summary-edit-btn visible"
               onClick={() => handleEditSection(2)}
             >
               <FaEdit />
@@ -693,7 +693,7 @@ const proofSummary = (
           {showReview && (
             <button
               type="button"
-              className="summary-edit-btn"
+              className="summary-edit-btn visible"
               onClick={() => handleEditSection(2)}
             >
               <FaEdit />
@@ -718,7 +718,7 @@ const proofSummary = (
           {showReview && (
             <button
               type="button"
-              className="summary-edit-btn"
+              className="summary-edit-btn visible"
               onClick={() => handleEditSection(3)}
             >
               <FaEdit />
@@ -744,7 +744,7 @@ const proofSummary = (
           {showReview && (
             <button
               type="button"
-              className="summary-edit-btn"
+              className="summary-edit-btn visible"
               onClick={() => handleEditSection(3)}
             >
               <FaEdit />
