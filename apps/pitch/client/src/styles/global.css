@@ -97,8 +97,8 @@ button:focus-visible {
 
 /* Primary Action */
 .btn.primary {
-  background: var(--helix-cta);
-  color: #fff;
+  background: var(--helix-cta) !important;
+  color: #fff !important;
 }
 
 /* Secondary Action */
@@ -126,8 +126,8 @@ button:focus-visible {
     color: var(--helix-dark-blue);
   }
   .btn.primary {
-    background: var(--helix-cta);
-    color: #fff;
+    background: var(--helix-cta) !important;
+    color: #fff !important;
   }
 }
 

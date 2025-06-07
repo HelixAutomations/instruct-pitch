@@ -12,6 +12,7 @@
   padding: 1.25rem 0rem; /* increased padding top/bottom & left/right */
   display: flex;
   align-items: center;
+  justify-content: space-between; /* space between logo and contact button */
 }
 
 .logo {
@@ -22,4 +23,13 @@
   height: 50px;
   width: auto;
   display: block;
+}
+
+.contact-btn.btn.primary {
+  padding: 0.45rem 1.1rem;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1 !important;
 }

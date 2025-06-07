@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/ProofOfId.css';
 import { countries, titles, genders } from '../data/referenceData';
 import { FaInfoCircle } from 'react-icons/fa';
@@ -16,7 +16,14 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
   const [isCompanyClient, setIsCompanyClient] = useState<boolean>(false);
   const [idType, setIdType] = useState<string | null>('passport');
   const [idConfirmationError, setIdConfirmationError] = useState<string | null>(null);
-  const activeTeam: string[] = (window as any).helixPrefillData?.activeTeam ?? [];
+  const [activeTeam, setActiveTeam] = useState<string[]>([]);
+
+  useEffect(() => {
+    const prefill = (window as any).helixPrefillData;
+    if (Array.isArray(prefill?.activeTeam)) {
+      setActiveTeam(prefill.activeTeam);
+    }
+  }, []);
   const [value, setvalue] = useState({
     companyName: '',
     companyNumber: '',
