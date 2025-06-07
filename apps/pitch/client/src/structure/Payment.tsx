@@ -142,8 +142,6 @@ const Payment: React.FC<PaymentProps> = ({
                 <div className="summary-value">{contactFirstName}</div>
               </>
             )}
-            <div className="summary-label">Product</div>
-            <div className="summary-value">{product}</div>
             <div className="summary-label">Amount</div>
             <div className="summary-value">
               £{amount.toFixed(2)} <span className="summary-note">(inc. VAT)</span>
@@ -151,7 +149,7 @@ const Payment: React.FC<PaymentProps> = ({
           </div>
           {contactFirstName && (
             <p className="pitch-description">
-              {contactFirstName} will begin work once your ID is verified and your matter is open.
+              {contactFirstName} will begin work on your "{product}" instruction once your ID is verified and your matter is open. The fee is £{amount.toFixed(2)} including VAT.
             </p>
           )}
         </div>

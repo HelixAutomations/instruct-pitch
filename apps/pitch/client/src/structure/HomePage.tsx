@@ -75,6 +75,14 @@ const ALLOWED_FIELDS = [
   'idNumber',
   'helixContact',
   'agreement',
+  'nationalityCode',
+  'countryCode',
+  'companyCountryCode',
+  'aliasId',
+  'orderId',
+  'shaSign',
+  'paymentAmount',
+  'paymentProduct',
 ];
 
 interface HomePageProps {
@@ -306,6 +314,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
         phone:        prefill.Phone_Number     ?? prev.phone,
         helixContact: prefill.Point_of_Contact ?? prev.helixContact,
       }));
+      if (instruction.instructionRef) {
+        saveInstruction('initialised');
+      } 
       if (process.env.NODE_ENV !== 'production') {
         console.log('✅ Prefilled data from backend:', prefill);
       }
@@ -807,7 +818,6 @@ const proofSummary = (
   );
 
   const next = (skipReview?: boolean) => {
-    saveInstruction('in_progress');
     if (openStep === 1 && !showReview) {
       if (skipReview) {
         setEditing(false);
@@ -901,6 +911,12 @@ const proofSummary = (
                       isMobile={isMobile}
                       instructionRef={instruction.instructionRef}
                       proofData={proofData}
+                      amount={instruction.amount}
+                      product={instruction.product}
+                      workType={instruction.workType}
+                      aliasId={aliasId || undefined}
+                      orderId={orderId || undefined}
+                      shaSign={shaSign || undefined}
                       onConfirmed={next}
                       onEdit={handleEdit}
                     />

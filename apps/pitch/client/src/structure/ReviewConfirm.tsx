@@ -15,6 +15,9 @@ interface ReviewConfirmProps {
   amount?: number;
   product?: string;
   workType?: string;
+  aliasId?: string;
+  orderId?: string;
+  shaSign?: string;
   onConfirmed?: () => void;
   /** Optional callback when the user wants to edit their details again */
   onEdit?: () => void;
@@ -50,6 +53,12 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   isMobile = false,
   instructionRef: propInstructionRef,
   proofData,
+  amount,
+  product,
+  workType,
+  aliasId,
+  orderId,
+  shaSign,
   onConfirmed,
   onEdit,
 }) => {
@@ -62,7 +71,20 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
       await fetch('/api/instruction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructionRef, stage: 'in_progress', ...proofData })
+        body: JSON.stringify({
+          instructionRef,
+          stage: 'ID Proof',
+          ...proofData,
+          consentGiven: true,
+          internalStatus: 'Instruction',
+          submissionTime: new Date().toISOString(),
+          aliasId,
+          orderId,
+          shaSign,
+          paymentAmount: amount,
+          paymentProduct: product,
+          workType,
+        })
       });
       await fetch('/api/instruction/complete', {
         method: 'POST',

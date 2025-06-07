@@ -40,6 +40,14 @@ const ALLOWED_FIELDS = [
   // Misc
   'helixContact',
   'agreement',
+  'nationalityCode',
+  'countryCode',
+  'companyCountryCode',
+  'aliasId',
+  'orderId',
+  'shaSign',
+  'paymentAmount',
+  'paymentProduct',
 ];
 
 function toTitleCase(str) {
@@ -73,8 +81,8 @@ function normalizeInstruction(data) {
 
   // Map fields that don't directly correspond to DB columns
   if (Object.prototype.hasOwnProperty.call(out, 'isCompanyClient')) {
-    if (out.isCompanyClient === true) out.clientType = 'client';
-    else if (out.isCompanyClient === false) out.clientType = 'individual';
+    if (out.isCompanyClient === true) out.clientType = 'Company';
+    else if (out.isCompanyClient === false) out.clientType = 'Individual';
     delete out.isCompanyClient;
   }
 
