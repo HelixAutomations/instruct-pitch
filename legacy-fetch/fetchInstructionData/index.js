@@ -40,15 +40,21 @@ module.exports = async function (context, req) {
             .query('SELECT * FROM enquiries WHERE ID = @id');
         const enquiry = enquiryResult.recordset[0] || null;
 
-        // 5. Query the team list
+        // 5. Query the team table
         const teamResult = await pool.request()
             .query('SELECT * FROM team');
         const team = teamResult.recordset;
 
-        // 6. Respond with both
+        // Derive active team member full names for the dropdown
+        const activeTeam = team
+            .filter(r => (r.status || '').toLowerCase() === 'active')
+            .map(r => r['Full Name'])
+            .sort();
+
+        // 6. Respond with enquiry, full team and active names
         context.res = {
             status: 200,
-            body: { enquiry, team }
+            body: { enquiry, team, activeTeam }
         };
 
         await pool.close();

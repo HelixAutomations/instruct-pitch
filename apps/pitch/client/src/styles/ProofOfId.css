@@ -228,13 +228,13 @@
   border-radius: 50%;
   font-size: 16px;
   margin-left: 8px;
-  cursor: help;
+  cursor: pointer;
   position: relative;
   vertical-align: middle;
   transition: background 0.3s ease;
 }
 
-.info-icon:hover {
+.info-icon.open {
   background: #f5f5f7;
 }
 
@@ -259,7 +259,7 @@
   white-space: normal;
 }
 
-.info-icon:hover .help-text {
+.info-icon.open .help-text {
   visibility: visible;
   opacity: 1;
   transform: translateX(-50%) translateY(-5px);

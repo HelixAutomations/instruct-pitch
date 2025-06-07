@@ -52,7 +52,6 @@ const App: React.FC = () => {
             <Header />
             <ClientDetails
               workType="—"
-              instructionRef={instructionRef}
               stage="Confirmation of Instruction"
               onAnimationEnd={() => {
                 setTimeout(() => setStep1Reveal(true), 550);

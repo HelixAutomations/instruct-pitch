@@ -16,6 +16,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
   const [isCompanyClient, setIsCompanyClient] = useState<boolean>(false);
   const [idType, setIdType] = useState<string | null>('passport');
   const [idConfirmationError, setIdConfirmationError] = useState<string | null>(null);
+  const activeTeam: string[] = (window as any).helixPrefillData?.activeTeam ?? [];
   const [value, setvalue] = useState({
     companyName: '',
     companyNumber: '',
@@ -662,8 +663,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   Select a person
                 </option>
                 <option value="Unsure">Unsure</option>
-                <option value="John Doe">John Doe</option>
-                <option value="Jane Smith">Jane Smith</option>
+                {activeTeam.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
               </select>
             </div>
 

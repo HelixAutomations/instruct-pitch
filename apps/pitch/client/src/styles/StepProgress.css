@@ -43,6 +43,8 @@
 .done .step-marker {
   background: var(--helix-highlight);
   color: #fff;
+  /* Prevent strikethrough from affecting the check icon */
+  text-decoration: none;
 }
 
 .done .step-label {

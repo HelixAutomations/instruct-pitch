@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaIdCard, FaUserTie, FaChevronDown, FaInfoCircle } from 'react-icons/fa';
+import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaUserTie, FaChevronDown, FaInfoCircle } from 'react-icons/fa';
+import InfoPopover from '../components/InfoPopover';
 import '../styles/ProofOfId.css';
 import { ProofData } from '../context/ProofData';
 import { countries, titles, genders } from '../data/referenceData';
@@ -304,12 +305,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
           <div className="form-group step1-centered question-container">
             <label id="id-status-label" className="question-banner">
               Are you providing ID for the first time or have you been asked to renew ID?
-              <span className="info-icon">
-                <FaInfoCircle aria-hidden="true" />
-                <span className="help-text">
-                  Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID.
-                </span>
-              </span>
+              <InfoPopover text="Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID." />
             </label>
             <div className="modern-toggle-group" role="radiogroup" aria-labelledby="id-status-label">
               <button
@@ -334,12 +330,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
           <div className="form-group step1-centered question-container">
             <label id="company-client-label" className="question-banner">
               Who are you proving identity for?
-              <span className="info-icon">
-                <FaInfoCircle aria-hidden="true" />
-                <span className="help-text">
-                  Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business.
-                </span>
-              </span>
+              <InfoPopover text="Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business." />
             </label>
             <div className="modern-toggle-group" role="radiogroup" aria-labelledby="company-client-label">
               <button
@@ -700,7 +691,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     className={`paper-input ${value.dob ? 'filled' : ''}`}
                     value={value.dob}
                     onChange={handleInputChange}
-                    placeholder="Date of Birth (dd/mm/yyyy)"
+                    placeholder="DoB (dd/mm/yyyy)"
                     onBlur={() =>
                       handleBlur('personalDetails', [
                         'title',

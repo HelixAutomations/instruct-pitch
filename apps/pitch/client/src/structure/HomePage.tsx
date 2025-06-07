@@ -9,6 +9,7 @@ declare global {
     helixPrefillData?: {
       First_Name?: string;
       Last_Name?: string;
+      activeTeam?: string[];
       [key: string]: any;
     };
   }
