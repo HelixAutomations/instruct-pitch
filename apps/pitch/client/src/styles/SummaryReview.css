@@ -243,11 +243,18 @@
   font-size: 0.85em;
   display: flex;
   align-items: center;
-  opacity: 0.75;
+  gap: 0.25rem;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  opacity: 0.7;
 }
 
-.summary-edit-btn:hover {
+.summary-edit-btn:hover,
+.summary-edit-btn:focus {
+  background: none;
   color: var(--helix-highlight);
+  text-decoration: underline;
 }
 
 /* Field label style */

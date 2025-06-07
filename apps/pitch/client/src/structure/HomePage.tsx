@@ -407,18 +407,17 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     }
   }, [proofData, isIdReviewDone]);
 
-  const handleEdit = () => {
+  const handleEdit = (startStep = 1) => {
     setEditBaseline(proofData);
     setEditing(true);
     setShowReview(false);
     setOpenStep(1);
     setRestartId((r) => r + 1);
-    setProofStartStep(1);
+    setProofStartStep(startStep);
     step1Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const handleEditSection = (stepNum: number) => {
-    setProofStartStep(stepNum);
-    handleEdit();
+    handleEdit(stepNum);
   };
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
@@ -564,13 +563,16 @@ const proofSummary = (
       <div className="group" id="summary-company">
         <div className="summary-group-header">
           <span>Company Details</span>
-          <button
-            type="button"
-            className="summary-edit-btn"
-            onClick={() => handleEditSection(2)}
-          >
-            <FaEdit />
-          </button>
+          {showReview && (
+            <button
+              type="button"
+              className="summary-edit-btn"
+              onClick={() => handleEditSection(2)}
+            >
+              <FaEdit />
+              <span>Edit</span>
+            </button>
+          )}
         </div>
         <FaCity className="backdrop-icon" />
         <p>
@@ -621,13 +623,16 @@ const proofSummary = (
       <div className="group" id="summary-personal">
         <div className="summary-group-header">
           <span>Personal Details</span>
-          <button
-            type="button"
-            className="summary-edit-btn"
-            onClick={() => handleEditSection(2)}
-          >
-            <FaEdit />
-          </button>
+          {showReview && (
+            <button
+              type="button"
+              className="summary-edit-btn"
+              onClick={() => handleEditSection(2)}
+            >
+              <FaEdit />
+              <span>Edit</span>
+            </button>
+          )}
         </div>
         <FaUser className="backdrop-icon" />
         <p>
@@ -651,13 +656,16 @@ const proofSummary = (
       <div className="group" id="summary-address">
         <div className="summary-group-header">
           <span>Address</span>
-          <button
-            type="button"
-            className="summary-edit-btn"
-            onClick={() => handleEditSection(2)}
-          >
-            <FaEdit />
-          </button>
+          {showReview && (
+            <button
+              type="button"
+              className="summary-edit-btn"
+              onClick={() => handleEditSection(2)}
+            >
+              <FaEdit />
+              <span>Edit</span>
+            </button>
+          )}
         </div>
         <FaMapMarkerAlt className="backdrop-icon" />
         <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
@@ -682,13 +690,16 @@ const proofSummary = (
       <div className="group" id="summary-contact">
         <div className="summary-group-header">
           <span>Contact Details</span>
-          <button
-            type="button"
-            className="summary-edit-btn"
-            onClick={() => handleEditSection(2)}
-          >
-            <FaEdit />
-          </button>
+          {showReview && (
+            <button
+              type="button"
+              className="summary-edit-btn"
+              onClick={() => handleEditSection(2)}
+            >
+              <FaEdit />
+              <span>Edit</span>
+            </button>
+          )}
         </div>
         <FaPhone className="backdrop-icon" />
         <p>
@@ -704,13 +715,16 @@ const proofSummary = (
       <div className="group" id="summary-id">
         <div className="summary-group-header">
           <span>ID Details</span>
-          <button
-            type="button"
-            className="summary-edit-btn"
-            onClick={() => handleEditSection(3)}
-          >
-            <FaEdit />
-          </button>
+          {showReview && (
+            <button
+              type="button"
+              className="summary-edit-btn"
+              onClick={() => handleEditSection(3)}
+            >
+              <FaEdit />
+              <span>Edit</span>
+            </button>
+          )}
         </div>
         <FaIdCard className="backdrop-icon" />
         <p>
@@ -727,14 +741,17 @@ const proofSummary = (
         {/* Solicitor information */}
       <div className="summary-group-header">
           <span>Helix Contact</span>
-          <button
-            type="button"
-            className="summary-edit-btn"
-            onClick={() => handleEditSection(3)}
-          >
-            <FaEdit />
-          </button>
-        </div> 
+          {showReview && (
+            <button
+              type="button"
+              className="summary-edit-btn"
+              onClick={() => handleEditSection(3)}
+            >
+              <FaEdit />
+              <span>Edit</span>
+            </button>
+          )}
+        </div>
       <FaUserTie className="backdrop-icon" />
       <p>
         <span className="field-label">Solicitor:</span>{' '}
