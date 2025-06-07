@@ -127,13 +127,24 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
             </button>
           )
         ) : (
-          <button
-            className="cta-declare-btn"
-            disabled={!detailsConfirmed}
-            onClick={handleSubmit}
-          >
-            Confirm Identity and Open a Matter
-          </button>
+          <div className="review-actions">
+            {onEdit && (
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => onEdit()}
+              >
+                Edit Details
+              </button>
+            )}
+            <button
+              className="cta-declare-btn"
+              disabled={!detailsConfirmed}
+              onClick={handleSubmit}
+            >
+              Confirm Identity and Open a Matter
+            </button>
+          </div>
         )}
       </div>
 

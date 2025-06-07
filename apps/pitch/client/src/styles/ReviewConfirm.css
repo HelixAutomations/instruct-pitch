@@ -108,6 +108,20 @@
   cursor: not-allowed;
 }
 
+/* Edit/confirm actions */
+.review-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .review-actions {
+    flex-direction: column;
+  }
+}
+
 .summary-confirmation-highlight {
   border: 1px solid #d0d7de;
   border-radius: 8px;

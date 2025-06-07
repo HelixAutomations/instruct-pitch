@@ -237,7 +237,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   };
 
   const handleIdTypeChange = (type: string) => {
-    const updatedData = { ...value, idType: type };
+    const updatedData = { ...value, idType: type, idNumber: '' };
     onUpdate(updatedData);
     // Auto-expand the section when picking an ID type
     setSectionStates((prev) => ({
@@ -995,7 +995,10 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
         <div className="form-content">
 
           <div className="form-group step1-centered question-container">
-            <label id="id-type-label" className="question-banner">Which form of ID are you providing?</label>
+            <label id="id-type-label" className="question-banner">
+              Which form of ID are you providing?
+              <InfoPopover text="Choose one" />
+            </label>
             <div className="modern-toggle-group" role="radiogroup" aria-labelledby="id-type-label">
                   <button
                     type="button"

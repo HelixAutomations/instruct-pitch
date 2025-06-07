@@ -39,9 +39,6 @@ module.exports = async function (context, req) {
             .input('id', sql.NVarChar, cid)
             .query('SELECT * FROM enquiries WHERE ID = @id');
         const enquiry = enquiryResult.recordset[0] || null;
-        const contactEmail = enquiry?.Point_of_Contact?.toLowerCase() || '';
-        const matched = team.find(t => (t.Email || '').toLowerCase() === contactEmail);
-        const contactFirstName = matched?.First || '';
 
         // 5. Query the team table
         const teamResult = await pool.request()
@@ -68,6 +65,11 @@ module.exports = async function (context, req) {
             .filter(r => (r.status || '').toLowerCase() === 'active')
             .map(r => r['Full Name'])
             .sort();
+
+        // ✅ Now match email to first name
+        const contactEmail = enquiry?.Point_of_Contact?.toLowerCase() || '';
+        const matched = team.find(t => (t.Email || '').toLowerCase() === contactEmail);
+        const contactFirstName = matched?.First || '';
 
         // 6. Respond with enquiry, full team and active names
         context.res = {

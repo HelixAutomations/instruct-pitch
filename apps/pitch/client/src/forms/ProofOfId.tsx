@@ -134,7 +134,13 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
 
   const handleIdTypeChange = (type: string | null) => {
     setIdType(type);
-    const updatedData = { ...value, idStatus, isCompanyClient, idType: type };
+    const updatedData = {
+      ...value,
+      idStatus,
+      isCompanyClient,
+      idType: type,
+      idNumber: '',
+    };
     onUpdate(updatedData);
   };
 
@@ -603,9 +609,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 Which form of ID are you providing?
                 <span className="tooltip">
                   <span className="tooltip-icon">?</span>
-                  <span className="tooltip-text">
-                    Choose 'Passport' or 'Driver\'s License'.
-                  </span>
+                  <span className="tooltip-text">Choose one.</span>
                 </span>
               </label>
               <div
