@@ -196,9 +196,11 @@ const StepHeader: React.FC<StepHeaderProps> = ({
 
 const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionRef }) => {
   const params = new URLSearchParams(window.location.search);
-  const aliasId = params.get('Alias.AliasId');
-  const orderId = params.get('Alias.OrderId');
-  const shaSign = params.get('SHASign');
+  const [paymentData, setPaymentData] = useState<{ aliasId?: string; orderId?: string; shaSign?: string }>({
+    aliasId: params.get('Alias.AliasId') || sessionStorage.getItem('aliasId') || undefined,
+    orderId: params.get('Alias.OrderId') || sessionStorage.getItem('orderId') || undefined,
+    shaSign: params.get('SHASign') || sessionStorage.getItem('shaSign') || undefined,
+  });
   const [instruction] = useState({
     instructionRef,
     amount: 0.99,
@@ -817,6 +819,7 @@ const proofSummary = (
   };
 
   useEffect(() => {
+    const { aliasId, orderId, shaSign } = paymentData;
     if (aliasId && orderId && shaSign) {
       fetch('/pitch/confirm-payment', {
         method: 'POST',
@@ -833,7 +836,7 @@ const proofSummary = (
           console.error('❌ Failed to confirm payment server-side:', err);
         });
     }
-  }, [aliasId, orderId, shaSign]);
+  }, [paymentData]);
 
   return (
     <div className="home-page">
@@ -890,9 +893,9 @@ const proofSummary = (
                       amount={instruction.amount}
                       product={instruction.product}
                       workType={instruction.workType}
-                      aliasId={aliasId || undefined}
-                      orderId={orderId || undefined}
-                      shaSign={shaSign || undefined}
+                      aliasId={paymentData.aliasId || undefined}
+                      orderId={paymentData.orderId || undefined}
+                      shaSign={paymentData.shaSign || undefined}
                       onConfirmed={next}
                       onEdit={handleEdit}
                     />
@@ -929,6 +932,7 @@ const proofSummary = (
                       acceptUrl={ACCEPT_URL}
                       exceptionUrl={EXCEPTION_URL}
                       preloadFlexUrl={preloadedFlexUrl}
+                      onPaymentData={setPaymentData}
                     />
                   </div>
                 )}

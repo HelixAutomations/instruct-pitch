@@ -23,6 +23,7 @@ interface PaymentProps {
   workType: string;
   contactFirstName: string;
   pitchedAt: string;
+  onPaymentData?: (data: { aliasId?: string; orderId?: string; shaSign?: string }) => void;
 }
 
 const Payment: React.FC<PaymentProps> = ({
@@ -40,6 +41,7 @@ const Payment: React.FC<PaymentProps> = ({
   contactFirstName,
   pitchedAt,
   onNext,
+  onPaymentData,
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +94,20 @@ const Payment: React.FC<PaymentProps> = ({
         setFormReady(true);
       } else if (e.data.flexMsg === 'navigate' && typeof e.data.href === 'string') {
         if (e.data.href.startsWith(acceptUrl)) {
+          try {
+            const url = new URL(e.data.href);
+            const aliasId = url.searchParams.get('Alias.AliasId') || undefined;
+            const orderId = url.searchParams.get('Alias.OrderId') || undefined;
+            const shaSign = url.searchParams.get('SHASIGN') || url.searchParams.get('SHASign') || undefined;
+            if (onPaymentData) {
+              onPaymentData({ aliasId, orderId, shaSign });
+            }
+            if (aliasId) sessionStorage.setItem('aliasId', aliasId);
+            if (orderId) sessionStorage.setItem('orderId', orderId);
+            if (shaSign) sessionStorage.setItem('shaSign', shaSign);
+          } catch (err) {
+            console.error('Failed to parse payment params', err);
+          }
           setPaymentDone(true);
           setSubmitting(false);
           sessionStorage.setItem('paymentDone', 'true');

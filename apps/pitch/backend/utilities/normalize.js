@@ -58,11 +58,14 @@ function toTitleCase(str) {
 
 function normalizeInstruction(data) {
   const out = { ...data };
-  if (out.firstName) out.firstName = toTitleCase(out.firstName);
-  if (out.lastName) out.lastName = toTitleCase(out.lastName);
-  if (out.title) out.title = toTitleCase(out.title);
-  if (out.email) out.email = String(out.email).toLowerCase();
 
+  // Standardize casing for names and contact
+  if (out.firstName)    out.firstName = toTitleCase(out.firstName);
+  if (out.lastName)     out.lastName  = toTitleCase(out.lastName);
+  if (out.title)        out.title     = toTitleCase(out.title);
+  if (out.email)        out.email     = String(out.email).toLowerCase();
+
+  // Handle user-entered date-of-birth format DD/MM/YYYY
   if (out.dob && typeof out.dob === 'string') {
     const m = out.dob.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (m) {
@@ -70,33 +73,28 @@ function normalizeInstruction(data) {
     }
   }
 
+  // Title-case for various address and company fields
   const tcFields = [
-    'houseNumber',
-    'street',
-    'city',
-    'county',
-    'companyName',
-    'companyHouseNumber',
-    'companyStreet',
-    'companyCity',
-    'companyCounty',
-    'companyCountry',
+    'houseNumber', 'street', 'city', 'county',
+    'companyName', 'companyHouseNumber', 'companyStreet',
+    'companyCity', 'companyCounty', 'companyCountry',
   ];
   for (const f of tcFields) {
     if (out[f]) out[f] = toTitleCase(out[f]);
   }
 
-  // Map fields that don't directly correspond to DB columns
+  // Map boolean isCompanyClient to clientType
   if (Object.prototype.hasOwnProperty.call(out, 'isCompanyClient')) {
-    if (out.isCompanyClient === true) out.clientType = 'Company';
-    else if (out.isCompanyClient === false) out.clientType = 'Individual';
+    out.clientType = out.isCompanyClient ? 'Company' : 'Individual';
     delete out.isCompanyClient;
   }
 
+  // Normalize idType
   if (Object.prototype.hasOwnProperty.call(out, 'idType')) {
     out.idType = String(out.idType);
   }
 
+  // Remap idNumber to specific fields based on idType
   if (Object.prototype.hasOwnProperty.call(out, 'idNumber')) {
     if (out.idType === 'passport') {
       out.passportNumber = out.idNumber;
@@ -106,14 +104,25 @@ function normalizeInstruction(data) {
     delete out.idNumber;
   }
 
-  // idStatus is used by compliance and should not be stored in Instructions
+  // Remove compliance-only flag
   delete out.idStatus;
 
-  // Build final object containing only allowed fields
+  // Include consent and internalStatus if provided
+  if (data.consentGiven != null)   out.consentGiven    = Boolean(data.consentGiven);
+  if (data.internalStatus != null) out.internalStatus  = data.internalStatus;
+
+  // Build final object with only allowed fields
   const finalObj = {};
   for (const key of ALLOWED_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(out, key)) {
-      const val = out[key];
+      let val = out[key];
+      // Normalize DOB to ISO format
+      if (key === 'dob' && typeof val === 'string') {
+        const d = new Date(val);
+        if (!isNaN(d)) {
+          val = d.toISOString().slice(0, 10);
+        }
+      }
       finalObj[key] = typeof val === 'boolean' ? String(val) : val;
     }
   }

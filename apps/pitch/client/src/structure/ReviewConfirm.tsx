@@ -73,7 +73,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
           stage: 'ID Proof',
           ...proofData,
           consentGiven: true,
-          internalStatus: 'ID Completed',
+          internalStatus: 'Proof of ID',
           submissionTime: new Date().toISOString(),
           aliasId,
           orderId,
