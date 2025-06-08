@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-import React, { useState, useEffect, useRef, JSX } from 'react';
+import React, { useState, useEffect, useRef, useMemo, JSX } from 'react';
 import { useCompletion } from '../context/CompletionContext';
 import {
   FaUser,
@@ -201,17 +201,63 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     orderId: params.get('Alias.OrderId') || sessionStorage.getItem('orderId') || undefined,
     shaSign: params.get('SHASign') || sessionStorage.getItem('shaSign') || undefined,
   });
-  const [instruction] = useState({
+// with
+  const [instruction, setInstruction] = useState({
     instructionRef,
-    amount: 0.99,
-    product: 'dispute',
+    amount: 0,
+    product: '',
     workType: 'Shareholder Dispute',
     pitchedAt: new Date().toISOString(),
   });
 
+  useEffect(() => {
+    if (!instruction.instructionRef) return;
+    fetch(`/api/instruction?instructionRef=${instruction.instructionRef}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          const { stage, PaymentAmount, PaymentProduct, WorkType, ...rest } = data;
+          setProofData(prev => ({ ...prev, ...rest }));
+          setInstruction(prev => ({
+            ...prev,
+            amount: PaymentAmount != null ? Number(PaymentAmount) : prev.amount,
+            product: PaymentProduct ?? prev.product,
+            workType: WorkType ?? prev.workType,
+          }));
+          if (stage === 'completed') {
+            setInstructionCompleted(false);
+            saveInstruction('re-visit').then(() => setInstructionReady(true));
+          } else {
+            setInstructionReady(true);
+          }
+        } else {
+          saveInstruction('initialised').then((saved) => {
+            if (saved) {
+              setInstruction(prev => ({
+                ...prev,
+                amount: saved.PaymentAmount != null ? Number(saved.PaymentAmount) : prev.amount,
+                product: saved.PaymentProduct ?? prev.product,
+                workType: saved.WorkType ?? prev.workType,
+              }));
+            }
+            setInstructionReady(true);
+          });
+        }
+      })
+      .catch(() => {});
+  }, [instruction.instructionRef]);
+
   const PSPID = 'epdq1717240';
-  const ACCEPT_URL    = `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`;
-  const EXCEPTION_URL = `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`;
+  const ACCEPT_URL = useMemo(
+    () =>
+      `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`,
+    [instruction.amount, instruction.product]
+  );
+  const EXCEPTION_URL = useMemo(
+    () =>
+      `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`,
+    [instruction.amount, instruction.product]
+  );
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(
     process.env.NODE_ENV === 'development'
       ? `${window.location.origin}${import.meta.env.BASE_URL}assets/master_creditcard.htm`
@@ -282,8 +328,16 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if (data && data.completed) {
-        setInstructionCompleted(true);
+      if (data) {
+        if (data.completed) {
+          setInstructionCompleted(true);
+        }
+        setInstruction(prev => ({
+          ...prev,
+          amount: data.PaymentAmount != null ? Number(data.PaymentAmount) : prev.amount,
+          product: data.PaymentProduct ?? prev.product,
+          workType: data.WorkType ?? prev.workType,
+        }));
       }
       return data;
     } catch (err) {
@@ -297,23 +351,6 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
       setOpenStep(0);
     }
   }, [instructionCompleted]);
-
-  useEffect(() => {
-    if (!instruction.instructionRef) return;
-    fetch(`/api/instruction?instructionRef=${instruction.instructionRef}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data) {
-          const { stage, ...rest } = data;
-          setProofData(prev => ({ ...prev, ...rest }));
-          if (stage === 'completed') setInstructionCompleted(true);
-          setInstructionReady(true);
-        } else {
-          saveInstruction('initialised').then(() => setInstructionReady(true));
-        }
-      })
-      .catch(() => {});
-  }, [instruction.instructionRef]);
 
   useEffect(() => {
     const prefill = window.helixPrefillData;
@@ -372,7 +409,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
       };
 
       preload();
-    }, []);
+    }, [ACCEPT_URL, EXCEPTION_URL, instruction.instructionRef]);
 
     useEffect(() => {
       if (!preloadedFlexUrl) return;
@@ -932,6 +969,7 @@ const proofSummary = (
                       acceptUrl={ACCEPT_URL}
                       exceptionUrl={EXCEPTION_URL}
                       preloadFlexUrl={preloadedFlexUrl}
+                      instructionReady={instructionReady}
                       onPaymentData={setPaymentData}
                     />
                   </div>

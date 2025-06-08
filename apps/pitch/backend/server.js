@@ -155,7 +155,7 @@ app.post('/api/instruction', async (req, res) => {
 
   try {
     const existing = (await getInstruction(instructionRef)) || {};
-    if (existing.stage === 'completed') {
+    if (existing.stage === 'completed' && stage !== 're-visit') {
       return res.json({ completed: true });
     }
 

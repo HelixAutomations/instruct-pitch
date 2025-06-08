@@ -23,6 +23,7 @@ interface PaymentProps {
   workType: string;
   contactFirstName: string;
   pitchedAt: string;
+  instructionReady: boolean;
   onPaymentData?: (data: { aliasId?: string; orderId?: string; shaSign?: string }) => void;
 }
 
@@ -40,6 +41,7 @@ const Payment: React.FC<PaymentProps> = ({
   product,
   contactFirstName,
   pitchedAt,
+  instructionReady,
   onNext,
   onPaymentData,
 }) => {
@@ -51,6 +53,21 @@ const Payment: React.FC<PaymentProps> = ({
   const [paymentDone, setPaymentDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [expiryText, setExpiryText] = useState('');
+
+  if (!instructionReady) {
+    return (
+      <div className="payment-section">
+        <div className="form-container apple-form">
+          <p>Setting up your instruction...</p>
+          <div className="button-group">
+            <button type="button" className="btn secondary" onClick={onBack}>
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (!pitchedAt) return;
