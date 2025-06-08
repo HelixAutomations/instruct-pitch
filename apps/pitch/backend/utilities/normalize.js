@@ -48,7 +48,11 @@ const ALLOWED_FIELDS = [
   'shaSign',
   'paymentAmount',
   'paymentProduct',
-];
+
+  // allow consent & status updates
+  'consentGiven',
+  'internalStatus',
+ ];
 
 function toTitleCase(str) {
   return str
