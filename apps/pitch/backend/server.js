@@ -88,7 +88,7 @@ app.post('/pitch/get-shasign', (req, res) => {
 
 // ─── DirectLink confirm-payment ────────────────────────────────────────
 app.post('/pitch/confirm-payment', async (req, res) => {
-  const { aliasId, orderId } = req.body;
+  const { aliasId, orderId, amount, product } = req.body;
   if (!aliasId || !orderId) {
     return res.status(400).json({ error: 'Missing aliasId or orderId' });
   }
@@ -116,9 +116,16 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
     const pool = await getSqlPool();
-    await pool.request()
+    const req = pool.request()
       .input('InstructionRef', sql.NVarChar, orderId)
-      .query("UPDATE Instructions SET PaymentResult = 'Confirmed', PaymentTimestamp = SYSDATETIME() WHERE InstructionRef = @InstructionRef");
+      .input('PaymentAmount', sql.Decimal(18, 2), amount != null ? Number(amount) : null)
+      .input('PaymentProduct', sql.NVarChar, product || null);
+    await req.query(
+      "UPDATE Instructions SET PaymentResult = 'Confirmed', PaymentTimestamp = SYSDATETIME()," +
+      " PaymentAmount = COALESCE(@PaymentAmount, PaymentAmount)," +
+      " PaymentProduct = COALESCE(@PaymentProduct, PaymentProduct)" +
+      " WHERE InstructionRef = @InstructionRef"
+    );
 
     res.json({ success: true, result: result.data });
   } catch (err) {

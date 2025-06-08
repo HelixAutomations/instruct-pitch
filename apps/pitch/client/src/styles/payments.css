@@ -63,22 +63,24 @@
 .service-summary-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding: 0.25rem 0 0.05rem 0;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0.25rem 0;
 }
 
 .summary-item {
-  flex: 1 1 120px;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  padding-right: 1rem;
-  margin-right: 1rem;
+  padding: 0 0.5rem;
+}
+
+.summary-item:first-child {
+  padding-left: 0;
 }
 
 .summary-item + .summary-item {
   border-left: 1px solid var(--helix-grey, #e3e8ef);
-  padding-left: 1rem;
-  margin-left: 1rem;
 }
 
 .summary-label {
@@ -172,8 +174,7 @@
 
   .summary-item {
     flex: 1 1 100%;
-    padding-right: 0;
-    margin-right: 0;
+    padding: 0;
   }
 
   .summary-item + .summary-item {

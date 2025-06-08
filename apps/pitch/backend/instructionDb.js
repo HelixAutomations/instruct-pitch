@@ -37,9 +37,10 @@ async function upsertInstruction(ref, fields) {
   const setParts = [];
   const insertCols = ['InstructionRef'];
   const insertVals = ['@ref'];
+  const columnMap = { dob: 'DOB', shaSign: 'SHASign' };
 
   for (const [key, val] of Object.entries(fields || {})) {
-    const col = key.charAt(0).toUpperCase() + key.slice(1);
+    const col = columnMap[key] || key.charAt(0).toUpperCase() + key.slice(1);
     if (!allowed.has(col)) continue;
     setParts.push(`[${col}] = @${col}`);
     insertCols.push(`[${col}]`);

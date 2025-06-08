@@ -22,7 +22,7 @@ export default function PaymentResult() {
       fetch('/pitch/confirm-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aliasId, orderId })
+        body: JSON.stringify({ aliasId, orderId, amount, product })
       }).catch(console.error)
     }
 
