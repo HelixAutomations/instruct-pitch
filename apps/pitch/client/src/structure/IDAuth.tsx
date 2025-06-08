@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaUser, FaInfoCircle } from 'react-icons/fa';
+import { FaUser } from 'react-icons/fa';
+import InfoPopover from '../components/InfoPopover';
 import '../styles/IDAuth.css';
 
 /**
@@ -59,7 +60,7 @@ const IDAuth: React.FC<IDAuthProps> = ({
             <span>
               Please confirm your unique <span className="highlight">Client ID</span>.
             </span>
-            <FaInfoCircle className="info-icon" aria-hidden="true" />
+            <InfoPopover text="Your Client ID is included in our email invitation. Enter that ID to continue." />
           </div>
         </header>
 

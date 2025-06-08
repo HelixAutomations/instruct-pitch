@@ -84,12 +84,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   }, [step]);
 
 
-  // Scroll to the top whenever the internal step changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    }
-  }, [step]);
+  // Ensure the start of the form remains in view on step change
+  // without forcing the entire window back to the top
+  // (which caused the page to jump away from the form).
 
   // Effect to keep section completion in sync when fields are cleared
   // Once a section is marked complete via blur, it stays complete
