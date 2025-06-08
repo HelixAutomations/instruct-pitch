@@ -49,7 +49,12 @@ async function upsertInstruction(ref, fields) {
     if (['ConsentGiven'].includes(col)) {
       request.input(col, sql.Bit, Boolean(val));
     } else if (['DOB', 'SubmissionDate', 'PaymentTimestamp'].includes(col)) {
-      request.input(col, sql.DateTime2, val ? new Date(val) : null);
+      let dateVal = null;
+      if (val) {
+        const d = new Date(val);
+        if (!isNaN(d)) dateVal = d;
+      }
+      request.input(col, sql.DateTime2, dateVal);
     } else if (['PaymentAmount'].includes(col)) {
       request.input(col, sql.Decimal(18, 2), val != null ? Number(val) : null);
     } else {
