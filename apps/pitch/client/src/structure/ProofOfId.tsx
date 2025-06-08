@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaUserTie, FaChevronDown } from 'react-icons/fa';
 import InfoPopover from '../components/InfoPopover';
 import '../styles/ProofOfId.css';
@@ -55,6 +55,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   startStep = 1,
 }) => {
   const [step, setStep] = useState<number>(startStep);
+  const formRef = useRef<HTMLDivElement>(null);
   const idStatus = value.idStatus || '';
   const isCompanyClient = value.isCompanyClient ?? null;
   const idType = value.idType || null;
@@ -75,6 +76,21 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     setStep(startStep);
   }, [startStep]);
 
+  // Scroll to the top whenever the internal step changes
+  useEffect(() => {
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [step]);
+
+
+  // Scroll to the top whenever the internal step changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [step]);
+
   // Effect to keep section completion in sync when fields are cleared
   // Once a section is marked complete via blur, it stays complete
   // until one of its required fields becomes empty again.
@@ -94,7 +110,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
       },
       {
         key: 'personalDetails',
-        fields: ['title', 'firstName', 'lastName', 'nationality', 'dob', 'gender'],
+        fields: ['title', 'firstName', 'lastName', 'dob', 'gender', 'nationality'],
       },
       {
         key: 'addressDetails',
@@ -306,7 +322,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   };
 
   return (
-    <div className="form-container apple-form">
+    <div className="form-container apple-form" ref={formRef}>
       {step === 1 && (
         <>
           {/* BOTH Step 1 questions, always visible */}
@@ -408,7 +424,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 <div
                   className={`collapsible-content ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''}`}
                 >
-                  <div className="form-grid">
+                  <div className="form-grid two-col-grid">
                     <div className="form-group">
                       <input
                         type="text"
@@ -455,7 +471,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     <div
                       className={`collapsible-content ${sectionStates.companyAddress.collapsed ? 'collapsed' : ''}`}
                     >
-                      <div className="form-grid">
+                      <div className="form-grid two-col-grid">
                         <div className="form-group">
                           <input
                             type="text"
@@ -629,7 +645,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 </p>
               )}
               <div className="form-grid personal-grid names-row">
-                <div className="form-group">
+                <div className="form-group name-title">
                   <select
                     id="title"
                     className={`paper-input-select ${value.title ? 'filled' : ''}`}
@@ -640,9 +656,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'title',
                         'firstName',
                         'lastName',
-                        'nationality',
                         'dob',
                         'gender',
+                        'nationality',
                       ])
                     }
                   >
@@ -652,7 +668,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     ))}
                   </select>
                 </div>
-                <div className="form-group">
+                <div className="form-group name-first">
                   <input
                     type="text"
                     id="firstName"
@@ -665,14 +681,14 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'title',
                         'firstName',
                         'lastName',
-                        'nationality',
                         'dob',
                         'gender',
+                        'nationality',
                       ])
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group name-last">
                   <input
                     type="text"
                     id="lastName"
@@ -685,9 +701,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'title',
                         'firstName',
                         'lastName',
-                        'nationality',
                         'dob',
                         'gender',
+                        'nationality',
                       ])
                     }
                   />
@@ -707,35 +723,12 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'title',
                         'firstName',
                         'lastName',
-                        'nationality',
                         'dob',
                         'gender',
+                        'nationality',
                       ])
                     }
                   />
-                </div>
-                <div className="form-group">
-                  <select
-                    id="nationality"
-                    className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
-                    value={value.nationality}
-                    onChange={handleInputChange}
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'nationality',
-                        'dob',
-                        'gender',
-                      ])
-                    }
-                  >
-                    <option value="">Nationality</option>
-                    {countries.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
                 </div>
                 <div className="form-group">
                   <select
@@ -748,15 +741,38 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'title',
                         'firstName',
                         'lastName',
-                        'nationality',
                         'dob',
                         'gender',
+                        'nationality',
                       ])
                     }
                   >
                     <option value="">Gender</option>
                     {genders.map(g => (
                       <option key={g.id} value={g.name}>{g.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <select
+                    id="nationality"
+                    className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
+                    value={value.nationality}
+                    onChange={handleInputChange}
+                    onBlur={() =>
+                      handleBlur('personalDetails', [
+                        'title',
+                        'firstName',
+                        'lastName',
+                        'dob',
+                        'gender',
+                        'nationality',
+                      ])
+                    }
+                  >
+                    <option value="">Nationality</option>
+                    {countries.map(c => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
                     ))}
                   </select>
                 </div>
@@ -794,7 +810,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             <div
               className={`collapsible-content ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''}`}
             >
-              <div className="form-grid">
+              <div className="form-grid two-col-grid">
                 <div className="form-group">
                   <input
                     type="text"
@@ -952,7 +968,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             <div
               className={`collapsible-content ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''}`}
             >
-              <div className="form-grid">
+              <div className="form-grid two-col-grid">
                 <div className="form-group">
                   <input
                     type="tel"

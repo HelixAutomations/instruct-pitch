@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FaInfoCircle } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaInfoCircle, FaTimes } from 'react-icons/fa';
 
 interface InfoPopoverProps {
   text: React.ReactNode;
@@ -7,27 +7,28 @@ interface InfoPopoverProps {
 
 const InfoPopover: React.FC<InfoPopoverProps> = ({ text }) => {
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLSpanElement | null>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    if (open) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
 
   return (
-    <span
-      className={`info-icon${open ? ' open' : ''}`}
-      onClick={() => setOpen(o => !o)}
-      ref={wrapperRef}
-    >
-      <FaInfoCircle aria-hidden="true" />
-      <span className="help-text">{text}</span>
-    </span>
+    <>
+      <span className="info-icon" onClick={() => setOpen(true)}>
+        <FaInfoCircle aria-hidden="true" />
+      </span>
+      {open && (
+        <div className="info-overlay" onClick={() => setOpen(false)}>
+          <div className="info-popup" onClick={e => e.stopPropagation()}>
+            <button
+              type="button"
+              className="close-btn"
+              aria-label="Close"
+              onClick={() => setOpen(false)}
+            >
+              <FaTimes aria-hidden="true" />
+            </button>
+            <div className="help-text">{text}</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

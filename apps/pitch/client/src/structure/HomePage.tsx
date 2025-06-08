@@ -666,16 +666,16 @@ const proofSummary = (
           <span className={`field-value${!hasFullName ? ' empty' : ''}`}>{nameParts.filter(Boolean).join(' ') || '--'}</span>
         </p>
         <p>
-          <span className="field-label">Nationality:</span>{' '}
-          <span className={`field-value${!proofData.nationality?.trim() ? ' empty' : ''}`}>{proofData.nationality?.trim() || '--'}</span>
+          <span className="field-label">Gender:</span>{' '}
+          <span className={`field-value${!proofData.gender?.trim() ? ' empty' : ''}`}>{proofData.gender?.trim() || '--'}</span>
         </p>
         <p>
           <span className="field-label">Date of Birth:</span>{' '}
           <span className={`field-value${!proofData.dob?.trim() ? ' empty' : ''}`}>{proofData.dob?.trim() || '--'}</span>
         </p>
         <p>
-          <span className="field-label">Gender:</span>{' '}
-          <span className={`field-value${!proofData.gender?.trim() ? ' empty' : ''}`}>{proofData.gender?.trim() || '--'}</span>
+          <span className="field-label">Nationality:</span>{' '}
+          <span className={`field-value${!proofData.nationality?.trim() ? ' empty' : ''}`}>{proofData.nationality?.trim() || '--'}</span>
         </p>
         <hr />
       </div>

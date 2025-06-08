@@ -450,18 +450,18 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
             </div>
             <div className="form-grid personal-grid">
               <div className="form-group">
-                <label className="form-label" htmlFor="nationality">
-                  Nationality
+                <label className="form-label" htmlFor="gender">
+                  Gender
                 </label>
                 <select
-                  id="nationality"
+                  id="gender"
                   className="apple-input-select"
-                  value={value.nationality}
+                  value={value.gender}
                   onChange={handleInputChange}
                 >
-                  <option value="">Select nationality</option>
-                  {countries.map(c => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
+                  <option value="">Select gender</option>
+                  {genders.map(g => (
+                    <option key={g.id} value={g.name}>{g.name}</option>
                   ))}
                 </select>
               </div>
@@ -478,18 +478,18 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 />
               </div>
               <div className="form-group">
-                <label className="form-label" htmlFor="gender">
-                  Gender
+                <label className="form-label" htmlFor="nationality">
+                  Nationality
                 </label>
                 <select
-                  id="gender"
+                  id="nationality"
                   className="apple-input-select"
-                  value={value.gender}
+                  value={value.nationality}
                   onChange={handleInputChange}
                 >
-                  <option value="">Select gender</option>
-                  {genders.map(g => (
-                    <option key={g.id} value={g.name}>{g.name}</option>
+                  <option value="">Select nationality</option>
+                  {countries.map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
                   ))}
                 </select>
               </div>

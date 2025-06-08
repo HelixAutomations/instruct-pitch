@@ -285,5 +285,4 @@ export const titles: Title[] = [
 export const genders: Gender[] = [
   { id: 1, name: 'Male', code: 'M' },
   { id: 2, name: 'Female', code: 'F' },
-  { id: 3, name: 'Other', code: 'O' },
 ];
