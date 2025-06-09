@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
 import '../styles/payments.css';
+import '../styles/SummaryReview.css';
 
 interface PaymentDetails {
   cardNumber: string;
@@ -55,72 +56,71 @@ const Payment: React.FC<PaymentProps> = ({
   const [expiryText, setExpiryText] = useState('');
   const [stage, setStage] = useState<'choose' | 'card' | 'bank'>('choose');
   const [choice, setChoice] = useState<'card' | 'bank' | null>(null);
+  const [bankConfirmed, setBankConfirmed] = useState(false);
 
   const formatAmount = (amt: number) => {
     const hasDecimals = Math.floor(amt) !== amt;
     return amt.toLocaleString('en-GB', {
       minimumFractionDigits: hasDecimals ? 2 : 0,
-      maximumFractionDigits: hasDecimals ? 2 : 0,
-    });
+    maximumFractionDigits: hasDecimals ? 2 : 0,
+  });
   };
+
+  const bankRef = orderId.replace(/^HLX-/, '');
   
+  let content;
+
   if (!instructionReady) {
-    return (
-      <div className="payment-section">
-        <div className="form-container apple-form">
-          <p>Setting up your instruction...</p>
-          <div className="button-group">
-            <button type="button" className="btn secondary" onClick={onBack}>
-              Back
-            </button>
-          </div>
+    content = (
+      <div className="form-container apple-form">
+        <p>Setting up your instruction...</p>
+        <div className="button-group">
+          <button type="button" className="btn secondary" onClick={onBack}>
+            Back
+          </button>
         </div>
       </div>
     );
-  }
-
-    if (stage === 'choose') {
-    return (
-      <div className="payment-section">
-        <div className="form-container apple-form">
-          <div className="form-group step1-centered question-container">
-            <label id="payment-method-label" className="question-banner">
-              How would you like to pay?
-            </label>
-            <div
-              className="modern-toggle-group"
-              role="radiogroup"
-              aria-labelledby="payment-method-label"
+  } else if (stage === 'choose') {
+    content = (
+      <div className="form-container apple-form">
+        <div className="form-group step1-centered question-container">
+          <label id="payment-method-label" className="question-banner">
+            How would you like to pay?
+          </label>
+          <div
+            className="modern-toggle-group"
+            role="radiogroup"
+            aria-labelledby="payment-method-label"
+          >
+            <button
+              type="button"
+              className={`modern-toggle-button ${choice === 'card' ? 'active' : ''}`}
+              onClick={() => setChoice('card')}
             >
-              <button
-                type="button"
-                className={`modern-toggle-button ${choice === 'card' ? 'active' : ''}`}
-                onClick={() => setChoice('card')}
-              >
-                Card
-              </button>
-              <button
-                type="button"
-                className={`modern-toggle-button ${choice === 'bank' ? 'active' : ''}`}
-                onClick={() => setChoice('bank')}
-              >
-                Bank Transfer
-              </button>
-            </div>
-          </div>
-          <div className="button-group">
-            <button type="button" className="btn secondary" onClick={onBack}>
-              Back
+              Card
             </button>
             <button
               type="button"
-              className="btn primary"
-              disabled={!choice}
-              onClick={() => choice && setStage(choice)}
+              className={`modern-toggle-button ${choice === 'bank' ? 'active' : ''}`}
+              onClick={() => setChoice('bank')}
             >
-              Next
+              Bank Transfer
             </button>
           </div>
+        </div>
+        <div className="button-group">
+          <button type="button" className="btn secondary" onClick={onBack}>
+            Back
+          </button>
+          <button
+            type="button"
+            className="btn primary"
+            disabled={!choice}
+            onClick={() => choice && setStage(choice)}
+          >
+            Next
+          </button>
         </div>
       </div>
     );
@@ -242,8 +242,8 @@ const Payment: React.FC<PaymentProps> = ({
     generateShasignUrl();
   }, [pspid, orderId, acceptUrl, exceptionUrl, preloadFlexUrl, onError]);
 
-  return (
-    <div className="payment-section">
+  if (!content) {
+    content = (
       <div className="combined-section payment-pane">
         <div className="service-summary-box">
           <div className="question-banner">Service Summary</div>
@@ -255,19 +255,19 @@ const Payment: React.FC<PaymentProps> = ({
               </div>
             )}
             <div className="summary-item">
+              <div className="summary-label">Expiry</div>
+              <div className="summary-value">{expiryText}</div>
+            </div>
+            <div className="summary-item">
               <div className="summary-label">
                 Amount <span className="summary-note">(inc. VAT)</span>
               </div>
               <div className="summary-value">£{formatAmount(amount)}</div>
             </div>
-            <div className="summary-item">
-              <div className="summary-label">Expiry</div>
-              <div className="summary-value">{expiryText}</div>
-            </div>
           </div>
           {contactFirstName && (
             <p className="pitch-description">
-              {contactFirstName} will begin work on your {product} once your ID is verified and your matter is open. The fee is £{formatAmount(amount)} including VAT.
+              {contactFirstName} will begin work on {product} once your ID is verified and your matter is open. The fee is £{formatAmount(amount)} including VAT. Please note that this fee quotation is subject to a time limit and must be accepted before the stated expiry date to remain valid.
             </p>
           )}
         </div>
@@ -317,9 +317,35 @@ const Payment: React.FC<PaymentProps> = ({
                 <p>Barclays Bank</p>
                 <p>Account Number: 93472434</p>
                 <p>Sort Code: 20-27-91</p>
-                <p>Reference: LZ – 22388</p>
+                <p>Reference: {bankRef}</p>
               </div>
               <p>Please ensure to quote the above reference so that we promptly identify your payment.</p>
+              <div className="summary-confirmation">
+                <label className="modern-checkbox-label">
+                  <input
+                    type="checkbox"
+                    className="modern-checkbox-input"
+                    checked={bankConfirmed}
+                    onChange={(e) => setBankConfirmed(e.target.checked)}
+                  />
+                  <span className="modern-checkbox-custom" aria-hidden="true">
+                    <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">
+                      <polyline
+                        className="tick"
+                        points="5,13 10,18 19,7"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="modern-checkbox-text">
+                    I confirm I have made the bank transfer.
+                  </span>
+                </label>
+              </div>
               <div className="button-group">
                 <button className="btn secondary" onClick={() => setStage('choose')}>
                   Back
@@ -333,6 +359,7 @@ const Payment: React.FC<PaymentProps> = ({
                     localStorage.setItem('paymentSuccess', 'true');
                     onNext();
                   }}
+                  disabled={!bankConfirmed}
                 >
                   Next
                 </button>
@@ -342,8 +369,10 @@ const Payment: React.FC<PaymentProps> = ({
           )}
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <div className="payment-section">{content}</div>;
 };
 
 export default Payment;
