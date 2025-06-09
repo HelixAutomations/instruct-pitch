@@ -5,7 +5,7 @@
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
 }
 
 /* Group header (used for both sections) */
@@ -183,7 +183,7 @@
 @media (max-width: 600px) {
   .payment-section {
     max-width: 98vw;
-    padding: 0 2vw;
+    padding: 0;
   }
 
   .combined-section {
