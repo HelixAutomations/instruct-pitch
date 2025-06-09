@@ -206,11 +206,10 @@ const Payment: React.FC<PaymentProps> = ({
               </div>
             )}
             <div className="summary-item">
-              <div className="summary-label">Amount</div>
-              <div className="summary-value">
-                £{formatAmount(amount)}{' '}
-                <span className="summary-note">(inc. VAT)</span>
+              <div className="summary-label">
+                Amount <span className="summary-note">(inc. VAT)</span>
               </div>
+              <div className="summary-value">£{formatAmount(amount)}</div>
             </div>
             <div className="summary-item">
               <div className="summary-label">Expiry</div>

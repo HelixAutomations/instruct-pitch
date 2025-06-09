@@ -35,28 +35,3 @@
   margin: 0; /* Remove any custom margins that might push it too far left */
   padding: 0; /* Remove any padding that might interfere */
 }
-
-/* Keep the mark positioned relative to the viewport's right edge */
-.page-hero::before {
-  content: "";
-  position: absolute;
-  top: 30px;
-  right: 30px; /* Position relative to the viewport's right edge */
-  height: 80%;
-  width: auto;
-  min-width: 150px;
-  aspect-ratio: 1/1;
-  background: url('/assets/markwhite.svg') no-repeat right center;
-  background-size: auto 100%;
-  background-position: right center;
-  opacity: 0.15;
-  z-index: 2;
-}
-
-/*
-@media (min-width: 1200px) {
-  .page-hero::before {
-    right: calc((100vw - 1200px) / 2);
-  }
-}
-*/

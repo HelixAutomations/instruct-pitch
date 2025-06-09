@@ -60,6 +60,15 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   const isCompanyClient = value.isCompanyClient ?? null;
   const idType = value.idType || null;
 
+  const [activeTeam, setActiveTeam] = useState<string[]>([]);
+
+  useEffect(() => {
+    const prefill = (window as any).helixPrefillData;
+    if (Array.isArray(prefill?.activeTeam)) {
+      setActiveTeam(prefill.activeTeam);
+    }
+  }, []);
+
   // State to track collapsed and completed status for each section
   const [sectionStates, setSectionStates] = useState<SectionStates>({
     companyDetails: { collapsed: false, completed: false },
@@ -1097,8 +1106,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     Person you have spoken to at Helix Law
                   </option>
                   <option value="Unsure">Unsure</option>
-                  <option value="John Doe">John Doe</option>
-                  <option value="Jane Smith">Jane Smith</option>
+                  {(activeTeam.length > 0 ? activeTeam : ['John Doe', 'Jane Smith']).map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
                 </select>
               </div>
             </div>
