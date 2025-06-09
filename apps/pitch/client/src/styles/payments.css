@@ -33,6 +33,8 @@
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
+  border: 1px solid #ffffff;
+  font-size: 0.95rem;
 }
 
 .service-summary-box .question-banner {
@@ -112,7 +114,7 @@
 .summary-label {
   font-size: 0.97rem;
   color: #6c7685;
-  font-weight: 500;
+  font-weight: 700;
   text-align: left;
   padding-right: 0.5em;
   white-space: nowrap;
@@ -121,8 +123,8 @@
 
 .summary-value {
   font-size: 1.01rem;
-  color: #16213d;
-  font-weight: 500;
+  color: var(--helix-highlight, #3690CE);
+  font-weight: 700;
   padding-left: 0.1em;
   word-break: break-word;
 }
@@ -133,12 +135,30 @@
   margin-left: 0.4rem;
 }
 
+/* Bank details copy box */
+.copy-box {
+  background: #ffffff;
+  border: 1px solid var(--helix-grey, #e3e8ef);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+
 /* Promotional description shown below the summary grid */
 .pitch-description {
   margin-top: 0.8rem;
   font-size: 1.05rem;
   line-height: 1.4;
   color: var(--helix-dark-blue, #061733);
+}
+
+/* Subtle note shown below the promotional text */
+.quotation-note {
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  color: #6b7280;
 }
 
 /* Horizontal line */
@@ -220,6 +240,10 @@
 
   .pitch-description {
     font-size: 0.98rem;
+  }
+
+  .quotation-note {
+    font-size: 0.88rem;
   }
 
 }

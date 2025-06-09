@@ -46,6 +46,7 @@ import '../styles/HomePage.css';
 import { ProofData } from '../context/ProofData';
 import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
+import { toTitleCase } from '../utils/format';
 
 const ALLOWED_FIELDS = [
   'isCompanyClient',
@@ -567,6 +568,12 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
   const nameParts = [proofData.title, proofData.firstName, proofData.lastName];
   const hasFullName = nameParts.every(p => p && p.trim());
 
+  const formattedNameParts = [
+    proofData.title,
+    proofData.firstName ? toTitleCase(proofData.firstName) : undefined,
+    proofData.lastName ? toTitleCase(proofData.lastName) : undefined,
+  ];
+
   const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
   const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
 
@@ -622,15 +629,15 @@ const proofSummary = (
               {proofData.companyHouseNumber?.trim() || 'House Number'}
             </span>,&nbsp;
             <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyStreet?.trim() || 'Street'}
+              {proofData.companyStreet?.trim() ? toTitleCase(proofData.companyStreet.trim()) : 'Street'}
             </span>
           </div>
           <div>
             <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyCity?.trim() || 'City'}
+              {proofData.companyCity?.trim() ? toTitleCase(proofData.companyCity.trim()) : 'City'}
             </span>,&nbsp;
             <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyCounty?.trim() || 'County'}
+              {proofData.companyCounty?.trim() ? toTitleCase(proofData.companyCounty.trim()) : 'County'}
             </span>
           </div>
           <div>
@@ -663,7 +670,7 @@ const proofSummary = (
         <FaUser className="backdrop-icon" />
         <p>
           <span className="field-label">Name:</span>{' '}
-          <span className={`field-value${!hasFullName ? ' empty' : ''}`}>{nameParts.filter(Boolean).join(' ') || '--'}</span>
+          <span className={`field-value${!hasFullName ? ' empty' : ''}`}>{formattedNameParts.filter(Boolean).join(' ') || '--'}</span>
         </p>
         <p>
           <span className="field-label">Gender:</span>{' '}
@@ -698,14 +705,14 @@ const proofSummary = (
           <div>
             <span className={!proofData.houseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.houseNumber?.trim() || 'House Number'}</span>
             ,&nbsp;
-            <span className={!proofData.street?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.street?.trim() || 'Street'}</span>
+            <span className={!proofData.street?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.street?.trim() ? toTitleCase(proofData.street.trim()) : 'Street'}</span>
           </div>
           <div>
-            <span className={!proofData.city?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.city?.trim() || 'City'}</span>
+            <span className={!proofData.city?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.city?.trim() ? toTitleCase(proofData.city.trim()) : 'City'}</span>
             ,&nbsp;
-            <span className={!proofData.county?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.county?.trim() || 'County'}</span>
+            <span className={!proofData.county?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.county?.trim() ? toTitleCase(proofData.county.trim()) : 'County'}</span>
           </div>
-          <div>
+          <div>            <span className={!proofData.city?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.city?.trim() || 'City'}</span>
             <span className={!proofData.postcode?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.postcode?.trim() || 'Postcode'}</span>
             ,&nbsp;
             <span className={!proofData.country?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.country?.trim() || 'Country'}</span>
@@ -734,7 +741,7 @@ const proofSummary = (
         </p>
         <p>
           <span className="field-label">Email:</span>{' '}
-          <span className={`field-value${!proofData.email?.trim() ? ' empty' : ''}`}>{proofData.email?.trim() || '--'}</span>
+          <span className={`field-value${!proofData.email?.trim() ? ' empty' : ''}`}>{proofData.email?.trim() ? proofData.email.trim().toLowerCase() : '--'}</span>
         </p>
         <hr />
       </div>

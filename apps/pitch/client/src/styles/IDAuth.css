@@ -130,31 +130,37 @@
 
 /* Styles for InfoPopover overlay */
 .info-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 1000;
 }
 
-.info-popup {
+.info-modal {
   position: relative;
   background: var(--helix-dark-blue);
   color: #fff;
   padding: 1rem;
-  width: 100%;
+  width: 90%;
+  max-width: 400px;
   border-radius: 4px;
   text-align: center;
 }
 
-.close-btn {
+.info-close {
   position: absolute;
   top: 8px;
   right: 8px;
   color: #fff;
-  font-size: 1rem;
+  font-size: 1.25rem;
   cursor: pointer;
+}
+
+.info-content {
+  margin-top: 0.5rem;
+  font-size: 1rem;
 }
 
 @media (max-width: 768px) {

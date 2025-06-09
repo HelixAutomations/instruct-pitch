@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
 import '../styles/payments.css';
 import '../styles/SummaryReview.css';
+import InfoPopover from '../components/InfoPopover';
 
 interface PaymentDetails {
   cardNumber: string;
@@ -255,7 +256,10 @@ const Payment: React.FC<PaymentProps> = ({
               </div>
             )}
             <div className="summary-item">
-              <div className="summary-label">Expiry</div>
+              <div className="summary-label">
+                Expires in{' '}
+                <InfoPopover text="Please note that this fee quotation is subject to a time limit and must be accepted before the stated expiry date to remain valid." />
+              </div>
               <div className="summary-value">{expiryText}</div>
             </div>
             <div className="summary-item">
@@ -267,7 +271,7 @@ const Payment: React.FC<PaymentProps> = ({
           </div>
           {contactFirstName && (
             <p className="pitch-description">
-              {contactFirstName} will begin work on {product} once your ID is verified and your matter is open. The fee is £{formatAmount(amount)} including VAT. Please note that this fee quotation is subject to a time limit and must be accepted before the stated expiry date to remain valid.
+              {contactFirstName} will begin work on {product} once your ID is verified and your matter is open. The fee is £{formatAmount(amount)} including VAT.
             </p>
           )}
         </div>
@@ -313,11 +317,15 @@ const Payment: React.FC<PaymentProps> = ({
                 Please pay £{formatAmount(amount)} on account of costs, using our account details below:
               </p>
               <div className="question-container">
-                <p><strong>Helix Law General Client Account</strong></p>
-                <p>Barclays Bank</p>
-                <p>Account Number: 93472434</p>
-                <p>Sort Code: 20-27-91</p>
-                <p>Reference: {bankRef}</p>
+                <div className="copy-box">
+                  <p>
+                    <strong>Helix Law General Client Account</strong>
+                  </p>
+                  <p>Barclays Bank</p>
+                  <p>Account Number: 93472434</p>
+                  <p>Sort Code: 20-27-91</p>
+                  <p>Reference: {bankRef}</p>
+                </div>
               </div>
               <p>Please ensure to quote the above reference so that we promptly identify your payment.</p>
               <div className="summary-confirmation">

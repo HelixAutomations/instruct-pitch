@@ -2,6 +2,8 @@
 
 This repository contains a small React client and an Express backend used to demonstrate a payment flow with Barclays ePDQ.
 
+For an overview of how these pieces fit together, see the [architecture diagram](docs/architecture.md).
+
 ## Prerequisites
 - Node.js 18+
 - npm
