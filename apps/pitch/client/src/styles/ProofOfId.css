@@ -238,27 +238,28 @@
   background: #f5f5f7;
 }
 
+.info-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+
 .info-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: absolute;
+  inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  z-index: 10;
 }
 
 .info-modal {
   position: relative;
-  background: #ffffff;
-  padding: 1rem 1.5rem;
-  max-width: 500px;
-  width: calc(100% - 2rem);
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: var(--helix-dark-blue);
+  color: #fff;
+  padding: 1rem;
+  width: 100%;
+  border-radius: 4px;
   text-align: center;
 }
 
@@ -266,15 +267,9 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: none;
-  border: none;
-  color: var(--helix-dark-blue);
-  cursor: pointer;
+  color: #fff;
   font-size: 1.25rem;
-}
-
-.info-close:hover {
-  color: var(--helix-highlight);
+  cursor: pointer;
 }
 
 .info-content {
@@ -290,39 +285,31 @@
 
 /* Centered popover overlay for info icon */
 .info-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 3, 25, 0.7);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
+  z-index: 10;
 }
 
 .info-popup {
   position: relative;
-  background: #ffffff;
-  padding: 1.5rem;
-  max-width: 400px;
-  width: 90%;
-  border-radius: 8px;
+  background: var(--helix-dark-blue);
+  color: #fff;
+  padding: 1rem;
+  width: 100%;
+  border-radius: 4px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .close-btn {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: transparent;
-  border: none;
-  color: var(--helix-dark-blue);
-  cursor: pointer;
+  color: #fff;
   font-size: 1rem;
+  cursor: pointer;
 }
 
 
