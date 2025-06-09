@@ -238,78 +238,10 @@
   background: #f5f5f7;
 }
 
-.info-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-
-.info-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-}
-
-.info-modal {
-  position: relative;
-  background: var(--helix-dark-blue);
-  color: #fff;
-  padding: 1rem;
-  width: 100%;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.info-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: #fff;
-  font-size: 1.25rem;
-  cursor: pointer;
-}
-
-.info-content {
-  margin-top: 0.5rem;
-  font-size: 1rem;
-}
-
 .modern-toggle-group {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
-}
-
-/* Centered popover overlay for info icon */
-.info-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.info-popup {
-  position: relative;
-  background: var(--helix-dark-blue);
-  color: #fff;
-  padding: 1rem;
-  width: 100%;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.close-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
 }
 
 

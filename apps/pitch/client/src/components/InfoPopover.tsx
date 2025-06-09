@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaInfoCircle, FaTimes } from 'react-icons/fa';
+import '../styles/InfoPopover.css';
 
 interface InfoPopoverProps {
   text: React.ReactNode;

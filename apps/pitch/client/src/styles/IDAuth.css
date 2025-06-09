@@ -128,41 +128,6 @@
   cursor: not-allowed;
 }
 
-/* Styles for InfoPopover overlay */
-.info-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.info-modal {
-  position: relative;
-  background: var(--helix-dark-blue);
-  color: #fff;
-  padding: 1rem;
-  width: 90%;
-  max-width: 400px;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.info-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: #fff;
-  font-size: 1.25rem;
-  cursor: pointer;
-}
-
-.info-content {
-  margin-top: 0.5rem;
-  font-size: 1rem;
-}
-
 @media (max-width: 768px) {
   .modal-content {
     padding: 16px;
