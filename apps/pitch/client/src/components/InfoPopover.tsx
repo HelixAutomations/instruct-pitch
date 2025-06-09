@@ -8,7 +8,9 @@ interface InfoPopoverProps {
 
 const InfoPopover: React.FC<InfoPopoverProps> = ({ text }) => {
   const [open, setOpen] = useState(false);
+  const [modalPos, setModalPos] = useState({ top: 0, left: 0 });
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const iconRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -23,8 +25,18 @@ const InfoPopover: React.FC<InfoPopoverProps> = ({ text }) => {
   return (
     <div className="info-wrapper" ref={wrapperRef}>
       <span
+        ref={iconRef}
         className={`info-icon${open ? ' open' : ''}`}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (iconRef.current) {
+            const rect = iconRef.current.getBoundingClientRect();
+            setModalPos({
+              top: rect.bottom + window.scrollY + 8,
+              left: rect.left + window.scrollX,
+            });
+          }
+          setOpen(true);
+        }}
       >
         <FaInfoCircle aria-hidden="true" />
       </span>
@@ -32,6 +44,7 @@ const InfoPopover: React.FC<InfoPopoverProps> = ({ text }) => {
         <div className="info-overlay" onClick={() => setOpen(false)}>
           <div
             className="info-modal"
+            style={{ top: modalPos.top, left: modalPos.left }}
             onClick={(e) => e.stopPropagation()}
           >
             <span

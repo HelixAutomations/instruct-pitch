@@ -82,49 +82,6 @@ const Payment: React.FC<PaymentProps> = ({
         </div>
       </div>
     );
-  } else if (stage === 'choose') {
-    content = (
-      <div className="form-container apple-form">
-        <div className="form-group step1-centered question-container">
-          <label id="payment-method-label" className="question-banner">
-            How would you like to pay?
-          </label>
-          <div
-            className="modern-toggle-group"
-            role="radiogroup"
-            aria-labelledby="payment-method-label"
-          >
-            <button
-              type="button"
-              className={`modern-toggle-button ${choice === 'card' ? 'active' : ''}`}
-              onClick={() => setChoice('card')}
-            >
-              Card
-            </button>
-            <button
-              type="button"
-              className={`modern-toggle-button ${choice === 'bank' ? 'active' : ''}`}
-              onClick={() => setChoice('bank')}
-            >
-              Bank Transfer
-            </button>
-          </div>
-        </div>
-        <div className="button-group">
-          <button type="button" className="btn secondary" onClick={onBack}>
-            Back
-          </button>
-          <button
-            type="button"
-            className="btn primary"
-            disabled={!choice}
-            onClick={() => choice && setStage(choice)}
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    );
   }
   
   useEffect(() => {
@@ -243,7 +200,152 @@ const Payment: React.FC<PaymentProps> = ({
     generateShasignUrl();
   }, [pspid, orderId, acceptUrl, exceptionUrl, preloadFlexUrl, onError]);
 
-  if (!content) {
+  if (!content && instructionReady) {
+    let paymentDetailsContent;
+
+    if (stage === 'choose') {
+      paymentDetailsContent = (
+        <div className="form-container apple-form">
+          <div className="form-group step1-centered question-container">
+            <label id="payment-method-label" className="question-banner">
+              How would you like to pay?
+            </label>
+            <div
+              className="modern-toggle-group"
+              role="radiogroup"
+              aria-labelledby="payment-method-label"
+            >
+              <button
+                type="button"
+                className={`modern-toggle-button ${choice === 'card' ? 'active' : ''}`}
+                onClick={() => setChoice('card')}
+              >
+                Card
+              </button>
+              <button
+                type="button"
+                className={`modern-toggle-button ${choice === 'bank' ? 'active' : ''}`}
+                onClick={() => setChoice('bank')}
+              >
+                Bank Transfer
+              </button>
+            </div>
+          </div>
+          <div className="button-group">
+            <button type="button" className="btn secondary" onClick={onBack}>
+              Back
+            </button>
+            <button
+              type="button"
+              className="btn primary"
+              disabled={!choice}
+              onClick={() => choice && setStage(choice)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    } else if (stage === 'card') {
+      paymentDetailsContent = (
+        <>
+          <div className="iframe-wrapper">
+            {flexUrl ? (
+              <iframe
+                ref={iframeRef}
+                title="FlexCheckout"
+                src={flexUrl}
+                style={{ width: '100%', height: `${iframeHeight || 300}px`, border: 0 }}
+              />
+            ) : (
+              <div>{error ? `Error: ${error}` : 'Loading secure payment form…'}</div>
+            )}
+          </div>
+
+          <div className="button-group">
+            <button className="btn secondary" onClick={() => setStage('choose')}>
+              Back
+            </button>
+            <button
+              className="btn primary"
+              onClick={submitToIframe}
+              disabled={!flexUrl || !formReady || submitting || paymentDone}
+            >
+              Pay
+            </button>
+            {paymentDone && (
+              <button className="btn primary" onClick={onNext}>
+                Next
+              </button>
+            )}
+          </div>
+        </>
+      );
+    } else {
+      paymentDetailsContent = (
+        <>
+          <p>
+            Please pay £{formatAmount(amount)} on account of costs, using our account details below:
+          </p>
+          <div className="question-container">
+            <div className="copy-box">
+              <p>
+                <strong>Helix Law General Client Account</strong>
+              </p>
+              <p>Barclays Bank</p>
+              <p>Account Number: 93472434</p>
+              <p>Sort Code: 20-27-91</p>
+              <p>Reference: {bankRef}</p>
+            </div>
+          </div>
+          <p>Please ensure to quote the above reference so that we promptly identify your payment.</p>
+          <div className="summary-confirmation">
+            <label className="modern-checkbox-label">
+              <input
+                type="checkbox"
+                className="modern-checkbox-input"
+                checked={bankConfirmed}
+                onChange={(e) => setBankConfirmed(e.target.checked)}
+              />
+              <span className="modern-checkbox-custom" aria-hidden="true">
+                <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">
+                  <polyline
+                    className="tick"
+                    points="5,13 10,18 19,7"
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="modern-checkbox-text">
+                I confirm I have made the bank transfer.
+              </span>
+            </label>
+          </div>
+          <div className="button-group">
+            <button className="btn secondary" onClick={() => setStage('choose')}>
+              Back
+            </button>
+            <button
+              className="btn primary"
+              onClick={() => {
+                setPaymentDone(true);
+                setIsComplete(true);
+                sessionStorage.setItem('paymentDone', 'true');
+                localStorage.setItem('paymentSuccess', 'true');
+                onNext();
+              }}
+              disabled={!bankConfirmed}
+            >
+              Next
+            </button>
+          </div>
+        </>
+      );
+    }
     content = (
       <div className="combined-section payment-pane">
         <div className="service-summary-box">
@@ -278,103 +380,7 @@ const Payment: React.FC<PaymentProps> = ({
 
         <div className="payment-details">
 
-          {stage === 'card' ? (
-            <>
-              <div className="iframe-wrapper">
-                {flexUrl ? (
-                  <iframe
-                    ref={iframeRef}
-                    title="FlexCheckout"
-                    src={flexUrl}
-                    style={{ width: '100%', height: `${iframeHeight || 300}px`, border: 0 }}
-                  />
-                ) : (
-                  <div>{error ? `Error: ${error}` : 'Loading secure payment form…'}</div>
-                )}
-              </div>
-
-              <div className="button-group">
-                <button className="btn secondary" onClick={() => setStage('choose')}>
-                  Back
-                </button>
-                <button
-                  className="btn primary"
-                  onClick={submitToIframe}
-                  disabled={!flexUrl || !formReady || submitting || paymentDone}
-                >
-                  Pay
-                </button>
-                {paymentDone && (
-                  <button className="btn primary" onClick={onNext}>
-                    Next
-                  </button>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <p>
-                Please pay £{formatAmount(amount)} on account of costs, using our account details below:
-              </p>
-              <div className="question-container">
-                <div className="copy-box">
-                  <p>
-                    <strong>Helix Law General Client Account</strong>
-                  </p>
-                  <p>Barclays Bank</p>
-                  <p>Account Number: 93472434</p>
-                  <p>Sort Code: 20-27-91</p>
-                  <p>Reference: {bankRef}</p>
-                </div>
-              </div>
-              <p>Please ensure to quote the above reference so that we promptly identify your payment.</p>
-              <div className="summary-confirmation">
-                <label className="modern-checkbox-label">
-                  <input
-                    type="checkbox"
-                    className="modern-checkbox-input"
-                    checked={bankConfirmed}
-                    onChange={(e) => setBankConfirmed(e.target.checked)}
-                  />
-                  <span className="modern-checkbox-custom" aria-hidden="true">
-                    <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">
-                      <polyline
-                        className="tick"
-                        points="5,13 10,18 19,7"
-                        fill="none"
-                        stroke="#fff"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <span className="modern-checkbox-text">
-                    I confirm I have made the bank transfer.
-                  </span>
-                </label>
-              </div>
-              <div className="button-group">
-                <button className="btn secondary" onClick={() => setStage('choose')}>
-                  Back
-                </button>
-                <button
-                  className="btn primary"
-                  onClick={() => {
-                    setPaymentDone(true);
-                    setIsComplete(true);
-                    sessionStorage.setItem('paymentDone', 'true');
-                    localStorage.setItem('paymentSuccess', 'true');
-                    onNext();
-                  }}
-                  disabled={!bankConfirmed}
-                >
-                  Next
-                </button>
-              </div>
-            </>
-
-          )}
+          {paymentDetailsContent}
         </div>
       </div>
     );
