@@ -54,6 +54,14 @@ const Payment: React.FC<PaymentProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [expiryText, setExpiryText] = useState('');
 
+  const formatAmount = (amt: number) => {
+    const hasDecimals = Math.floor(amt) !== amt;
+    return amt.toLocaleString('en-GB', {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: hasDecimals ? 2 : 0,
+    });
+  };
+  
   if (!instructionReady) {
     return (
       <div className="payment-section">
@@ -200,7 +208,7 @@ const Payment: React.FC<PaymentProps> = ({
             <div className="summary-item">
               <div className="summary-label">Amount</div>
               <div className="summary-value">
-                £{amount.toFixed(2)}{' '}
+                £{formatAmount(amount)}{' '}
                 <span className="summary-note">(inc. VAT)</span>
               </div>
             </div>
@@ -211,7 +219,7 @@ const Payment: React.FC<PaymentProps> = ({
           </div>
           {contactFirstName && (
             <p className="pitch-description">
-              {contactFirstName} will begin work on your {product} once your ID is verified and your matter is open. The fee is £{amount.toFixed(2)} including VAT.
+              {contactFirstName} will begin work on your {product} once your ID is verified and your matter is open. The fee is £{formatAmount(amount)} including VAT.
             </p>
           )}
         </div>
