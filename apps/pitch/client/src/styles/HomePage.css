@@ -502,6 +502,9 @@
     padding: 7px 6px 12px 6px !important;  /* Small, but even on left/right */
     box-sizing: border-box;
   }
+  .step-section:last-child .step-content {
+    padding-bottom: 0 !important;
+  }
 }
 
 /* Payment pane: allow natural height */

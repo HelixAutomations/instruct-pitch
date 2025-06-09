@@ -53,6 +53,8 @@ const Payment: React.FC<PaymentProps> = ({
   const [paymentDone, setPaymentDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [expiryText, setExpiryText] = useState('');
+  const [stage, setStage] = useState<'choose' | 'card' | 'bank'>('choose');
+  const [choice, setChoice] = useState<'card' | 'bank' | null>(null);
 
   const formatAmount = (amt: number) => {
     const hasDecimals = Math.floor(amt) !== amt;
@@ -77,6 +79,53 @@ const Payment: React.FC<PaymentProps> = ({
     );
   }
 
+    if (stage === 'choose') {
+    return (
+      <div className="payment-section">
+        <div className="form-container apple-form">
+          <div className="form-group step1-centered question-container">
+            <label id="payment-method-label" className="question-banner">
+              How would you like to pay?
+            </label>
+            <div
+              className="modern-toggle-group"
+              role="radiogroup"
+              aria-labelledby="payment-method-label"
+            >
+              <button
+                type="button"
+                className={`modern-toggle-button ${choice === 'card' ? 'active' : ''}`}
+                onClick={() => setChoice('card')}
+              >
+                Card
+              </button>
+              <button
+                type="button"
+                className={`modern-toggle-button ${choice === 'bank' ? 'active' : ''}`}
+                onClick={() => setChoice('bank')}
+              >
+                Bank Transfer
+              </button>
+            </div>
+          </div>
+          <div className="button-group">
+            <button type="button" className="btn secondary" onClick={onBack}>
+              Back
+            </button>
+            <button
+              type="button"
+              className="btn primary"
+              disabled={!choice}
+              onClick={() => choice && setStage(choice)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   useEffect(() => {
     if (!pitchedAt) return;
     const pitchDate = new Date(pitchedAt);
@@ -225,37 +274,73 @@ const Payment: React.FC<PaymentProps> = ({
 
         <div className="payment-details">
 
-        <div className="iframe-wrapper">
-          {flexUrl ? (
-            <iframe
-              ref={iframeRef}
-              title="FlexCheckout"
-              src={flexUrl}
-              style={{ width: '100%', height: `${iframeHeight || 300}px`, border: 0 }}
-            />
+          {stage === 'card' ? (
+            <>
+              <div className="iframe-wrapper">
+                {flexUrl ? (
+                  <iframe
+                    ref={iframeRef}
+                    title="FlexCheckout"
+                    src={flexUrl}
+                    style={{ width: '100%', height: `${iframeHeight || 300}px`, border: 0 }}
+                  />
+                ) : (
+                  <div>{error ? `Error: ${error}` : 'Loading secure payment form…'}</div>
+                )}
+              </div>
+
+              <div className="button-group">
+                <button className="btn secondary" onClick={() => setStage('choose')}>
+                  Back
+                </button>
+                <button
+                  className="btn primary"
+                  onClick={submitToIframe}
+                  disabled={!flexUrl || !formReady || submitting || paymentDone}
+                >
+                  Pay
+                </button>
+                {paymentDone && (
+                  <button className="btn primary" onClick={onNext}>
+                    Next
+                  </button>
+                )}
+              </div>
+            </>
           ) : (
-            <div>{error ? `Error: ${error}` : 'Loading secure payment form…'}</div>
+            <>
+              <p>
+                Please pay £{formatAmount(amount)} on account of costs, using our account details below:
+              </p>
+              <div className="question-container">
+                <p><strong>Helix Law General Client Account</strong></p>
+                <p>Barclays Bank</p>
+                <p>Account Number: 93472434</p>
+                <p>Sort Code: 20-27-91</p>
+                <p>Reference: LZ – 22388</p>
+              </div>
+              <p>Please ensure to quote the above reference so that we promptly identify your payment.</p>
+              <div className="button-group">
+                <button className="btn secondary" onClick={() => setStage('choose')}>
+                  Back
+                </button>
+                <button
+                  className="btn primary"
+                  onClick={() => {
+                    setPaymentDone(true);
+                    setIsComplete(true);
+                    sessionStorage.setItem('paymentDone', 'true');
+                    localStorage.setItem('paymentSuccess', 'true');
+                    onNext();
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+
           )}
         </div>
-
-       <div className="button-group">
-         <button className="btn secondary" onClick={onBack}>
-           Back
-         </button>
-         <button
-           className="btn primary"
-           onClick={submitToIframe}
-           disabled={!flexUrl || !formReady || submitting || paymentDone}
-         >
-           Pay
-         </button>
-         {paymentDone && (
-           <button className="btn primary" onClick={onNext}>
-             Next
-           </button>
-         )}
-       </div>
-       </div>
       </div>
     </div>
   );
