@@ -75,6 +75,18 @@ const Payment: React.FC<PaymentProps> = ({
     }
   }, [setIsComplete]);
 
+  useEffect(() => {
+    if (sessionStorage.getItem('paymentDone') === 'true') {
+      const method = sessionStorage.getItem('paymentMethod');
+      if (method === 'card') {
+        setStage('card');
+      } else if (method === 'bank') {
+        setStage('bank');
+        setBankConfirmed(true);
+      }
+    }
+  }, []);
+
   const formatAmount = (amt: number) => {
     const hasDecimals = Math.floor(amt) !== amt;
     return amt.toLocaleString('en-GB', {
@@ -148,8 +160,9 @@ const Payment: React.FC<PaymentProps> = ({
             const orderId = url.searchParams.get('Alias.OrderId') || undefined;
             const shaSign = url.searchParams.get('SHASIGN') || url.searchParams.get('SHASign') || undefined;
             if (onPaymentData) {
-              onPaymentData({ aliasId, orderId, shaSign });
+              onPaymentData({ aliasId, orderId, shaSign, paymentMethod: 'card' });
             }
+            sessionStorage.setItem('paymentMethod', 'card');
             if (aliasId) sessionStorage.setItem('aliasId', aliasId);
             if (orderId) sessionStorage.setItem('orderId', orderId);
             if (shaSign) sessionStorage.setItem('shaSign', shaSign);
@@ -207,6 +220,7 @@ const Payment: React.FC<PaymentProps> = ({
           `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
         );
         if (onPaymentData) onPaymentData({ orderId, shaSign: json.shasign, paymentMethod: 'card' });
+        sessionStorage.setItem('paymentMethod', 'card');
       } catch (err) {
         console.error(err);
         setError('Failed to load payment form. Please try again.');
@@ -259,6 +273,7 @@ const Payment: React.FC<PaymentProps> = ({
               onClick={() => {
                 if (!choice) return;
                 if (onPaymentData) onPaymentData({ paymentMethod: choice });
+                sessionStorage.setItem('paymentMethod', choice);
                 setStage(choice);
               }}
             >
@@ -285,6 +300,7 @@ const Payment: React.FC<PaymentProps> = ({
 
           <div className="button-group">
             <button className="btn secondary" onClick={() => setStage('choose')}>
+            <button className="btn secondary" onClick={() => setStage('choose')} disabled={paymentDone}>
               Back
             </button>
             {paymentDone ? (
@@ -357,7 +373,10 @@ const Payment: React.FC<PaymentProps> = ({
                 setPaymentDone(true);
                 setIsComplete(true);
                 sessionStorage.setItem('paymentDone', 'true');
+
+                sessionStorage.setItem('paymentMethod', 'bank');
                 localStorage.setItem('paymentSuccess', 'true');
+                if (onPaymentData) onPaymentData({ paymentMethod: 'bank' });
                 onNext();
               }}
               disabled={!bankConfirmed}

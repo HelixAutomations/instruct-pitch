@@ -101,6 +101,7 @@ interface StepHeaderProps {
   toggle: () => void;
   locked?: boolean;
   onEdit?: () => void;
+  editable?: boolean;
 }
 
 interface UploadedFile {
@@ -140,13 +141,14 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   toggle,
   locked = false,
   onEdit,
+  editable = true,
 }) => {
   // dark-blue skin when the step is CLOSED and NOT complete
   const attention = !open && !complete;
   const { summaryComplete } = useCompletion();
 
   const showTick = step === 1 ? summaryComplete : complete;
-  const showEdit = !open && !locked && showTick;
+  const showEdit = editable && !open && !locked && showTick;
 
   return (
     <div
@@ -214,7 +216,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     aliasId: params.get('Alias.AliasId') || sessionStorage.getItem('aliasId') || undefined,
     orderId: params.get('Alias.OrderId') || sessionStorage.getItem('orderId') || undefined,
     shaSign: params.get('SHASign') || sessionStorage.getItem('shaSign') || undefined,
-    paymentMethod: undefined,
+    paymentMethod: (sessionStorage.getItem('paymentMethod') as 'card' | 'bank' | null) || undefined,
   });
 
   const updatePaymentData = (data: {
@@ -223,6 +225,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     shaSign?: string;
     paymentMethod?: 'card' | 'bank';
   }) => {
+    if (data.paymentMethod) {
+      sessionStorage.setItem('paymentMethod', data.paymentMethod);
+    }
     setPaymentData(prev => ({ ...prev, ...data }));
   };
 // with
@@ -1030,7 +1035,8 @@ const proofSummary = (
                     complete={isPaymentDone}
                     open={openStep === 2}
                     toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
-                    locked={instructionCompleted || isPaymentDone}
+                    locked={instructionCompleted}
+                    editable={paymentData.paymentMethod !== 'card'}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
                     {(prefetchPayment || openStep === 2) && (
