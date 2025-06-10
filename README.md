@@ -85,6 +85,11 @@ UPLOAD_CONTAINER=instruction-files
 
 These specify where the server stores uploaded documents in Azure Blob Storage.
 
+### Email Environment Variables
+
+Emails are sent directly through Microsoft Graph using a service account.
+Ensure the Key Vault referenced by `KEY_VAULT_NAME` contains the secrets `graph-pitchbuilderemailprovider-clientid` and `graph-pitchbuilderemailprovider-clientsecret`. If Graph sending fails the server falls back to the local SMTP settings `SMTP_HOST`, `SMTP_USER` and `SMTP_PASS`.
+
 ### Document upload behaviour
 
 Uploaded documents are not cached between sessions. Refreshing the page or returning to the upload step shows an empty form and no files are considered uploaded until they are submitted again during that visit.

@@ -1,7 +1,19 @@
 const nodemailer = require('nodemailer');
+const axios = require('axios');
+const { DefaultAzureCredential } = require("@azure/identity");
+const { SecretClient } = require("@azure/keyvault-secrets");
 
 const FROM_ADDRESS = 'operations@helix-law.com';
 const FROM_NAME = 'Helix Law Team';
+
+const tenantId = "7fbc252f-3ce5-460f-9740-4e1cb8bf78b8";
+const clientIdSecret = "graph-pitchbuilderemailprovider-clientid";
+const clientSecretSecret = "graph-pitchbuilderemailprovider-clientsecret";
+const keyVaultName = process.env.KEY_VAULT_NAME || "helixlaw-instructions";
+const vaultUrl = `https://${keyVaultName}.vault.azure.net`;
+const credential = new DefaultAzureCredential();
+const secretClient = new SecretClient(vaultUrl, credential);
+let cachedClientId, cachedClientSecret;
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -100,8 +112,56 @@ function wrapSignature(bodyHtml) {
   return signature;
 }
 
+async function getGraphCredentials() {
+  if (!cachedClientId || !cachedClientSecret) {
+    const [id, secret] = await Promise.all([
+      secretClient.getSecret(clientIdSecret),
+      secretClient.getSecret(clientSecretSecret),
+    ]);
+    cachedClientId = id.value;
+    cachedClientSecret = secret.value;
+  }
+  return { clientId: cachedClientId, clientSecret: cachedClientSecret };
+}
+
+async function sendViaGraph(to, subject, html) {
+  const { clientId, clientSecret } = await getGraphCredentials();
+  const tokenRes = await axios.post(
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+    new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      scope: "https://graph.microsoft.com/.default",
+      grant_type: "client_credentials",
+    }).toString(),
+    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+  );
+  const accessToken = tokenRes.data.access_token;
+  const payload = {
+    message: {
+      subject,
+      body: { contentType: "HTML", content: html },
+      toRecipients: [{ emailAddress: { address: to } }],
+      from: { emailAddress: { address: FROM_ADDRESS } },
+    },
+    saveToSentItems: "false",
+  };
+  await axios.post(
+    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(FROM_ADDRESS)}/sendMail`,
+    payload,
+    { headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" } }
+  );
+}
+
+
 async function sendMail(to, subject, bodyHtml) {
   const html = wrapSignature(bodyHtml);
+  try {
+    await sendViaGraph(to, subject, html);
+    return;
+  } catch (err) {
+    console.error("sendMail via Graph failed, falling back to SMTP", err);
+  }
   await transporter.sendMail({
     from: `"${FROM_NAME}" <${FROM_ADDRESS}>`,
     to,

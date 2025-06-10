@@ -26,6 +26,8 @@ module.exports = async function (context, req) {
   const body = req.body || {};
   const emailContents = body.email_contents;
   const userEmail = body.user_email;
+  const subject = body.subject || 'Your Enquiry from Helix';
+  const fromEmail = body.from_email || 'automations@helix-law.com';
 
   if (!emailContents || !userEmail) {
     context.res = { status: 400, body: 'Missing email_contents or user_email' };
@@ -51,19 +53,19 @@ module.exports = async function (context, req) {
 
     const messagePayload = {
       message: {
-        subject: 'Your Enquiry from Helix',
+        subject,
         body: {
           contentType: 'HTML',
           content: emailContents
         },
         toRecipients: [{ emailAddress: { address: userEmail } }],
-        from: { emailAddress: { address: 'automations@helix-law.com' } }
+        from: { emailAddress: { address: fromEmail } }
       },
       saveToSentItems: 'false'
     };
 
     const graphResponse = await axios.post(
-      'https://graph.microsoft.com/v1.0/users/automations@helix-law.com/sendMail',
+      `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(fromEmail)}/sendMail`,
       messagePayload,
       {
         headers: {
