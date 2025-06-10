@@ -36,6 +36,7 @@ Pop-Location
 
 # Copy backend files to root
 Copy-Item .\backend\server.js ..\..\ -Force
+Copy-Item .\backend\email.js ..\..\ -Force
 Copy-Item .\backend\upload.js ..\..\ -Force
 Copy-Item .\backend\sqlClient.js ..\..\ -Force
 Copy-Item .\backend\instructionDb.js ..\..\ -Force
@@ -63,6 +64,7 @@ Compress-Archive -Path `
   .\client, `
   .\dist, `
   .\server.js, `
+  .\email.js, `
   .\upload.js, `
   .\sqlClient.js, `
   .\instructionDb.js, `
@@ -82,7 +84,7 @@ az webapp deployment source config-zip `
 # Optional cleanup
 $shouldClean = $true
 if ($shouldClean) {
-  Remove-Item .\server.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
+  Remove-Item .\server.js, .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue
