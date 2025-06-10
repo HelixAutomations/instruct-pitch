@@ -26,7 +26,7 @@ interface PaymentProps {
   contactFirstName: string;
   pitchedAt: string;
   instructionReady: boolean;
-  onPaymentData?: (data: { aliasId?: string; orderId?: string; shaSign?: string }) => void;
+  onPaymentData?: (data: { aliasId?: string; orderId?: string; shaSign?: string; paymentMethod?: 'card' | 'bank' }) => void;
   style?: React.CSSProperties;
 }
 
@@ -198,6 +198,7 @@ const Payment: React.FC<PaymentProps> = ({
         setFlexUrl(
           `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
         );
+        if (onPaymentData) onPaymentData({ orderId, shaSign: json.shasign, paymentMethod: 'card' });
       } catch (err) {
         console.error(err);
         setError('Failed to load payment form. Please try again.');
@@ -247,7 +248,11 @@ const Payment: React.FC<PaymentProps> = ({
               type="button"
               className="btn primary"
               disabled={!choice}
-              onClick={() => choice && setStage(choice)}
+              onClick={() => {
+                if (!choice) return;
+                if (onPaymentData) onPaymentData({ paymentMethod: choice });
+                setStage(choice);
+              }}
             >
               Next
             </button>

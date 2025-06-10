@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import '../styles/PaymentResult.css'
-import tickMark from '../assets/dark blue mark.svg'
+import logoMark from '../assets/dark blue mark.svg'
 
 export default function PaymentResult() {
   const { search } = useLocation()
@@ -45,13 +45,34 @@ export default function PaymentResult() {
       setSuccess(null)
     }
   }, [aliasId, orderId, result, status])
+
+  useEffect(() => {
+    if (!orderId || success === null) return
+    fetch('/api/instruction/send-emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instructionRef: orderId })
+    }).catch(console.error)
+  }, [orderId, success])
   const feeEarner = sessionStorage.getItem('feeEarnerName') || ''
 
   return (
     <div className="result-panel">
-        <h2>
-          <img src={tickMark} alt="" className="result-tick" />
+        <h2 className="result-header">
+          <span className="completion-tick visible">
+            <svg viewBox="0 0 24 24">
+              <polyline
+                points="5,13 10,18 19,7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
           {message}
+          <img src={logoMark} alt="" className="result-logo" />
         </h2>
         {success && (
           <>

@@ -198,11 +198,26 @@ const StepHeader: React.FC<StepHeaderProps> = ({
 
 const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionRef }) => {
   const params = new URLSearchParams(window.location.search);
-  const [paymentData, setPaymentData] = useState<{ aliasId?: string; orderId?: string; shaSign?: string }>({
+  const [paymentData, setPaymentData] = useState<{
+    aliasId?: string;
+    orderId?: string;
+    shaSign?: string;
+    paymentMethod?: 'card' | 'bank';
+  }>({
     aliasId: params.get('Alias.AliasId') || sessionStorage.getItem('aliasId') || undefined,
     orderId: params.get('Alias.OrderId') || sessionStorage.getItem('orderId') || undefined,
     shaSign: params.get('SHASign') || sessionStorage.getItem('shaSign') || undefined,
+    paymentMethod: undefined,
   });
+
+  const updatePaymentData = (data: {
+    aliasId?: string;
+    orderId?: string;
+    shaSign?: string;
+    paymentMethod?: 'card' | 'bank';
+  }) => {
+    setPaymentData(prev => ({ ...prev, ...data }));
+  };
 // with
   const [instruction, setInstruction] = useState({
     instructionRef,
@@ -873,7 +888,22 @@ const proofSummary = (
   };
 
   useEffect(() => {
-    const { aliasId, orderId, shaSign } = paymentData;
+    const { aliasId, orderId, shaSign, paymentMethod } = paymentData;
+
+    if (paymentMethod || orderId || shaSign) {
+      const payload: any = {
+        instructionRef: instruction.instructionRef,
+        stage: 'in_progress',
+        paymentMethod,
+        orderId,
+        shaSign,
+      };
+      fetch('/api/instruction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(err => console.error('Failed to save payment info', err));
+    }
     if (aliasId && orderId && shaSign) {
       fetch('/pitch/confirm-payment', {
         method: 'POST',
@@ -890,7 +920,7 @@ const proofSummary = (
           console.error('❌ Failed to confirm payment server-side:', err);
         });
     }
-  }, [paymentData]);
+  }, [paymentData, instruction.instructionRef]);
 
   return (
     <div className="home-page">
@@ -989,7 +1019,7 @@ const proofSummary = (
                           exceptionUrl={EXCEPTION_URL}
                           preloadFlexUrl={preloadedFlexUrl}
                           instructionReady={instructionReady}
-                          onPaymentData={setPaymentData}
+                          onPaymentData={updatePaymentData}
                         />
                     )}
                   </div>

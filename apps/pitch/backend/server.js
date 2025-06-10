@@ -177,7 +177,7 @@ app.post('/api/instruction', async (req, res) => {
 
     const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
     const record = await upsertInstruction(instructionRef, sanitized);
-    res.json(record);
+    res.json({ ok: true });
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
     res.status(500).json({ error: 'Failed to save instruction' });
@@ -196,7 +196,20 @@ app.post('/api/instruction/complete', async (req, res) => {
 
     const record = await markCompleted(instructionRef);
 
-    // ─── Trigger emails -------------------------------------------------------
+    res.json(record);
+  } catch (err) {
+    console.error('❌ /api/instruction/send-emails error:', err);
+    res.status(500).json({ error: 'Failed to send emails' });
+  }
+});
+app.post('/api/instruction/send-emails', async (req, res) => {
+  const { instructionRef } = req.body;
+  if (!instructionRef) return res.status(400).json({ error: 'Missing instructionRef' });
+
+  try {
+    const record = await getInstruction(instructionRef);
+    if (!record) return res.status(404).json({ error: 'Instruction not found' });
+
     try {
       const {
         sendClientSuccessEmail,
@@ -218,6 +231,7 @@ app.post('/api/instruction/complete', async (req, res) => {
       }
     } catch (emailErr) {
       console.error('❌ Failed to send notification emails:', emailErr);
+      return res.status(500).json({ error: 'Email failure' });
     }
 
     res.json(record);
