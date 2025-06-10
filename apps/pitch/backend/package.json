@@ -17,7 +17,8 @@
     "@azure/identity": "^3.3.0",
     "@azure/keyvault-secrets": "^4.9.0",
     "@azure/storage-blob": "^12.14.0",
-    "mssql": "^11.0.1"
+    "mssql": "^11.0.1",
+    "nodemailer": "^6.9.11"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

@@ -55,6 +55,11 @@ The decoupled `dealCapture` Azure Function uses the same `KEY_VAULT_NAME` (or
 `KEY_VAULT_URL`) setting. If not provided it falls back to the default vault
 `https://helix-keys-v1.vault.azure.net/`.
 
+The `sendEmail` Azure Function also relies on these variables. In production we
+set `KEY_VAULT_NAME=helixlaw-instructions` which stores the Graph secrets
+`graph-pitchbuilderemailprovider-clientid` and
+`graph-pitchbuilderemailprovider-clientsecret`.
+
 ### Database Environment Variables
 
 The backend connects to a SQL Server instance using the following settings in `apps/pitch/backend/.env`:

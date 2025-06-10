@@ -57,6 +57,7 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
   aliasId,
   orderId,
   shaSign,
+  amount,
   onConfirmed,
 }) => {
   const { instructionRef: ctxInstructionRef } = useClient();
@@ -65,15 +66,16 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
 
   const handleSubmit = async () => {
     try {
+      const hasDeal = amount != null && amount > 0;
       await fetch('/api/instruction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           instructionRef,
-          stage: 'ID Proof',
+          stage: hasDeal ? 'ID Proof' : 'direct',
           ...proofData,
           consentGiven: true,
-          internalStatus: 'Proof of ID',
+          internalStatus: hasDeal ? 'Proof of ID' : 'completed_unpaid',
           submissionTime: new Date().toISOString(),
           aliasId,
           orderId,
@@ -81,11 +83,13 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
           workType,
         })
       });
-      await fetch('/api/instruction/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructionRef })
-      });
+      if (hasDeal) {
+        await fetch('/api/instruction/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ instructionRef })
+        });
+      }
       setSummaryComplete(true);
       if (onConfirmed) onConfirmed();
     } catch (err) {

@@ -16,6 +16,7 @@ declare global {
 }
 
 import React, { useState, useEffect, useRef, useMemo, JSX } from 'react';
+import { scrollIntoViewIfNeeded } from '../utils/scroll';
 import { useCompletion } from '../context/CompletionContext';
 import {
   FaUser,
@@ -267,6 +268,8 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
+  const hasDeal = instruction.amount > 0;
+  const maxStep = hasDeal ? 3 : 1;
   const [proofStartStep, setProofStartStep] = useState<number>(1);
   const [restartId, setRestartId] = useState(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
@@ -475,7 +478,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     setOpenStep(1);
     setRestartId((r) => r + 1);
     setProofStartStep(startStep);
-    step1Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollIntoViewIfNeeded(step1Ref.current);
   };
   const handleEditSection = (stepNum: number) => {
     handleEdit(stepNum);
@@ -536,10 +539,7 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
   useEffect(() => {
     const refs = [step1Ref, step2Ref, step3Ref];
     if (openStep > 0) {
-      refs[openStep - 1]?.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      scrollIntoViewIfNeeded(refs[openStep - 1]?.current);
     }
   }, [openStep]);
 
@@ -843,7 +843,7 @@ const proofSummary = (
     if (openStep === 1 && !showReview) {
       if (skipReview) {
         setEditing(false);
-        setOpenStep(2);
+        setOpenStep(hasDeal ? 2 : 1);
       } else {
         setShowReview(true);
       }
@@ -852,7 +852,7 @@ const proofSummary = (
     if (openStep === 1 && showReview) {
       setEditing(false);
     }
-    setOpenStep((prev) => (prev < 3 ? (prev + 1) as any : prev));
+    setOpenStep((prev) => (prev < maxStep ? (prev + 1) as any : prev));
   };
   const back = () => {
     if (openStep === 1 && showReview) {
@@ -948,68 +948,73 @@ const proofSummary = (
               </div>
             </div>
 
-            <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}>
-              <StepHeader
-                step={2}
-                title="Pay"
-                complete={isPaymentDone}
-                open={openStep === 2}
-                toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
-                locked={instructionCompleted}
-              />
-              <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
-                {(prefetchPayment || openStep === 2) && (
-                  <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
-                    <Payment
-                      paymentDetails={paymentDetails}
-                      setIsComplete={setPaymentDone}
-                      onBack={back}
-                      onNext={next}
-                      onError={(code) => console.error('Payment error', code)}
-                      pspid={PSPID}
-                      orderId={instruction.instructionRef}
-                      amount={instruction.amount}
-                      product={instruction.product}
-                      workType={instruction.workType}
-                      contactFirstName={proofData.helixContact.split(' ')[0] || ''}
-                      pitchedAt={instruction.pitchedAt}
-                      acceptUrl={ACCEPT_URL}
-                      exceptionUrl={EXCEPTION_URL}
-                      preloadFlexUrl={preloadedFlexUrl}
-                      instructionReady={instructionReady}
-                      onPaymentData={setPaymentData}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
-              <StepHeader
-                step={3}
-                title={<>Upload Files <span className="optional">(optional)</span></>}
-                complete={isUploadDone}
-                open={openStep === 3}
-                toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
-                locked={instructionCompleted}
-              />
-              <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
-                {openStep === 3 && (
-                  <DocumentUpload
-                    uploadedFiles={uploadedFiles}
-                    setUploadedFiles={setUploadedFiles}
-                    setIsComplete={setUploadDone}
-                    onBack={back}
-                    onNext={next}
-                    setUploadSkipped={setUploadSkipped}
-                    isUploadSkipped={isUploadSkipped}
-                    clientId={clientId}
-                    instructionRef={instruction.instructionRef}
-                    instructionReady={instructionReady}
-                    instructionError={instructionError}
+            {hasDeal && (
+              <>
+                <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}>
+                  <StepHeader
+                    step={2}
+                    title="Pay"
+                    complete={isPaymentDone}
+                    open={openStep === 2}
+                    toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
+                    locked={instructionCompleted}
                   />
-                )}
-              </div>
-            </div>
+                  <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
+                    {(prefetchPayment || openStep === 2) && (
+                      <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
+                        <Payment
+                          paymentDetails={paymentDetails}
+                          setIsComplete={setPaymentDone}
+                          onBack={back}
+                          onNext={next}
+                          onError={(code) => console.error('Payment error', code)}
+                          pspid={PSPID}
+                          orderId={instruction.instructionRef}
+                          amount={instruction.amount}
+                          product={instruction.product}
+                          workType={instruction.workType}
+                          contactFirstName={proofData.helixContact.split(' ')[0] || ''}
+                          pitchedAt={instruction.pitchedAt}
+                          acceptUrl={ACCEPT_URL}
+                          exceptionUrl={EXCEPTION_URL}
+                          preloadFlexUrl={preloadedFlexUrl}
+                          instructionReady={instructionReady}
+                          onPaymentData={setPaymentData}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
+                  <StepHeader
+                    step={3}
+                    title={<>Upload Files <span className="optional">(optional)</span></>}
+                    complete={isUploadDone}
+                    open={openStep === 3}
+                    toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
+                    locked={instructionCompleted}
+                  />
+                  <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
+                    {openStep === 3 && (
+                      <DocumentUpload
+                        uploadedFiles={uploadedFiles}
+                        setUploadedFiles={setUploadedFiles}
+                        setIsComplete={setUploadDone}
+                        onBack={back}
+                        onNext={next}
+                        setUploadSkipped={setUploadSkipped}
+                        isUploadSkipped={isUploadSkipped}
+                        clientId={clientId}
+                        instructionRef={instruction.instructionRef}
+                        instructionReady={instructionReady}
+                        instructionError={instructionError}
+                      />
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
           </div>
 
           {/* Desktop: always show summary sidebar */}

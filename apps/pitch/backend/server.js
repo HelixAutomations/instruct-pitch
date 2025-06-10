@@ -195,6 +195,31 @@ app.post('/api/instruction/complete', async (req, res) => {
     }
 
     const record = await markCompleted(instructionRef);
+
+    // ─── Trigger emails -------------------------------------------------------
+    try {
+      const {
+        sendClientSuccessEmail,
+        sendClientFailureEmail,
+        sendFeeEarnerEmail,
+        sendAccountsEmail,
+      } = require('./email');
+
+      if (record.PaymentMethod === 'bank') {
+        await sendAccountsEmail(record);
+      }
+
+      await sendFeeEarnerEmail(record);
+
+      if (record.PaymentResult === 'Confirmed' || record.PaymentMethod === 'bank') {
+        await sendClientSuccessEmail(record);
+      } else {
+        await sendClientFailureEmail(record);
+      }
+    } catch (emailErr) {
+      console.error('❌ Failed to send notification emails:', emailErr);
+    }
+
     res.json(record);
   } catch (err) {
     console.error('❌ /api/instruction/complete error:', err);

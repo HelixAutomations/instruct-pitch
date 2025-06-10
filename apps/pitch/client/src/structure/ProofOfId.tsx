@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { scrollIntoViewIfNeeded } from '../utils/scroll';
 import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaUserTie, FaChevronDown } from 'react-icons/fa';
 import InfoPopover from '../components/InfoPopover';
 import '../styles/ProofOfId.css';
@@ -87,9 +88,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
 
   // Scroll to the top whenever the internal step changes
   useEffect(() => {
-    if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    scrollIntoViewIfNeeded(formRef.current);
   }, [step]);
 
 
