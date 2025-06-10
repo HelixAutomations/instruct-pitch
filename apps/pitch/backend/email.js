@@ -15,15 +15,19 @@ const credential = new DefaultAzureCredential();
 const secretClient = new SecretClient(vaultUrl, credential);
 let cachedClientId, cachedClientSecret;
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const smtpHost = process.env.SMTP_HOST;
+let transporter = null;
+if (smtpHost) {
+  transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+}
 
 function deriveEmail(fullName) {
   if (!fullName) return FROM_ADDRESS;
@@ -161,6 +165,10 @@ async function sendMail(to, subject, bodyHtml) {
     return;
   } catch (err) {
     console.error("sendMail via Graph failed, falling back to SMTP", err);
+  }
+  if (!transporter) {
+    console.error("SMTP_HOST not configured, cannot send email via SMTP");
+    return;
   }
   await transporter.sendMail({
     from: `"${FROM_NAME}" <${FROM_ADDRESS}>`,

@@ -59,6 +59,12 @@ const Payment: React.FC<PaymentProps> = ({
   const [choice, setChoice] = useState<'card' | 'bank' | null>(null);
   const [bankConfirmed, setBankConfirmed] = useState(false);
 
+  useEffect(() => {
+    if (contactFirstName) {
+      sessionStorage.setItem('feeEarnerName', contactFirstName);
+    }
+  }, [contactFirstName]);
+
   const formatAmount = (amt: number) => {
     const hasDecimals = Math.floor(amt) !== amt;
     return amt.toLocaleString('en-GB', {
@@ -266,16 +272,17 @@ const Payment: React.FC<PaymentProps> = ({
             <button className="btn secondary" onClick={() => setStage('choose')}>
               Back
             </button>
-            <button
-              className="btn primary"
-              onClick={submitToIframe}
-              disabled={!flexUrl || !formReady || submitting || paymentDone}
-            >
-              Pay
-            </button>
-            {paymentDone && (
+            {paymentDone ? (
               <button className="btn primary" onClick={onNext}>
                 Next
+              </button>
+            ) : (
+              <button
+                className="btn primary"
+                onClick={submitToIframe}
+                disabled={!flexUrl || !formReady || submitting}
+              >
+                Pay
               </button>
             )}
           </div>

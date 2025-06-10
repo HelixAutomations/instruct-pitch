@@ -89,6 +89,8 @@ These specify where the server stores uploaded documents in Azure Blob Storage.
 
 Emails are sent directly through Microsoft Graph using a service account.
 Ensure the Key Vault referenced by `KEY_VAULT_NAME` contains the secrets `graph-pitchbuilderemailprovider-clientid` and `graph-pitchbuilderemailprovider-clientsecret`. If Graph sending fails the server falls back to the local SMTP settings `SMTP_HOST`, `SMTP_USER` and `SMTP_PASS`.
+If `SMTP_HOST` is missing the fallback is skipped; otherwise Nodemailer defaults
+to `localhost` and email delivery fails.
 
 ### Document upload behaviour
 

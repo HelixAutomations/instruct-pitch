@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import '../styles/PaymentResult.css'
+import tickMark from '../assets/dark blue mark.svg'
 
 export default function PaymentResult() {
   const { search } = useLocation()
@@ -44,17 +45,20 @@ export default function PaymentResult() {
       setSuccess(null)
     }
   }, [aliasId, orderId, result, status])
+  const feeEarner = sessionStorage.getItem('feeEarnerName') || ''
 
   return (
     <div className="result-panel">
-        <h2>{message}</h2>
+        <h2>
+          <img src={tickMark} alt="" className="result-tick" />
+          {message}
+        </h2>
         {success && (
           <>
             <p>
-              Thanks for your payment{amount ? ` of £${Number(amount).toFixed(2)}` : ''}
-              {product ? ` for ${product}` : ''}. We’ve received your instruction and will be in touch soon.
+              Thank you for your payment which we have received. We will contact you separately under separate cover shortly and will take it from there.
             </p>
-            <p>Please click Next to confirm your details and open your matter.</p>
+            <p>To finalise your instruction, please upload documents requested by {feeEarner || 'us'}, if any.</p>
           </>
         )}
         {success === false && (
