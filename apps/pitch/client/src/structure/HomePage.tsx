@@ -47,6 +47,7 @@ import '../styles/HomePage.css';
 import { ProofData } from '../context/ProofData';
 import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
+import { CSSTransition } from 'react-transition-group';
 import { toTitleCase } from '../utils/format';
 
 const ALLOWED_FIELDS = [
@@ -310,6 +311,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
+  const [closingStep, setClosingStep] = useState<0 | 1 | 2 | 3>(0);
   const hasDeal = instruction.amount > 0;
   const maxStep = hasDeal ? 3 : 1;
   const [proofStartStep, setProofStartStep] = useState<number>(1);
@@ -319,6 +321,19 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
+
+  const goToStep = (target: 0 | 1 | 2 | 3) => {
+    if (openStep !== target) {
+      if (openStep !== 0) setClosingStep(openStep);
+      setOpenStep(target);
+    }
+  };
+
+  useEffect(() => {
+    if (!closingStep) return;
+    const t = setTimeout(() => setClosingStep(0), 400);
+    return () => clearTimeout(t);
+  }, [closingStep]);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -394,7 +409,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
 
   useEffect(() => {
     if (instructionCompleted) {
-      setOpenStep(0);
+      goToStep(0);
     }
   }, [instructionCompleted]);
 
@@ -527,7 +542,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     setEditBaseline(proofData);
     setEditing(true);
     setShowReview(false);
-    setOpenStep(1);
+    goToStep(1);
     setRestartId((r) => r + 1);
     setProofStartStep(startStep);
     scrollIntoViewIfNeeded(step1Ref.current);
@@ -585,7 +600,7 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
 }
 
   useEffect(() => {
-    if (step1Reveal) setOpenStep(1);
+    if (step1Reveal) goToStep(1);
   }, [step1Reveal]);
 
   useEffect(() => {
@@ -644,11 +659,16 @@ const proofSummary = (
     )}
 
     {/* Company Details if applicable */}
-    {proofData.isCompanyClient && (
+    <CSSTransition
+      in={!!proofData.isCompanyClient}
+      timeout={250}
+      classNames="summary-company-anim"
+      unmountOnExit
+    >
       <div className="group" id="summary-company">
         <div className="summary-group-header">
           <span>Company Details</span>
-          {showReview && (
+          {showReview && !detailsConfirmed && (
             <button
               type="button"
               className="summary-edit-btn visible"
@@ -703,12 +723,12 @@ const proofSummary = (
         </div>
         <hr />
       </div>
-    )}
+    </CSSTransition>
 
       <div className="group" id="summary-personal">
         <div className="summary-group-header">
           <span>Personal Details</span>
-          {showReview && (
+          {showReview && !detailsConfirmed && (
             <button
               type="button"
               className="summary-edit-btn visible"
@@ -741,7 +761,7 @@ const proofSummary = (
       <div className="group" id="summary-address">
         <div className="summary-group-header">
           <span>Address</span>
-          {showReview && (
+          {showReview && !detailsConfirmed && (
             <button
               type="button"
               className="summary-edit-btn visible"
@@ -775,7 +795,7 @@ const proofSummary = (
       <div className="group" id="summary-contact">
         <div className="summary-group-header">
           <span>Contact Details</span>
-          {showReview && (
+          {showReview && !detailsConfirmed && (
             <button
               type="button"
               className="summary-edit-btn visible"
@@ -800,7 +820,7 @@ const proofSummary = (
       <div className="group" id="summary-id">
         <div className="summary-group-header">
           <span>ID Details</span>
-          {showReview && (
+          {showReview && !detailsConfirmed && (
             <button
               type="button"
               className="summary-edit-btn visible"
@@ -826,7 +846,7 @@ const proofSummary = (
         {/* Solicitor information */}
       <div className="summary-group-header">
           <span>Helix Contact</span>
-          {showReview && (
+          {showReview && !detailsConfirmed && (
             <button
               type="button"
               className="summary-edit-btn visible"
@@ -896,7 +916,7 @@ const proofSummary = (
       if (skipReview) {
         setEditing(false);
         const target = hasDeal ? (isPaymentDone ? 3 : 2) : 1;
-        setOpenStep(target as any);
+        goToStep(target as any);
       } else {
         setShowReview(true);
       }
@@ -906,23 +926,21 @@ const proofSummary = (
       setEditing(false);
     }
     if (openStep === 2 && isPaymentDone) {
-      setOpenStep(3);
+      goToStep(3);
       return;
     }
-    setOpenStep((prev) => (prev < maxStep ? (prev + 1) as any : prev));
+    goToStep(openStep < maxStep ? ((openStep + 1) as any) : openStep);
   };
   const back = () => {
     if (openStep === 1 && showReview) {
       setShowReview(false);
       return;
     }
-    setOpenStep((prev) => {
-      let target = prev > 1 ? ((prev - 1) as 0 | 1 | 2 | 3) : prev;
-      if (target === 2 && isPaymentDone) {
-        target = 1;
-      }
-      return target;
-    });
+    let target = openStep > 1 ? ((openStep - 1) as 0 | 1 | 2 | 3) : openStep;
+    if (target === 2 && isPaymentDone) {
+      target = 1;
+    }
+    goToStep(target);
   };
 
   useEffect(() => {
@@ -977,13 +995,14 @@ const proofSummary = (
                 title="Prove Your Identity"
                 complete={isIdReviewDone}
                 open={openStep === 1}
-                toggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
+                toggle={() => goToStep(openStep === 1 ? 0 : 1)}
                 locked={instructionCompleted}
                 onEdit={handleEdit}
               />
               <div
-                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone, editing)}`}>
-                {openStep === 1 && (
+                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone, editing)}`}
+              >
+                {(openStep === 1 || closingStep === 1) && (
                   !showReview ? (
                     <ProofOfId
                       key={restartId}
@@ -1034,12 +1053,12 @@ const proofSummary = (
                     title="Pay"
                     complete={isPaymentDone}
                     open={openStep === 2}
-                    toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
+                    toggle={() => goToStep(openStep === 2 ? 0 : 2)}
                     locked={instructionCompleted}
                     editable={paymentData.paymentMethod !== 'card'}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
-                    {(prefetchPayment || openStep === 2) && (
+                    {(prefetchPayment || openStep === 2 || closingStep === 2) && (
                         <Payment
                           style={{ display: openStep === 2 ? 'block' : 'none' }}
                           paymentDetails={paymentDetails}
@@ -1069,11 +1088,11 @@ const proofSummary = (
                     title={<>Upload Files <span className="optional">(optional)</span></>}
                     complete={isUploadDone}
                     open={openStep === 3}
-                    toggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
+                    toggle={() => goToStep(openStep === 3 ? 0 : 3)}
                     locked={instructionCompleted}
                   />
                   <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
-                    {openStep === 3 && (
+                    {(openStep === 3 || closingStep === 3) && (
                       <DocumentUpload
                         uploadedFiles={uploadedFiles}
                         setUploadedFiles={setUploadedFiles}

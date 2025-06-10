@@ -358,3 +358,27 @@
 .system-info-text {
   color: #6b7280;
 }
+
+/* Animation for company summary reveal/hide */
+.summary-company-anim-enter {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-8px);
+}
+.summary-company-anim-enter-active {
+  opacity: 1;
+  max-height: 500px;
+  transform: translateY(0);
+  transition: opacity 250ms ease, transform 250ms ease, max-height 250ms ease;
+}
+.summary-company-anim-exit {
+  opacity: 1;
+  max-height: 500px;
+  transform: translateY(0);
+}
+.summary-company-anim-exit-active {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-8px);
+  transition: opacity 200ms ease, transform 200ms ease, max-height 200ms ease;
+}

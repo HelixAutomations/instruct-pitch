@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
+import { FaSyncAlt } from 'react-icons/fa';
 import '../styles/payments.css';
 import '../styles/SummaryReview.css';
 import '../styles/PaymentResult.css';
@@ -295,15 +296,22 @@ const Payment: React.FC<PaymentProps> = ({
       paymentDetailsContent = (
         <>
           <div className="iframe-wrapper">
-            {flexUrl ? (
+            {flexUrl && (
               <iframe
                 ref={iframeRef}
                 title="FlexCheckout"
                 src={flexUrl}
                 style={{ width: '100%', height: `${iframeHeight || 300}px`, border: 0 }}
               />
-            ) : (
-              <div>{error ? `Error: ${error}` : 'Loading secure payment form…'}</div>
+            )}
+            {(!flexUrl || !formReady) && (
+              <div className="payment-loading">
+                {error ? (
+                  <div>{`Error: ${error}`}</div>
+                ) : (
+                  <FaSyncAlt className="spin" />
+                )}
+              </div>
             )}
           </div>
 

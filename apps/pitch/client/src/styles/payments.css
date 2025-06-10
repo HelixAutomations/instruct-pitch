@@ -192,6 +192,27 @@
   border: none;
 }
 
+/* Loading overlay for payment iframe */
+.payment-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.payment-loading .spin {
+  animation: spin 0.7s linear infinite;
+  font-size: 1.5rem;
+  color: var(--helix-highlight, #3690CE);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Button container */
 .button-group {
   display: flex;

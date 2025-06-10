@@ -43,7 +43,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
             RE: Instruction [{instructionRef}]
           </div>
         )}
-        <div className="hero-help">
+        <div className={`hero-help${loaded ? ' loaded' : ''}`}>
           <span className="hero-help-prefix">We're here to help:</span>
           <div className="hero-help-contact">
             <a href="tel:03453142044">0345 314 2044</a>
