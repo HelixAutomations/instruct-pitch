@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import '../styles/PaymentResult.css'
+import '../styles/payments.css'
 import logoMark from '../assets/dark blue mark.svg'
 
 export default function PaymentResult() {
@@ -57,7 +58,8 @@ export default function PaymentResult() {
   const feeEarner = sessionStorage.getItem('feeEarnerName') || ''
 
   return (
-    <div className="result-panel">
+    <div className="combined-section payment-pane">
+      <div className="service-summary-box result-panel">
         <h2 className="result-header">
           <span className="completion-tick visible">
             <svg viewBox="0 0 24 24">
@@ -82,12 +84,9 @@ export default function PaymentResult() {
             <p>To finalise your instruction, please upload documents requested by {feeEarner || 'us'}, if any.</p>
           </>
         )}
-        {success === false && (
-          <p>Please try again or contact support.</p>
-        )}
-        {success === null && (
-          <p>Contact support if this persists.</p>
-        )}
+        {success === false && <p>Please try again or contact support.</p>}
+        {success === null && <p>Contact support if this persists.</p>}
       </div>
+    </div>
   )
 }
