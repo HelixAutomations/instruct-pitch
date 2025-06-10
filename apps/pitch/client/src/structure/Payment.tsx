@@ -27,6 +27,7 @@ interface PaymentProps {
   pitchedAt: string;
   instructionReady: boolean;
   onPaymentData?: (data: { aliasId?: string; orderId?: string; shaSign?: string }) => void;
+  style?: React.CSSProperties;
 }
 
 const Payment: React.FC<PaymentProps> = ({
@@ -46,6 +47,7 @@ const Payment: React.FC<PaymentProps> = ({
   instructionReady,
   onNext,
   onPaymentData,
+  style,
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);
@@ -393,7 +395,7 @@ const Payment: React.FC<PaymentProps> = ({
     );
   }
 
-  return <div className="payment-section">{content}</div>;
+  return <div className="payment-section" style={style}>{content}</div>;
 };
 
 export default Payment;

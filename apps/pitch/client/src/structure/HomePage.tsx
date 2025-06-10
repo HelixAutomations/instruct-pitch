@@ -415,20 +415,30 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
       preload();
     }, [ACCEPT_URL, EXCEPTION_URL, instruction.instructionRef]);
 
-    useEffect(() => {
-      if (!preloadedFlexUrl) return;
-      const trigger = () => setPrefetchPayment(true);
-      const idle = (window as any).requestIdleCallback
-        ? requestIdleCallback(trigger)
-        : setTimeout(trigger, 1000);
-      return () => {
-        if ((window as any).cancelIdleCallback) {
-          cancelIdleCallback(idle as any);
-        } else {
-          clearTimeout(idle as any);
-        }
-      };
-    }, [preloadedFlexUrl]);
+  useEffect(() => {
+    if (!preloadedFlexUrl) return;
+
+    const iframe = document.createElement('iframe');
+    iframe.src = preloadedFlexUrl;
+    iframe.style.display = 'none';
+
+    const trigger = () => {
+      document.body.appendChild(iframe);
+      setPrefetchPayment(true);
+    };
+    const idle = (window as any).requestIdleCallback
+      ? requestIdleCallback(trigger)
+      : setTimeout(trigger, 1000);
+    return () => {
+      iframe.remove();
+      if ((window as any).cancelIdleCallback) {
+        cancelIdleCallback(idle as any);
+      } else {
+        clearTimeout(idle as any);
+      }
+    };
+  }, [preloadedFlexUrl]);
+
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [paymentDetails] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
@@ -961,8 +971,8 @@ const proofSummary = (
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
                     {(prefetchPayment || openStep === 2) && (
-                      <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
                         <Payment
+                          style={{ display: openStep === 2 ? 'block' : 'none' }}
                           paymentDetails={paymentDetails}
                           setIsComplete={setPaymentDone}
                           onBack={back}
@@ -981,7 +991,6 @@ const proofSummary = (
                           instructionReady={instructionReady}
                           onPaymentData={setPaymentData}
                         />
-                      </div>
                     )}
                   </div>
                 </div>
