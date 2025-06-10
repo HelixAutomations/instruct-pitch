@@ -67,6 +67,14 @@ const Payment: React.FC<PaymentProps> = ({
     }
   }, [contactFirstName]);
 
+  // Restore payment state if user returns to this step after paying
+  useEffect(() => {
+    if (sessionStorage.getItem('paymentDone') === 'true') {
+      setPaymentDone(true);
+      setIsComplete(true);
+    }
+  }, [setIsComplete]);
+
   const formatAmount = (amt: number) => {
     const hasDecimals = Math.floor(amt) !== amt;
     return amt.toLocaleString('en-GB', {

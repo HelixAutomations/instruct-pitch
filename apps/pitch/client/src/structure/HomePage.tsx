@@ -196,6 +196,13 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   );
 };
 
+const DUMMY_DEAL = {
+  amount: 999,
+  product: 'Local Development Deal',
+  workType: 'Demo Work',
+};
+
+
 const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionRef }) => {
   const params = new URLSearchParams(window.location.search);
   const [paymentData, setPaymentData] = useState<{
@@ -248,20 +255,35 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
             setInstructionReady(true);
           }
         } else {
-          saveInstruction('initialised').then((saved) => {
-            if (saved) {
-              setInstruction(prev => ({
-                ...prev,
-                amount: saved.PaymentAmount != null ? Number(saved.PaymentAmount) : prev.amount,
-                product: saved.PaymentProduct ?? prev.product,
-                workType: saved.WorkType ?? prev.workType,
-              }));
-            }
-            setInstructionReady(true);
-          });
+          saveInstruction('initialised')
+            .then((saved) => {
+              if (saved) {
+                setInstruction(prev => ({
+                  ...prev,
+                  amount: saved.PaymentAmount != null ? Number(saved.PaymentAmount) : prev.amount,
+                  product: saved.PaymentProduct ?? prev.product,
+                  workType: saved.WorkType ?? prev.workType,
+                }));
+              } else if (import.meta.env.DEV) {
+                setInstruction(prev => ({ ...prev, ...DUMMY_DEAL }));
+              }
+              setInstructionReady(true);
+            })
+            .catch(() => {
+              if (import.meta.env.DEV) {
+                setInstruction(prev => ({ ...prev, ...DUMMY_DEAL }));
+              }
+              setInstructionReady(true);
+            });
+
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (import.meta.env.DEV) {
+          setInstruction(prev => ({ ...prev, ...DUMMY_DEAL }));
+          setInstructionReady(true);
+        }
+      });
   }, [instruction.instructionRef]);
 
   const PSPID = 'epdq1717240';
@@ -868,7 +890,8 @@ const proofSummary = (
     if (openStep === 1 && !showReview) {
       if (skipReview) {
         setEditing(false);
-        setOpenStep(hasDeal ? 2 : 1);
+        const target = hasDeal ? (isPaymentDone ? 3 : 2) : 1;
+        setOpenStep(target as any);
       } else {
         setShowReview(true);
       }
@@ -877,6 +900,10 @@ const proofSummary = (
     if (openStep === 1 && showReview) {
       setEditing(false);
     }
+    if (openStep === 2 && isPaymentDone) {
+      setOpenStep(3);
+      return;
+    }
     setOpenStep((prev) => (prev < maxStep ? (prev + 1) as any : prev));
   };
   const back = () => {
@@ -884,7 +911,13 @@ const proofSummary = (
       setShowReview(false);
       return;
     }
-    setOpenStep((prev) => (prev > 1 ? (prev - 1) as any : prev));
+    setOpenStep((prev) => {
+      let target = prev > 1 ? ((prev - 1) as 0 | 1 | 2 | 3) : prev;
+      if (target === 2 && isPaymentDone) {
+        target = 1;
+      }
+      return target;
+    });
   };
 
   useEffect(() => {
@@ -997,7 +1030,7 @@ const proofSummary = (
                     complete={isPaymentDone}
                     open={openStep === 2}
                     toggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
-                    locked={instructionCompleted}
+                    locked={instructionCompleted || isPaymentDone}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
                     {(prefetchPayment || openStep === 2) && (

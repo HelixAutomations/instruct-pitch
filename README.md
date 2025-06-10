@@ -39,6 +39,17 @@ To preview the production build locally:
 npm run preview --prefix apps/pitch/client
 ```
 
+For convenience, running the development server with
+
+```bash
+npm run dev --prefix apps/pitch/client
+```
+
+will automatically use a dummy deal if no backend is available. This exposes the
+Pay and Document steps so you can test the flow without connecting to a
+database.
+
+
 Environment variables (e.g., Azure Key Vault secrets) must be configured for the backend before running in production.
 
 ### Key Vault Environment Variable
