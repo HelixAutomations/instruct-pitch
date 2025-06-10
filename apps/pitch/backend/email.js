@@ -3,7 +3,7 @@ const axios = require('axios');
 const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
 
-const FROM_ADDRESS = 'operations@helix-law.com';
+const FROM_ADDRESS = 'automations@helix-law.com';
 const FROM_NAME = 'Helix Law Team';
 
 const tenantId = "7fbc252f-3ce5-460f-9740-4e1cb8bf78b8";

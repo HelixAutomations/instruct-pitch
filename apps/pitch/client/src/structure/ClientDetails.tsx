@@ -48,7 +48,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
           <div className="hero-help-contact">
             <a href="tel:03453142044">0345 314 2044</a>
             <span className="pipe" aria-hidden="true"></span>
-            <a href="mailto:operations@helix-law.com">operations@helix-law.com</a>
+            <a href="mailto:automations@helix-law.com">operations@helix-law.com</a>
           </div>
         </div>
         {detailItems.length > 0 && (
