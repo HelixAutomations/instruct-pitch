@@ -58,8 +58,9 @@ export default function PaymentResult() {
   const feeEarner = sessionStorage.getItem('feeEarnerName') || ''
 
   return (
-    <div className="combined-section payment-pane">
-      <div className="service-summary-box result-panel">
+    <div className="payment-section">
+      <div className="combined-section payment-pane">
+        <div className="service-summary-box result-panel">
         <h2 className="result-header">
           <span className="completion-tick visible">
             <svg viewBox="0 0 24 24">
@@ -86,6 +87,7 @@ export default function PaymentResult() {
         )}
         {success === false && <p>Please try again or contact support.</p>}
         {success === null && <p>Contact support if this persists.</p>}
+        </div>
       </div>
     </div>
   )

@@ -93,7 +93,7 @@
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: 0.25rem 0;
+  padding: .25rem 1rem;
 }
 
 .summary-item {
@@ -152,6 +152,7 @@
   font-size: 1.05rem;
   line-height: 1.4;
   color: var(--helix-dark-blue, #061733);
+  padding: .25rem 1rem;
 }
 
 /* Subtle note shown below the promotional text */

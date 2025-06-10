@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
 import '../styles/payments.css';
 import '../styles/SummaryReview.css';
+import '../styles/PaymentResult.css';
 import InfoPopover from '../components/InfoPopover';
+import logoMark from '../assets/dark blue mark.svg';
 
 interface PaymentDetails {
   cardNumber: string;
@@ -57,7 +59,9 @@ const Payment: React.FC<PaymentProps> = ({
   const [paymentDone, setPaymentDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [expiryText, setExpiryText] = useState('');
-  const [stage, setStage] = useState<'choose' | 'card' | 'bank'>('choose');
+  const [stage, setStage] = useState<'choose' | 'card' | 'bank' | 'result'>(
+    'choose'
+  );
   const [choice, setChoice] = useState<'card' | 'bank' | null>(null);
   const [bankConfirmed, setBankConfirmed] = useState(false);
 
@@ -72,16 +76,20 @@ const Payment: React.FC<PaymentProps> = ({
     if (sessionStorage.getItem('paymentDone') === 'true') {
       setPaymentDone(true);
       setIsComplete(true);
+      setStage('result');
     }
   }, [setIsComplete]);
 
   useEffect(() => {
+    if (paymentDone) {
+      setStage('result');
+    }
+  }, [paymentDone]);
+
+  useEffect(() => {
     if (sessionStorage.getItem('paymentDone') === 'true') {
       const method = sessionStorage.getItem('paymentMethod');
-      if (method === 'card') {
-        setStage('card');
-      } else if (method === 'bank') {
-        setStage('bank');
+      if (method === 'bank') {
         setBankConfirmed(true);
       }
     }
@@ -173,6 +181,7 @@ const Payment: React.FC<PaymentProps> = ({
           setSubmitting(false);
           sessionStorage.setItem('paymentDone', 'true');
           localStorage.setItem('paymentSuccess', 'true');
+          setStage('result');
         } else if (e.data.href.startsWith(exceptionUrl)) {
           setSubmitting(false);
           onError('SUBMIT_FAILED');
@@ -306,22 +315,52 @@ const Payment: React.FC<PaymentProps> = ({
             >
               Back
             </button>
-            {paymentDone ? (
-              <button className="btn primary" onClick={onNext}>
-                Next
-              </button>
-            ) : (
-              <button
-                className="btn primary"
-                onClick={submitToIframe}
-                disabled={!flexUrl || !formReady || submitting}
-              >
-                Pay
-              </button>
-            )}
+            <button
+              className="btn primary"
+              onClick={submitToIframe}
+              disabled={!flexUrl || !formReady || submitting}
+            >
+              Pay
+            </button>
           </div>
         </>
       );
+    } else if (stage === 'result') {
+      paymentDetailsContent = (
+        <div className="service-summary-box result-panel">
+          <h2 className="result-header">
+            <span className="completion-tick visible">
+              <svg viewBox="0 0 24 24">
+                <polyline
+                  points="5,13 10,18 19,7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            Payment received
+            <img src={logoMark} alt="" className="result-logo" />
+          </h2>
+          <p>
+            Thank you for your payment which we have received. We will contact
+            you separately under separate cover shortly and will take it from
+            there.
+          </p>
+          <p>
+            To finalise your instruction, please upload documents requested by{' '}
+            {contactFirstName || 'us'}, if any.
+          </p>
+          <div className="button-group">
+            <button className="btn primary" onClick={onNext}>
+              Next
+            </button>
+          </div>
+        </div>
+      );
+
     } else {
       paymentDetailsContent = (
         <>
@@ -380,7 +419,7 @@ const Payment: React.FC<PaymentProps> = ({
                 sessionStorage.setItem('paymentMethod', 'bank');
                 localStorage.setItem('paymentSuccess', 'true');
                 if (onPaymentData) onPaymentData({ paymentMethod: 'bank' });
-                onNext();
+                setStage('result');
               }}
               disabled={!bankConfirmed}
             >
