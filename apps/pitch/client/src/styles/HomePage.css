@@ -200,7 +200,7 @@
 
 .step-section.active .step-content,
 .step-header.active + .step-content {
-  max-height: 1000px;
+  max-height: none;
   padding: 12px;
   opacity: 1;
   border: 2px solid rgba(211, 211, 211, 0.5);
@@ -378,7 +378,7 @@
 
 /* Expand when active */
 .summary-column .summary-header.active + .summary-content {
-  max-height: 1000px;
+  max-height: none;
   padding: 12px;
   transform: translateY(0) scale(1);
   opacity: 1;

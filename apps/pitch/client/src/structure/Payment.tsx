@@ -74,6 +74,10 @@ const Payment: React.FC<PaymentProps> = ({
 
   // Restore payment state if user returns to this step after paying
   useEffect(() => {
+    const savedMethod = sessionStorage.getItem('paymentMethod');
+    if (savedMethod === 'card' || savedMethod === 'bank') {
+      setChoice(savedMethod);
+    }
     if (sessionStorage.getItem('paymentDone') === 'true') {
       setPaymentDone(true);
       setIsComplete(true);
@@ -334,6 +338,10 @@ const Payment: React.FC<PaymentProps> = ({
         </>
       );
     } else if (stage === 'result') {
+      const method =
+        (choice as 'card' | 'bank' | null) ||
+        (sessionStorage.getItem('paymentMethod') as 'card' | 'bank' | null);
+      const isBank = method === 'bank';
       paymentDetailsContent = (
         <div className="service-summary-box result-panel">
           <h2 className="result-header">
@@ -349,18 +357,28 @@ const Payment: React.FC<PaymentProps> = ({
                 />
               </svg>
             </span>
-            Payment received
+            {isBank ? 'Bank transfer noted' : 'Payment received'}
             <img src={logoMark} alt="" className="result-logo" />
           </h2>
-          <p>
-            Thank you for your payment which we have received. We will contact
-            you separately under separate cover shortly and will take it from
-            there.
-          </p>
-          <p>
-            To finalise your instruction, please upload documents requested by{' '}
-            {contactFirstName || 'us'}, if any.
-          </p>
+          {isBank ? (
+            <p>
+              Thank you. Our accounts team will confirm once your transfer is
+              received.
+            </p>
+          ) : (
+            <>
+              <p>
+                Thank you for your payment which we have received. We will
+                contact you separately under separate cover shortly and will
+                take it from there.
+              </p>
+              <p>
+                To finalise your instruction, please upload documents requested
+                by {contactFirstName || 'us'}, if any.
+              </p>
+            </>
+          )}
+
           <div className="button-group">
             <button className="btn primary" onClick={onNext}>
               Next

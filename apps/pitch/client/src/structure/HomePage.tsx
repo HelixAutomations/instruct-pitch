@@ -1054,7 +1054,7 @@ const proofSummary = (
                     complete={isPaymentDone}
                     open={openStep === 2}
                     toggle={() => goToStep(openStep === 2 ? 0 : 2)}
-                    locked={instructionCompleted}
+                    locked={instructionCompleted || (isPaymentDone && paymentData.paymentMethod === 'card')}
                     editable={paymentData.paymentMethod !== 'card'}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>

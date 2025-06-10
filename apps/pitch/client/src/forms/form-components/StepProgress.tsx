@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaCheck } from 'react-icons/fa';
 import '../../styles/StepProgress.css';
 
 interface StepProgressProps {
@@ -27,7 +28,7 @@ export const StepProgress: React.FC<StepProgressProps> = ({
               .filter(Boolean)
               .join(' ')}
           >
-            <span className="step-marker">{stepNum}</span>
+            <span className="step-marker">{isDone ? <FaCheck /> : stepNum}</span>
             <span className="step-label">{label}</span>
           </li>
         );
