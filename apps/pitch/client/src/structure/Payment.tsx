@@ -299,8 +299,11 @@ const Payment: React.FC<PaymentProps> = ({
           </div>
 
           <div className="button-group">
-            <button className="btn secondary" onClick={() => setStage('choose')}>
-            <button className="btn secondary" onClick={() => setStage('choose')} disabled={paymentDone}>
+            <button
+              className="btn secondary"
+              onClick={() => setStage('choose')}
+              disabled={paymentDone}
+            >
               Back
             </button>
             {paymentDone ? (
