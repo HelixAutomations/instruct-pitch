@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, updatePaymentStatus } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
 const app = express();
@@ -115,16 +115,23 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
-    const pool = await getSqlPool();
-    const req = pool.request()
-      .input('InstructionRef', sql.NVarChar, orderId)
-      .input('PaymentAmount', sql.Decimal(18, 2), amount != null ? Number(amount) : null)
-      .input('PaymentProduct', sql.NVarChar, product || null);
-    await req.query(
-      "UPDATE Instructions SET PaymentResult = 'Confirmed', PaymentTimestamp = SYSDATETIME()," +
-      " PaymentAmount = COALESCE(@PaymentAmount, PaymentAmount)," +
-      " PaymentProduct = COALESCE(@PaymentProduct, PaymentProduct)" +
-      " WHERE InstructionRef = @InstructionRef"
+    const parsed = {};
+    String(result.data)
+      .split(/\r?\n|&/)
+      .forEach(p => {
+        const [k, v] = p.split('=');
+        if (k) parsed[k] = v;
+      });
+    const status = parsed.STATUS || '';
+    const success = status === '5' || status === '9';
+
+    await updatePaymentStatus(
+      orderId,
+      'card',
+      success,
+      amount != null ? Number(amount) : null,
+      product || null
+
     );
 
     res.json({ success: true, result: result.data });
@@ -161,6 +168,12 @@ app.post('/api/instruction', async (req, res) => {
 
     const normalized = normalizeInstruction(rest);
     let merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
+
+    if (merged.paymentMethod === 'bank') {
+      merged.paymentResult = 'verifying';
+      merged.internalStatus = 'paid';
+      merged.paymentTimestamp = new Date().toISOString();
+    }
 
     if (!existing.InstructionRef) {
       const match = /HLX-(\d+)-/.exec(instructionRef);
@@ -224,7 +237,7 @@ app.post('/api/instruction/send-emails', async (req, res) => {
 
       await sendFeeEarnerEmail(record);
 
-      if (record.PaymentResult === 'Confirmed' || record.PaymentMethod === 'bank') {
+      if (record.PaymentResult === 'successful' || record.PaymentMethod === 'bank') {
         await sendClientSuccessEmail(record);
       } else {
         await sendClientFailureEmail(record);

@@ -29,6 +29,7 @@ const AccordionSection: React.FC<{
   defaultOpen?: boolean;
 }> = ({ title, children, defaultOpen = false }) => {
   const [open, setOpen] = useState(defaultOpen);
+  const id = title.replace(/\s+/g, '-').toLowerCase();
   return (
     <div className="accordion-wrap">
       <div
@@ -36,12 +37,18 @@ const AccordionSection: React.FC<{
         onClick={() => setOpen((o) => !o)}
         tabIndex={0}
         aria-expanded={open}
-        aria-controls={title.replace(/\s+/g, '-').toLowerCase()}
+        aria-controls={id}
       >
         {title}
         <span className="accordion-toggle">{open ? '−' : '+'}</span>
       </div>
-      {open && <div className="accordion-body">{children}</div>}
+      <div
+        id={id}
+        className={`accordion-body ${open ? 'open' : 'collapsed'}`}
+        aria-hidden={!open}
+      >
+        {children}
+      </div>
     </div>
   );
 };

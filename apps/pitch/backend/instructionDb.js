@@ -87,4 +87,40 @@ async function markCompleted(ref) {
   return result.recordset[0];
 }
 
-module.exports = { getInstruction, upsertInstruction, markCompleted, getLatestDeal };
+async function updatePaymentStatus(ref, method, success, amount, product) {
+  const pool = await getSqlPool();
+  const paymentResult = method === 'card'
+    ? (success ? 'successful' : 'rejected')
+    : 'verifying';
+  const internalStatus = method === 'card'
+    ? (success ? 'paid' : null)
+    : 'paid';
+
+  const request = pool.request()
+    .input('InstructionRef', sql.NVarChar, ref)
+    .input('PaymentMethod', sql.NVarChar, method)
+    .input('PaymentResult', sql.NVarChar, paymentResult)
+    .input('PaymentAmount', sql.Decimal(18, 2), amount != null ? Number(amount) : null)
+    .input('PaymentProduct', sql.NVarChar, product || null)
+    .input('InternalStatus', sql.NVarChar, internalStatus);
+
+  await request.query(`
+    UPDATE Instructions SET
+      PaymentMethod    = @PaymentMethod,
+      PaymentResult    = @PaymentResult,
+      PaymentAmount    = COALESCE(@PaymentAmount, PaymentAmount),
+      PaymentProduct   = COALESCE(@PaymentProduct, PaymentProduct),
+      PaymentTimestamp = SYSDATETIME(),
+      LastUpdated      = SYSDATETIME(),
+      InternalStatus   = CASE WHEN @InternalStatus IS NOT NULL THEN @InternalStatus ELSE InternalStatus END
+    WHERE InstructionRef = @InstructionRef
+  `);
+}
+
+module.exports = {
+  getInstruction,
+  upsertInstruction,
+  markCompleted,
+  getLatestDeal,
+  updatePaymentStatus,
+};

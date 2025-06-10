@@ -192,7 +192,7 @@ async function sendClientFailureEmail(record) {
 
 async function sendFeeEarnerEmail(record) {
   const to = deriveEmail(record.HelixContact);
-  const status = record.PaymentResult === 'Confirmed' ? 'Succeeded' : 'Failed';
+  const status = record.PaymentResult === 'successful' ? 'Succeeded' : 'Failed';
   const method = record.PaymentMethod === 'bank' ? 'Bank transfer confirmed by client' : `Card payment ${status}`;
   const body = `The client has completed the ID verification steps and submitted their instruction.<br/><br/>Payment status: ${method}.<br/><br/>Attached/linked are any uploaded documents. Please review and contact the client.`;
   await sendMail(to, `New Instruction – ${record.InstructionRef}`, body);

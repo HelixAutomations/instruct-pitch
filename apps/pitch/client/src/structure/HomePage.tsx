@@ -508,6 +508,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [isUploadDone, setUploadDone] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(false);
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
+  const [showFinalBanner, setShowFinalBanner] = useState(false);
   const { setSummaryComplete } = useCompletion();
 
   // Track editing state and whether any changes have been made
@@ -554,6 +555,12 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     const isComplete = uploadedFiles.some(f => f.uploaded);
     setUploadDone(isComplete);
   }, [uploadedFiles]);
+
+  useEffect(() => {
+    if ((isUploadDone || isUploadSkipped) && !showFinalBanner) {
+      setShowFinalBanner(true);
+    }
+  }, [isUploadDone, isUploadSkipped, showFinalBanner]);
 
   // Watch for changes during an edit session
   useEffect(() => {
@@ -983,6 +990,11 @@ const proofSummary = (
       {instructionCompleted && (
         <div className="completed-banner">
           This instruction has been completed and can no longer be edited.
+        </div>
+      )}
+      {showFinalBanner && (
+        <div className="completed-banner">
+          Thank you for confirming your instructions. We have emailed you a confirmation, and no further action is required at this time. The solicitor now has your file and will handle the next steps.
         </div>
       )}
       <main className="main-content">
