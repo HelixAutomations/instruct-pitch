@@ -199,6 +199,11 @@
   margin-top: 0.8rem;
 }
 
+/* Reduce inner padding for payment forms */
+.payment-pane .form-container.apple-form {
+  padding: 0.5rem;
+}
+
 /* Responsive tweaks */
 @media (max-width: 600px) {
   .payment-section {
@@ -246,4 +251,11 @@
     font-size: 0.88rem;
   }
 
+}
+
+@media (max-width: 380px) {
+  .payment-pane .form-container.apple-form {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
