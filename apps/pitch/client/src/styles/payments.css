@@ -222,7 +222,7 @@
 }
 
 /* Reduce inner padding for payment forms */
-.payment-pane .form-container.apple-form {
+.payment-pane .payment-details {
   padding: 0.5rem;
 }
 
@@ -276,7 +276,7 @@
 }
 
 @media (max-width: 380px) {
-  .payment-pane .form-container.apple-form {
+  .payment-pane .payment-details {
     padding-left: 0;
     padding-right: 0;
   }

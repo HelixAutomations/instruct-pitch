@@ -954,7 +954,7 @@ const proofSummary = (
 
   const next = (skipReview?: boolean) => {
     if (openStep === 1 && !showReview) {
-      if (skipReview) {
+      if (skipReview && summaryComplete) {
         setEditing(false);
         const target = hasDeal ? (isPaymentDone ? 3 : 2) : 1;
         goToStep(target as any);

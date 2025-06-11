@@ -258,7 +258,7 @@ const Payment: React.FC<PaymentProps> = ({
 
     if (stage === 'choose') {
       paymentDetailsContent = (
-        <div className="form-container apple-form">
+        <>
           <div className="form-group step1-centered question-container">
             <label id="payment-method-label" className="question-banner">
               How would you like to pay?
@@ -302,7 +302,7 @@ const Payment: React.FC<PaymentProps> = ({
               Next
             </button>
           </div>
-        </div>
+        </>
       );
     } else if (stage === 'card') {
       paymentDetailsContent = (
