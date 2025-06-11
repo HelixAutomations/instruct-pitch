@@ -22,7 +22,9 @@ export default function PaymentResult() {
     async function finalize() {
       if (!orderId) return
 
-      const successFlag = result === 'accept' || status === '0'
+      // ePDQ marks successful card payments with status 5 (authorised)
+      // or 9 (payment requested). Treat other codes as failures.
+      const successFlag = result === 'accept' || status === '5' || status === '9'
 
       if (aliasId && orderId) {
         try {

@@ -94,7 +94,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
             PSWD: cachedEpdqPassword,
             ORDERID: orderId,
             ALIAS: aliasId,
-            AMOUNT: '1000',
+            AMOUNT:    String(amount),
             CURRENCY: 'GBP',
             OPERATION: 'SAL',
             ALIASUSAGE: 'One-off Helix payment',

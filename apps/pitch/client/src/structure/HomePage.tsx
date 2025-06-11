@@ -1004,6 +1004,10 @@ const proofSummary = (
       goToStep(3);
       return;
     }
+    if (openStep === 3) {
+      goToStep(0);
+      return;
+    }
     goToStep(openStep < maxStep ? ((openStep + 1) as any) : openStep);
   };
   const back = () => {
@@ -1202,18 +1206,18 @@ const proofSummary = (
                   <StepHeader
                     step={3}
                     title={
-                      isUploadDone
+                      isUploadDone || isUploadSkipped
                         ? 'Upload Files'
                         : <>Upload Files <span className="optional">(optional)</span></>
                     }
-                    complete={isUploadDone}
+                    complete={isUploadDone || isUploadSkipped}
                     open={openStep === 3}
                     toggle={() => goToStep(openStep === 3 ? 0 : 3)}
                     locked={instructionCompleted}
                     allowToggleWhenLocked
                     dimOnLock={false}
                   />
-                  <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
+                  <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone || isUploadSkipped)}`}>
                     {(openStep === 3 || closingStep === 3) && (
                       <DocumentUpload
                         uploadedFiles={uploadedFiles}
