@@ -49,6 +49,7 @@ import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
 import { CSSTransition } from 'react-transition-group';
 import { toTitleCase } from '../utils/format';
+import InfoPopover from '../components/InfoPopover';
 
 const ALLOWED_FIELDS = [
   'isCompanyClient',
@@ -528,6 +529,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [isIdReviewDone, setIdReviewDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(false);
+  const [expiryText, setExpiryText] = useState('');
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
   const [showFinalBanner, setShowFinalBanner] = useState(false);
   const { summaryComplete, setSummaryComplete } = useCompletion();
@@ -536,6 +538,34 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [editing, setEditing] = useState(false);
   const [editBaseline, setEditBaseline] = useState<ProofData | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+
+  const formatAmount = (amt: number) => {
+    const hasDecimals = Math.floor(amt) !== amt;
+    return amt.toLocaleString('en-GB', {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: hasDecimals ? 2 : 0,
+    });
+  };
+
+  useEffect(() => {
+    if (!instruction.pitchedAt) return;
+    const pitchDate = new Date(instruction.pitchedAt);
+    const expiry = new Date(pitchDate.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    const update = () => {
+      const now = new Date();
+      let diff = expiry.getTime() - now.getTime();
+      if (diff < 0) diff = 0;
+      const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+      const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      setExpiryText(`${days}d ${hours}h`);
+    };
+
+    update();
+    const timer = setInterval(update, 60 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [instruction.pitchedAt]);
+
 
   // Clear any persisted progress on first load so refreshing starts clean
   useEffect(() => {
@@ -1099,6 +1129,38 @@ const proofSummary = (
                     editable={paymentData.paymentMethod !== 'card'}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
+                    {!isPaymentDone && (
+                      <div className="service-summary-box">
+                        <div className="question-banner">Service Summary</div>
+                        <div className="service-summary-grid">
+                          {proofData.helixContact && (
+                            <div className="summary-item">
+                              <div className="summary-label">Solicitor</div>
+                              <div className="summary-value">{proofData.helixContact.split(' ')[0]}</div>
+                            </div>
+                          )}
+                          <div className="summary-item">
+                            <div className="summary-label">
+                              Expires in{' '}
+                              <InfoPopover text="Please note that this fee quotation is subject to a time limit and must be accepted before the stated expiry date to remain valid." />
+                            </div>
+                            <div className="summary-value">{expiryText}</div>
+                          </div>
+                          <div className="summary-item">
+                            <div className="summary-label">
+                              Amount <span className="summary-note">(inc. VAT)</span>
+                            </div>
+                            <div className="summary-value">£{formatAmount(instruction.amount)}</div>
+                          </div>
+                        </div>
+                        {proofData.helixContact && (
+                          <p className="pitch-description">
+                            {proofData.helixContact.split(' ')[0]} will begin work on {instruction.product} once your ID is verified and your matter is open. The fee is £{formatAmount(instruction.amount)} including VAT.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {(prefetchPayment || openStep === 2 || closingStep === 2) && (
                         <Payment
                           style={{ display: openStep === 2 ? 'block' : 'none' }}
@@ -1119,6 +1181,7 @@ const proofSummary = (
                           preloadFlexUrl={preloadedFlexUrl}
                           instructionReady={instructionReady}
                           onPaymentData={updatePaymentData}
+                          hideSummary
                         />
                     )}
                   </div>

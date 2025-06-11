@@ -31,6 +31,11 @@ interface PaymentProps {
   instructionReady: boolean;
   onPaymentData?: (data: { aliasId?: string; orderId?: string; shaSign?: string; paymentMethod?: 'card' | 'bank' }) => void;
   style?: React.CSSProperties;
+  /**
+   * Hide the service summary panel when rendering within a parent
+   * component that handles the layout.
+   */
+  hideSummary?: boolean;
 }
 
 const Payment: React.FC<PaymentProps> = ({
@@ -51,6 +56,7 @@ const Payment: React.FC<PaymentProps> = ({
   onNext,
   onPaymentData,
   style,
+  hideSummary = false,
 }) => {
   const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
   const [error, setError] = useState<string | null>(null);
@@ -465,6 +471,7 @@ const Payment: React.FC<PaymentProps> = ({
     }
     content = (
       <>
+        {!hideSummary && (
         <div className="service-summary-box">
           <div className="question-banner">Service Summary</div>
           <div className="service-summary-grid">
@@ -494,6 +501,7 @@ const Payment: React.FC<PaymentProps> = ({
             </p>
           )}
         </div>
+        )}
 
         {paymentDetailsContent}
       </>
