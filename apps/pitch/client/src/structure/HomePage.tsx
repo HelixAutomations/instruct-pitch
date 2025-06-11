@@ -530,6 +530,11 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [showFinalBanner, setShowFinalBanner] = useState(false);
   const { summaryComplete, setSummaryComplete } = useCompletion();
 
+  // Steps are considered locked once the final banner is shown or the
+  // instruction is marked completed server-side. At this stage we no
+  // longer want users editing earlier steps.
+  const stepsLocked = instructionCompleted || showFinalBanner;
+
   // Track editing state and whether any changes have been made
   const [editing, setEditing] = useState(false);
   const [editBaseline, setEditBaseline] = useState<ProofData | null>(null);
@@ -610,17 +615,16 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, [isUploadDone, isUploadSkipped, showFinalBanner, openStep]);
 
   useEffect(() => {
-    if (showFinalBanner) {
-      goToStep(0);
-    }
-  }, [showFinalBanner]);
-
-  useEffect(() => {
     if (openStep === 3) {
       setShowFinalBanner(false);
     }
   }, [openStep]);
 
+  useEffect(() => {
+    if (showFinalBanner) {
+      goToStep(0);
+    }
+  }, [showFinalBanner]);
 
   // Watch for changes during an edit session
   useEffect(() => {
@@ -1092,7 +1096,7 @@ const proofSummary = (
                           documentsContent={documentsSummary}
                           detailsConfirmed={detailsConfirmed}
                           setDetailsConfirmed={setDetailsConfirmed}
-                          showConfirmation={showReview}
+                          showConfirmation={showReview && !stepsLocked}
                           edited={hasChanges}
                         />
                       ) : undefined}
@@ -1236,7 +1240,7 @@ const proofSummary = (
                 documentsContent={documentsSummary}
                 detailsConfirmed={detailsConfirmed}
                 setDetailsConfirmed={setDetailsConfirmed}
-                showConfirmation={showReview}
+                showConfirmation={showReview && !stepsLocked}
                 edited={hasChanges}
               />
             </aside>
