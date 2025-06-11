@@ -190,7 +190,7 @@ app.post('/api/instruction', async (req, res) => {
 
     const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
     const record = await upsertInstruction(instructionRef, sanitized);
-    res.json({ ok: true });
+    res.json(record);
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
     res.status(500).json({ error: 'Failed to save instruction' });
