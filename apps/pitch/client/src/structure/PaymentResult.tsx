@@ -23,10 +23,11 @@ export default function PaymentResult() {
       if (!orderId) return
 
       const successFlag = result === 'accept' || status === '5' || status === '9'
+      let serverSuccess: boolean | null = null
 
       if (aliasId && orderId) {
         try {
-          await fetch('/pitch/confirm-payment', {
+          const res = await fetch('/pitch/confirm-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -37,12 +38,26 @@ export default function PaymentResult() {
               shaSign
             })
           })
+          const data = await res.json()
+          if (typeof data.success === 'boolean') {
+            serverSuccess = data.success
+          }
         } catch (err) {
           console.error(err)
         }
       }
 
-      if (successFlag) {
+      if (serverSuccess === true) {
+        sessionStorage.setItem('paymentDone', 'true')
+        localStorage.setItem('paymentSuccess', 'true')
+        setMessage('Payment received')
+        setSuccess(true)
+      } else if (serverSuccess === false) {
+        sessionStorage.removeItem('paymentDone')
+        localStorage.removeItem('paymentSuccess')
+        setMessage('❌ Payment failed.')
+        setSuccess(false)
+      } else if (successFlag) {
         sessionStorage.setItem('paymentDone', 'true')
         localStorage.setItem('paymentSuccess', 'true')
         setMessage('Payment received')

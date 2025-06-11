@@ -333,6 +333,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const hasDeal = instruction.amount > 0;
   const maxStep = hasDeal ? 3 : 1;
   const [dealStepsVisible, setDealStepsVisible] = useState(false);
+  const [documentsStepVisible, setDocumentsStepVisible] = useState(false);
   const [proofStartStep, setProofStartStep] = useState<number>(1);
   const [restartId, setRestartId] = useState(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
@@ -341,7 +342,14 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (hasDeal) setDealStepsVisible(true);
+    if (hasDeal) {
+      setDealStepsVisible(true);
+      const t = setTimeout(() => setDocumentsStepVisible(true), 200);
+      return () => clearTimeout(t);
+    } else {
+      setDealStepsVisible(false);
+      setDocumentsStepVisible(false);
+    }
   }, [hasDeal]);
 
   const goToStep = (target: 0 | 1 | 2 | 3) => {
@@ -483,7 +491,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
           if (res.ok && json.shasign) {
             const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
             setPreloadedFlexUrl(
-              `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
+              `https://payments.epdq.co.uk/Tokenization/HostedPage?${query}`
             );
           }
         } catch (err) {
@@ -1132,8 +1140,7 @@ const proofSummary = (
                 classNames="deal-steps-anim"
                 unmountOnExit
               >
-              <>
-                <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}> 
+                <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}>
                   <StepHeader
                     step={2}
                     title="Pay"
@@ -1202,13 +1209,25 @@ const proofSummary = (
                     )}
                   </div>
                 </div>
+              </CSSTransition>
+            )}
+
+            {hasDeal && (
+              <CSSTransition
+                in={documentsStepVisible}
+                timeout={300}
+                classNames="deal-steps-anim"
+                unmountOnExit
+              >
                 <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
                   <StepHeader
                     step={3}
                     title={
                       isUploadDone || isUploadSkipped
                         ? 'Upload Files'
-                        : <>Upload Files <span className="optional">(optional)</span></>
+                        : <>
+                            Upload Files <span className="optional">(optional)</span>
+                          </>
                     }
                     complete={isUploadDone || isUploadSkipped}
                     open={openStep === 3}
@@ -1235,7 +1254,6 @@ const proofSummary = (
                     )}
                   </div>
                 </div>
-              </>
               </CSSTransition>
             )}
 

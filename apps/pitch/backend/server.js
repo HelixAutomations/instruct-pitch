@@ -136,7 +136,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
 
     );
 
-    res.json({ success: true, result: result.data });
+    res.json({ success, details: parsed });
   } catch (err) {
     console.error('❌ /pitch/confirm-payment error:', err);
     res.status(500).json({ error: err.message });

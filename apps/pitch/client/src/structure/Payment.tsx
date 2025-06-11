@@ -245,7 +245,7 @@ const Payment: React.FC<PaymentProps> = ({
         }
         const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
         setFlexUrl(
-          `https://mdepayments.epdq.co.uk/Tokenization/HostedPage?${query}`
+          `https://payments.epdq.co.uk/Tokenization/HostedPage?${query}`
         );
         if (onPaymentData) onPaymentData({ orderId, shaSign: json.shasign, paymentMethod: 'card' });
         sessionStorage.setItem('paymentMethod', 'card');
