@@ -464,13 +464,13 @@ const Payment: React.FC<PaymentProps> = ({
       );
     }
     content = (
-      <div className="combined-section payment-pane">
+      <>
         <div className="service-summary-box">
           <div className="question-banner">Service Summary</div>
           <div className="service-summary-grid">
             {contactFirstName && (
               <div className="summary-item">
-              <div className="summary-label">Solicitor</div>
+                <div className="summary-label">Solicitor</div>
                 <div className="summary-value">{contactFirstName}</div>
               </div>
             )}
@@ -495,16 +495,51 @@ const Payment: React.FC<PaymentProps> = ({
           )}
         </div>
 
-        <div className="payment-details">
-
-          {paymentDetailsContent}
+        <div className="form-group step1-centered question-container">
+          <label id="payment-method-label" className="question-banner">
+            How would you like to pay?
+          </label>
+          <div
+            className="modern-toggle-group"
+            role="radiogroup"
+            aria-labelledby="payment-method-label"
+          >
+            <button
+              type="button"
+              className={`modern-toggle-button ${choice === 'card' ? 'active' : ''}`}
+              onClick={() => setChoice('card')}
+            >
+              Card
+            </button>
+            <button
+              type="button"
+              className={`modern-toggle-button ${choice === 'bank' ? 'active' : ''}`}
+              onClick={() => setChoice('bank')}
+            >
+              Bank Transfer
+            </button>
+          </div>
         </div>
-      </div>
+
+        <div className="button-group">
+          <button type="button" className="btn secondary" onClick={onBack}>
+            Back
+          </button>
+          <button
+            type="button"
+            className="btn primary"
+            disabled={!choice}
+            onClick={paymentDone ? onNext : submitToIframe}
+          >
+            {paymentDone ? 'Next' : stage === 'choose' ? 'Next' : 'Pay'}
+          </button>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="form-container apple-form payment-section" style={style}>
+    <div className="form-container apple-form" style={style}>
       {content}
     </div>
   );

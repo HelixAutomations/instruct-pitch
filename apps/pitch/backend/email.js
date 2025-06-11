@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 const axios = require('axios');
+const sql = require('mssql');
 const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
+const { getSqlPool } = require('./sqlClient');
 
 const FROM_ADDRESS = 'automations@helix-law.com';
 const FROM_NAME = 'Helix Law Team';
@@ -32,11 +34,28 @@ if (smtpHost) {
 function deriveEmail(fullName) {
   if (!fullName) return FROM_ADDRESS;
   const initials = fullName
-    .split(' ') 
+    .split(' ')
     .filter(Boolean)
     .map(n => n[0].toLowerCase())
     .join('');
   return `${initials}@helix-law.com`;
+}
+
+function formatName(record) {
+  return [record.Title, record.FirstName, record.LastName].filter(Boolean).join(' ');
+}
+
+async function getDocumentsForInstruction(ref) {
+  const pool = await getSqlPool();
+  const result = await pool.request()
+    .input('ref', sql.NVarChar, ref)
+    .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
+  return result.recordset || [];
+}
+
+function buildDocList(docs) {
+  if (!docs.length) return '<li>None</li>';
+  return docs.map(d => `<li><a href="${d.BlobUrl}">${d.FileName}</a></li>`).join('');
 }
 
 function wrapSignature(bodyHtml) {
@@ -178,31 +197,85 @@ async function sendMail(to, subject, bodyHtml) {
   });
 }
 
+function buildClientSuccessBody(record) {
+  const name = formatName(record);
+  const greeting = name ? `Dear ${name},` : 'Dear client,';
+  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
+  const product = record.PaymentProduct || 'your matter';
+  return `
+    <p>${greeting}</p>
+    <p>We confirm receipt of your instruction <strong>${record.InstructionRef}</strong> and payment of £${amount} for ${product}.</p>
+    <p>We will be in touch shortly to confirm the next steps.</p>
+  `;
+}
+
+function buildClientFailureBody(record) {
+  const name = formatName(record);
+  const greeting = name ? `Dear ${name},` : 'Dear client,';
+  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
+  const product = record.PaymentProduct || 'your matter';
+  return `
+    <p>${greeting}</p>
+    <p>We received your instruction <strong>${record.InstructionRef}</strong> but your payment of £${amount} for ${product} was unsuccessful.</p>
+    <p>Your documents have been saved. We will contact you to arrange payment and discuss how to proceed.</p>
+  `;
+}
+
+function buildFeeEarnerBody(record, docs) {
+  const name = formatName(record) || 'Client';
+  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
+  const product = record.PaymentProduct || '';
+  const status = record.PaymentResult === 'successful' ? 'Succeeded' : (record.PaymentResult || '');
+  const method = record.PaymentMethod === 'bank' ? 'Bank transfer confirmed by client' : `Card payment ${status}`;
+  const docList = buildDocList(docs || []);
+  return `
+    <p>Instruction reference <strong>${record.InstructionRef}</strong> has been submitted.</p>
+    <p><strong>Client:</strong> ${name}<br/>Email: ${record.Email || 'N/A'}<br/>Phone: ${record.Phone || 'N/A'}</p>
+    <p><strong>Payment:</strong> £${amount} for ${product} – ${method}</p>
+    <p>Uploaded documents:</p>
+    <ul>${docList}</ul>
+    <p>Please review and contact the client.</p>
+  `;
+}
+
+function buildAccountsBody(record, docs) {
+  const name = formatName(record) || 'Client';
+  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
+  const ref = record.OrderId || record.InstructionRef;
+  const docList = buildDocList(docs || []);
+  return `
+    <p>Bank transfer pending for instruction <strong>${record.InstructionRef}</strong>.</p>
+    <p><strong>Client:</strong> ${name}<br/>Email: ${record.Email || 'N/A'}<br/>Phone: ${record.Phone || 'N/A'}</p>
+    <p>The client indicates they have transferred £${amount} using reference ${ref}. Please monitor the account and notify the fee earner when received.</p>
+    <p>Uploaded documents:</p>
+    <ul>${docList}</ul>
+  `;
+}
+
+
 async function sendClientSuccessEmail(record) {
   if (!record.Email) return;
-  const body = 'Thank you for your payment which we have received. We will contact you separately under separate cover shortly and will take it from there.';
+  const body = buildClientSuccessBody(record);
   await sendMail(record.Email, 'Instruction Received – Thank You', body);
 }
 
 async function sendClientFailureEmail(record) {
   if (!record.Email) return;
-  const body = 'We attempted to process your payment, but the transaction was not successful. Your details and any documents have been received and tagged accordingly. Your fee earner has been notified and will be in touch to discuss next steps.';
+  const body = buildClientFailureBody(record);
   await sendMail(record.Email, 'Payment Issue – Instruction Received', body);
 }
 
 async function sendFeeEarnerEmail(record) {
   const to = deriveEmail(record.HelixContact);
-  const status = record.PaymentResult === 'successful' ? 'Succeeded' : 'Failed';
-  const method = record.PaymentMethod === 'bank' ? 'Bank transfer confirmed by client' : `Card payment ${status}`;
-  const body = `The client has completed the ID verification steps and submitted their instruction.<br/><br/>Payment status: ${method}.<br/><br/>Attached/linked are any uploaded documents. Please review and contact the client.`;
+  const docs = await getDocumentsForInstruction(record.InstructionRef);
+  const body = buildFeeEarnerBody(record, docs);
   await sendMail(to, `New Instruction – ${record.InstructionRef}`, body);
 }
 
 async function sendAccountsEmail(record) {
   if (record.PaymentMethod !== 'bank') return;
-  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
-  const ref = record.OrderId || record.InstructionRef;
-  const body = `The client has indicated they have transferred £${amount} using reference ${ref}.<br/>Please monitor the account and notify the fee earner once the payment is received.`;
+  const docs = await getDocumentsForInstruction(record.InstructionRef);
+  const body = buildAccountsBody(record, docs);
   await sendMail(FROM_ADDRESS, `Pending Bank Transfer – ${record.InstructionRef}`, body);
 }
 
@@ -212,4 +285,9 @@ module.exports = {
   sendFeeEarnerEmail,
   sendAccountsEmail,
   deriveEmail,
+  wrapSignature,
+  buildClientSuccessBody,
+  buildClientFailureBody,
+  buildFeeEarnerBody,
+  buildAccountsBody,
 };

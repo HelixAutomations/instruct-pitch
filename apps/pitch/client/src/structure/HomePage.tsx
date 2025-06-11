@@ -530,7 +530,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [isPaymentDone, setPaymentDone] = useState(false);
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
   const [showFinalBanner, setShowFinalBanner] = useState(false);
-  const { setSummaryComplete } = useCompletion();
+  const { summaryComplete, setSummaryComplete } = useCompletion();
 
   // Track editing state and whether any changes have been made
   const [editing, setEditing] = useState(false);
