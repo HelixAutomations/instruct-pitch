@@ -495,45 +495,7 @@ const Payment: React.FC<PaymentProps> = ({
           )}
         </div>
 
-        <div className="form-group step1-centered question-container">
-          <label id="payment-method-label" className="question-banner">
-            How would you like to pay?
-          </label>
-          <div
-            className="modern-toggle-group"
-            role="radiogroup"
-            aria-labelledby="payment-method-label"
-          >
-            <button
-              type="button"
-              className={`modern-toggle-button ${choice === 'card' ? 'active' : ''}`}
-              onClick={() => setChoice('card')}
-            >
-              Card
-            </button>
-            <button
-              type="button"
-              className={`modern-toggle-button ${choice === 'bank' ? 'active' : ''}`}
-              onClick={() => setChoice('bank')}
-            >
-              Bank Transfer
-            </button>
-          </div>
-        </div>
-
-        <div className="button-group">
-          <button type="button" className="btn secondary" onClick={onBack}>
-            Back
-          </button>
-          <button
-            type="button"
-            className="btn primary"
-            disabled={!choice}
-            onClick={paymentDone ? onNext : submitToIframe}
-          >
-            {paymentDone ? 'Next' : stage === 'choose' ? 'Next' : 'Pay'}
-          </button>
-        </div>
+        {paymentDetailsContent}
       </>
     );
   }
