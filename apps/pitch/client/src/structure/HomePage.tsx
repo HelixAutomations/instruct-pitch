@@ -604,10 +604,10 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   }, [uploadedFiles]);
 
   useEffect(() => {
-    if ((isUploadDone || isUploadSkipped) && !showFinalBanner) {
+    if ((isUploadDone || isUploadSkipped) && openStep !== 3 && !showFinalBanner) {
       setShowFinalBanner(true);
     }
-  }, [isUploadDone, isUploadSkipped, showFinalBanner]);
+  }, [isUploadDone, isUploadSkipped, showFinalBanner, openStep]);
 
   useEffect(() => {
     if (showFinalBanner) {
