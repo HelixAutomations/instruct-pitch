@@ -190,7 +190,7 @@ app.post('/api/instruction', async (req, res) => {
 
     const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
     const record = await upsertInstruction(instructionRef, sanitized);
-    res.json(data);
+    res.json(record);
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
     res.status(500).json({ error: 'Failed to save instruction' });
@@ -272,7 +272,7 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
     );
     // Confirm successful fetch without logging the full payload
     console.log('Fetched instruction data');
-    res.json(record);
+    res.json(data);
   } catch (err) {
     console.error('❌ fetchInstructionData error:', err);
     res.status(500).json({ ok: false });
