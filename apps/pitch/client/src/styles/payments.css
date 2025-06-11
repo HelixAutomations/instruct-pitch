@@ -242,6 +242,11 @@
 
   .service-summary-grid {
     font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  .service-summary-box {
+    padding: 0.6rem 0.5rem;
   }
 
   .summary-item {
@@ -264,9 +269,10 @@
     box-shadow: none;
   }
 
-  .pitch-description {
-    font-size: 0.98rem;
-  }
+    .pitch-description {
+      font-size: 0.98rem;
+      padding: 0.25rem 0.5rem;
+    }
 
   .quotation-note {
     font-size: 0.88rem;

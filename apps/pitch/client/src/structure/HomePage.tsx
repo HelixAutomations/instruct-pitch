@@ -200,11 +200,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
             </svg>
           </span>
         )}
-        {locked && (
-          <span className="step-lock" style={{ marginLeft: 6, fontSize: '1.07em', verticalAlign: 'middle' }}>
-            🔒
-          </span>
-        )}
+        {/* keep tick only when locked, no padlock icon */}
       </h2>
       {showEdit && (
         <FaEdit
@@ -1068,6 +1064,7 @@ const proofSummary = (
                 open={openStep === 1}
                 toggle={() => goToStep(openStep === 1 ? 0 : 1)}
                 locked={instructionCompleted || showFinalBanner}
+                allowToggleWhenLocked
                 onEdit={handleEdit}
               />
               <div
@@ -1126,6 +1123,7 @@ const proofSummary = (
                     open={openStep === 2}
                     toggle={() => goToStep(openStep === 2 ? 0 : 2)}
                     locked={instructionCompleted || showFinalBanner || (isPaymentDone && paymentData.paymentMethod === 'card')}
+                    allowToggleWhenLocked
                     editable={paymentData.paymentMethod !== 'card'}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>

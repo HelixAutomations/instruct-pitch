@@ -145,6 +145,10 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   );
   const [uploading, setUploading] = useState(false);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
+  const allUploaded =
+    documents.length > 0 &&
+    documents.every(d => (!!d.blobUrl || !d.file) && !d.hasError);
+  const readyToSubmit = isUploadSkipped || allUploaded;
 
   if (!instructionReady) {
     return (
@@ -461,7 +465,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             onClick={handleNext}
             disabled={uploading || !documents.every(d => !!d.file || !!d.blobUrl)}
           >
-            {uploading ? 'Uploading...' : 'Next'}
+            {uploading ? 'Uploading...' : readyToSubmit ? 'Submit' : 'Next'}
           </button>
         )}
       </div>
