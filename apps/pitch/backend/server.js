@@ -269,7 +269,7 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
     });
     // Confirm successful fetch without logging the full payload
     console.log('Fetched instruction data');
-    res.json({ ok: true });
+    res.json(record);
   } catch (err) {
     console.error('❌ fetchInstructionData error:', err);
     res.status(500).json({ ok: false });

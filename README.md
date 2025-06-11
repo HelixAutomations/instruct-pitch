@@ -111,7 +111,8 @@ Uploaded documents are not cached between sessions. Refreshing the page or retur
 
 When posting data to `/api/instruction` the backend only persists a known set of
 fields. Any extra properties in the request body are ignored and will not be
-stored. The allowed instruction fields are:
+stored. The response includes the saved instruction record so the client can
+update its local state immediately. The allowed instruction fields are:
 
 - `idStatus`
 - `isCompanyClient`

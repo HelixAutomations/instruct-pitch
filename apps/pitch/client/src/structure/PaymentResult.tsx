@@ -19,42 +19,54 @@ export default function PaymentResult() {
   const [success, setSuccess] = useState<boolean | null>(null)
 
   useEffect(() => {
-    // 1) Optionally hit your server to finalize the DirectLink capture
-    if (aliasId && orderId) {
-      fetch('/pitch/confirm-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aliasId, orderId, amount, product })
-      }).catch(console.error)
+    async function finalize() {
+      if (!orderId) return
+
+      const successFlag = result === 'accept' || status === '0'
+
+      if (aliasId && orderId) {
+        try {
+          await fetch('/pitch/confirm-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ aliasId, orderId, amount, product })
+          })
+        } catch (err) {
+          console.error(err)
+        }
+      }
+
+      if (successFlag) {
+        sessionStorage.setItem('paymentDone', 'true')
+        localStorage.setItem('paymentSuccess', 'true')
+        setMessage('Payment received')
+        setSuccess(true)
+      } else if (result === 'reject' || status !== '0') {
+        sessionStorage.removeItem('paymentDone')
+        localStorage.removeItem('paymentSuccess')
+        setMessage('❌ Payment failed.')
+        setSuccess(false)
+      } else {
+        sessionStorage.removeItem('paymentDone')
+        localStorage.removeItem('paymentSuccess')
+        setMessage('🤔 Payment status unknown.')
+        setSuccess(null)
+      }
+
+
+      try {
+        await fetch('/api/instruction/send-emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ instructionRef: orderId })
+        })
+      } catch (err) {
+        console.error(err)
+      }
     }
 
-    // 2) Figure out what to show the user
-    if (result === 'accept' || status === '0') {
-      sessionStorage.setItem('paymentDone', 'true')
-      localStorage.setItem('paymentSuccess', 'true')
-      setMessage('Payment received')
-      setSuccess(true)
-    } else if (result === 'reject' || status !== '0') {
-      sessionStorage.removeItem('paymentDone')
-      localStorage.removeItem('paymentSuccess')
-      setMessage('❌ Payment failed.')
-      setSuccess(false)
-    } else {
-      sessionStorage.removeItem('paymentDone')
-      localStorage.removeItem('paymentSuccess')
-      setMessage('🤔 Payment status unknown.')
-      setSuccess(null)
-    }
+    finalize()
   }, [aliasId, orderId, result, status])
-
-  useEffect(() => {
-    if (!orderId || success === null) return
-    fetch('/api/instruction/send-emails', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ instructionRef: orderId })
-    }).catch(console.error)
-  }, [orderId, success])
   const feeEarner = sessionStorage.getItem('feeEarnerName') || ''
 
   return (

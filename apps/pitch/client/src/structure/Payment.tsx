@@ -82,15 +82,23 @@ const Payment: React.FC<PaymentProps> = ({
       }
       setPaymentDone(true);
       setIsComplete(true);
-      setStage('result');
+      if (savedMethod === 'bank') {
+        setStage('result');
+      } else {
+        setStage('card');
+      }
     }
   }, [setIsComplete]);
 
   useEffect(() => {
     if (paymentDone) {
-      setStage('result');
+      const method =
+        choice || (sessionStorage.getItem('paymentMethod') as 'card' | 'bank' | null);
+      if (method === 'bank') {
+        setStage('result');
+      }
     }
-  }, [paymentDone]);
+  }, [paymentDone, choice]);
 
   useEffect(() => {
     if (sessionStorage.getItem('paymentDone') === 'true') {
@@ -110,12 +118,10 @@ const Payment: React.FC<PaymentProps> = ({
   };
 
   const bankRef = orderId.replace(/^HLX-/, '');
-  
-  let content;
 
   if (!instructionReady) {
-    content = (
-      <div className="form-container apple-form">
+    return (
+      <div className="form-container apple-form payment-section" style={style}>
         <p>Setting up your instruction...</p>
         <div className="button-group">
           <button type="button" className="btn secondary" onClick={onBack}>
@@ -125,7 +131,9 @@ const Payment: React.FC<PaymentProps> = ({
       </div>
     );
   }
-  
+
+  let content;
+
   useEffect(() => {
     if (!pitchedAt) return;
     const pitchDate = new Date(pitchedAt);
@@ -187,7 +195,6 @@ const Payment: React.FC<PaymentProps> = ({
           setSubmitting(false);
           sessionStorage.setItem('paymentDone', 'true');
           localStorage.setItem('paymentSuccess', 'true');
-          setStage('result');
         } else if (e.data.href.startsWith(exceptionUrl)) {
           setSubmitting(false);
           onError('SUBMIT_FAILED');
@@ -330,10 +337,10 @@ const Payment: React.FC<PaymentProps> = ({
             </button>
             <button
               className="btn primary"
-              onClick={submitToIframe}
-              disabled={!flexUrl || !formReady || submitting}
+              onClick={paymentDone ? onNext : submitToIframe}
+              disabled={paymentDone ? false : !flexUrl || !formReady || submitting}
             >
-              Pay
+              {paymentDone ? 'Next' : 'Pay'}
             </button>
           </div>
         </>
@@ -496,7 +503,11 @@ const Payment: React.FC<PaymentProps> = ({
     );
   }
 
-  return <div className="payment-section" style={style}>{content}</div>;
+  return (
+    <div className="form-container apple-form payment-section" style={style}>
+      {content}
+    </div>
+  );
 };
 
 export default Payment;
