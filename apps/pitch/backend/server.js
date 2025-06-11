@@ -190,7 +190,7 @@ app.post('/api/instruction', async (req, res) => {
 
     const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
     const record = await upsertInstruction(instructionRef, sanitized);
-    res.json(record);
+    res.json(data);
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
     res.status(500).json({ error: 'Failed to save instruction' });
@@ -264,9 +264,12 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
   if (!fnCode) return res.status(500).json({ ok: false, error: 'Server not ready' });
 
   try {
-    const { data } = await axios.get(`${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`, {
-      timeout: 10_000,
-    });
+    const { data } = await axios.get(
+      `${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`,
+      {
+        timeout: 10_000,
+      }
+    );
     // Confirm successful fetch without logging the full payload
     console.log('Fetched instruction data');
     res.json(record);
