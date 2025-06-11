@@ -74,11 +74,12 @@ const Payment: React.FC<PaymentProps> = ({
 
   // Restore payment state if user returns to this step after paying
   useEffect(() => {
-    const savedMethod = sessionStorage.getItem('paymentMethod');
-    if (savedMethod === 'card' || savedMethod === 'bank') {
-      setChoice(savedMethod);
-    }
-    if (sessionStorage.getItem('paymentDone') === 'true') {
+    const done = sessionStorage.getItem('paymentDone') === 'true';
+    if (done) {
+      const savedMethod = sessionStorage.getItem('paymentMethod');
+      if (savedMethod === 'card' || savedMethod === 'bank') {
+        setChoice(savedMethod);
+      }
       setPaymentDone(true);
       setIsComplete(true);
       setStage('result');

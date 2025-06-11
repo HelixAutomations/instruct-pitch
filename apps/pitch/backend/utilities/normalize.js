@@ -48,6 +48,8 @@ const ALLOWED_FIELDS = [
   'shaSign',
   'paymentAmount',
   'paymentProduct',
+  'paymentMethod',
+  'paymentResult',
 
   // allow consent & status updates
   'consentGiven',

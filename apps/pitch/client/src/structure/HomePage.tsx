@@ -103,6 +103,16 @@ interface StepHeaderProps {
   locked?: boolean;
   onEdit?: () => void;
   editable?: boolean;
+  /**
+   * Allow the step to be toggled even when locked.
+   * This lets the content be revealed in a read‑only state.
+   */
+  allowToggleWhenLocked?: boolean;
+  /**
+   * Dim the header when locked. Defaults to true for backwards
+   * compatibility.
+   */
+  dimOnLock?: boolean;
 }
 
 interface UploadedFile {
@@ -143,6 +153,8 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   locked = false,
   onEdit,
   editable = true,
+  allowToggleWhenLocked = false,
+  dimOnLock = true,
 }) => {
   // dark-blue skin when the step is CLOSED and NOT complete
   const attention = !open && !complete;
@@ -156,10 +168,19 @@ const StepHeader: React.FC<StepHeaderProps> = ({
       className={
         `step-header${open ? ' active' : ''}${locked ? ' locked' : ''}${attention ? ' attention' : ''}`
       }
-      onClick={() => { if (!locked) toggle(); }}
-      style={locked ? { cursor: 'not-allowed', opacity: 0.5 } : undefined}
-      tabIndex={locked ? -1 : 0}
-      aria-disabled={locked}
+      onClick={() => {
+        if (!locked || allowToggleWhenLocked) toggle();
+      }}
+      style={
+        locked
+          ? {
+              cursor: allowToggleWhenLocked ? 'pointer' : 'not-allowed',
+              opacity: dimOnLock ? 0.5 : 1,
+            }
+          : undefined
+      }
+      tabIndex={locked && !allowToggleWhenLocked ? -1 : 0}
+      aria-disabled={locked && !allowToggleWhenLocked}
     >
       <div className="step-number">{step}</div>
       <h2>
@@ -561,6 +582,19 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
       setShowFinalBanner(true);
     }
   }, [isUploadDone, isUploadSkipped, showFinalBanner]);
+
+  useEffect(() => {
+    if (showFinalBanner) {
+      goToStep(0);
+    }
+  }, [showFinalBanner]);
+
+  useEffect(() => {
+    if (openStep === 3) {
+      setShowFinalBanner(false);
+    }
+  }, [openStep]);
+
 
   // Watch for changes during an edit session
   useEffect(() => {
@@ -992,11 +1026,6 @@ const proofSummary = (
           This instruction has been completed and can no longer be edited.
         </div>
       )}
-      {showFinalBanner && (
-        <div className="completed-banner">
-          Thank you for confirming your instructions. We have emailed you a confirmation, and no further action is required at this time. The solicitor now has your file and will handle the next steps.
-        </div>
-      )}
       <main className="main-content">
         <div className="checkout-container">
           <div className="steps-column">
@@ -1008,7 +1037,7 @@ const proofSummary = (
                 complete={isIdReviewDone}
                 open={openStep === 1}
                 toggle={() => goToStep(openStep === 1 ? 0 : 1)}
-                locked={instructionCompleted}
+                locked={instructionCompleted || showFinalBanner}
                 onEdit={handleEdit}
               />
               <div
@@ -1066,7 +1095,7 @@ const proofSummary = (
                     complete={isPaymentDone}
                     open={openStep === 2}
                     toggle={() => goToStep(openStep === 2 ? 0 : 2)}
-                    locked={instructionCompleted || (isPaymentDone && paymentData.paymentMethod === 'card')}
+                    locked={instructionCompleted || showFinalBanner || (isPaymentDone && paymentData.paymentMethod === 'card')}
                     editable={paymentData.paymentMethod !== 'card'}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
@@ -1097,11 +1126,17 @@ const proofSummary = (
                 <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
                   <StepHeader
                     step={3}
-                    title={<>Upload Files <span className="optional">(optional)</span></>}
+                    title={
+                      isUploadDone
+                        ? 'Upload Files'
+                        : <>Upload Files <span className="optional">(optional)</span></>
+                    }
                     complete={isUploadDone}
                     open={openStep === 3}
                     toggle={() => goToStep(openStep === 3 ? 0 : 3)}
                     locked={instructionCompleted}
+                    allowToggleWhenLocked
+                    dimOnLock={false}
                   />
                   <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone)}`}>
                     {(openStep === 3 || closingStep === 3) && (
@@ -1122,6 +1157,12 @@ const proofSummary = (
                   </div>
                 </div>
               </>
+            )}
+
+            {showFinalBanner && (
+              <div className="completed-banner">
+                Thank you for confirming your instructions. We have emailed you a confirmation, and no further action is required at this time. The solicitor now has your file and will handle the next steps.
+              </div>
             )}
 
           </div>
