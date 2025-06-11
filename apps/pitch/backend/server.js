@@ -99,11 +99,13 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       PSWD:      cachedEpdqPassword,
       ORDERID:   orderId,
       ALIAS:     aliasId,
-      AMOUNT:    String(amount),
       CURRENCY:  'GBP',
       OPERATION: 'SAL',
       ALIASUSAGE: 'One-off Helix payment',
     };
+    if (amount != null) {
+      params.AMOUNT = String(Math.round(Number(amount) * 100));
+    }
     const shaInput = Object.keys(params)
       .sort()
       .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
