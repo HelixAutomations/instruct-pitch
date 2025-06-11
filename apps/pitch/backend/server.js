@@ -111,7 +111,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
     const shasign = crypto.createHash('sha256').update(shaInput).digest('hex').toUpperCase();
     const payload = new URLSearchParams({ ...params, SHASIGN: shasign }).toString();
     const result = await axios.post(
-      'https://mdepayments.epdq.co.uk/ncol/test/orderdirect.asp',
+      'https://mdepayments.epdq.co.uk/ncol/prod/orderdirect.asp',
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
