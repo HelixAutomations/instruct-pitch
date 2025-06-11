@@ -532,6 +532,26 @@
 
 .completed-banner { background: #fbe9cf; color: #333; padding: 12px; border: 1px solid #f0c36d; border-radius: 4px; margin-bottom: 1rem; }
 
+/* Animation for deal steps reveal */
+.deal-steps-anim-enter {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.deal-steps-anim-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+.deal-steps-anim-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+.deal-steps-anim-exit-active {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
 /* Info box style for both first-time and renewing status */
 .summary-status-note {
   font-size: 0.95em;

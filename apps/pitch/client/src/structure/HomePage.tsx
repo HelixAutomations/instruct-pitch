@@ -332,6 +332,7 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const [closingStep, setClosingStep] = useState<0 | 1 | 2 | 3>(0);
   const hasDeal = instruction.amount > 0;
   const maxStep = hasDeal ? 3 : 1;
+  const [dealStepsVisible, setDealStepsVisible] = useState(false);
   const [proofStartStep, setProofStartStep] = useState<number>(1);
   const [restartId, setRestartId] = useState(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
@@ -339,6 +340,9 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (hasDeal) setDealStepsVisible(true);
+  }, [hasDeal]);
 
   const goToStep = (target: 0 | 1 | 2 | 3) => {
     if (openStep !== target) {
@@ -1118,8 +1122,14 @@ const proofSummary = (
             </div>
 
             {hasDeal && (
+              <CSSTransition
+                in={dealStepsVisible}
+                timeout={300}
+                classNames="deal-steps-anim"
+                unmountOnExit
+              >
               <>
-                <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}>
+                <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}> 
                   <StepHeader
                     step={2}
                     title="Pay"
@@ -1222,6 +1232,7 @@ const proofSummary = (
                   </div>
                 </div>
               </>
+              </CSSTransition>
             )}
 
             {showFinalBanner && (
