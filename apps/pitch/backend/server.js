@@ -16,6 +16,7 @@ const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, updateP
 const { normalizeInstruction } = require('./utilities/normalize');
 
 const app = express();
+app.set('trust proxy', true);
 app.use(express.json());
 app.use('/api', uploadRouter);
 
@@ -88,11 +89,12 @@ app.post('/pitch/get-shasign', (req, res) => {
 
 // ─── DirectLink confirm-payment ────────────────────────────────────────
 app.post('/pitch/confirm-payment', async (req, res) => {
-  const { aliasId, orderId, amount, product } = req.body;
+  const { aliasId, orderId, amount, product, threeDS = {}, acceptUrl, exceptionUrl, declineUrl, shaSign } = req.body;
   if (!aliasId || !orderId) {
     return res.status(400).json({ error: 'Missing aliasId or orderId' });
   }
   try {
+    const instruction = await getInstruction(orderId).catch(() => ({}));
     const params = {
       PSPID:     'epdq1717240',
       USERID:    cachedEpdqUser,
@@ -102,10 +104,26 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       CURRENCY:  'GBP',
       OPERATION: 'SAL',
       ALIASUSAGE: 'One-off Helix payment',
+      FLAG3D:    'Y',
     };
     if (amount != null) {
       params.AMOUNT = String(Math.round(Number(amount) * 100));
     }
+    if (instruction) {
+      const name = [instruction.FirstName, instruction.LastName].filter(Boolean).join(' ');
+      if (name) params.CN = name;
+      if (instruction.Email) params.EMAIL = instruction.Email;
+    }
+    if (acceptUrl)    params.ACCEPTURL    = acceptUrl;
+    if (exceptionUrl) params.EXCEPTIONURL = exceptionUrl;
+    if (declineUrl)   params.DECLINEURL   = declineUrl;
+    params.LANGUAGE = 'en_GB';
+    params.browserAcceptHeader = req.headers['accept'] || '*/*';
+    params.browserUserAgent = req.headers['user-agent'] || '';
+    params.REMOTE_ADDR =
+      (req.headers['x-forwarded-for'] ?? '').split(',')[0] ||
+      req.socket.remoteAddress;
+    Object.assign(params, threeDS);
     const shaInput = Object.keys(params)
       .sort()
       .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
@@ -127,13 +145,19 @@ app.post('/pitch/confirm-payment', async (req, res) => {
     const status = parsed.STATUS || '';
     const success = status === '5' || status === '9';
 
+    if (status === '46' && parsed.HTML_ANSWER) {
+      return res.json({ challenge: parsed.HTML_ANSWER, details: parsed });
+    }
+
     await updatePaymentStatus(
       orderId,
       'card',
       success,
       amount != null ? Number(amount) : null,
-      product || null
-
+      product || null,
+      aliasId,
+      orderId,
+      shaSign || shasign
     );
 
     res.json({ success, details: parsed });

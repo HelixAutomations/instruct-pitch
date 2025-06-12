@@ -1047,22 +1047,6 @@ const proofSummary = (
         body: JSON.stringify(payload),
       }).catch(err => console.error('Failed to save payment info', err));
     }
-    if (aliasId && orderId && shaSign) {
-      fetch('/pitch/confirm-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aliasId, orderId })
-      })
-        .then((res) => res.json())
-        .then((data) => {
-                    if (process.env.NODE_ENV !== 'production') {
-            console.log('✅ Logged payment params to backend:', data);
-          }
-        })
-        .catch((err) => {
-          console.error('❌ Failed to confirm payment server-side:', err);
-        });
-    }
   }, [paymentData, instruction.instructionRef]);
 
   return (

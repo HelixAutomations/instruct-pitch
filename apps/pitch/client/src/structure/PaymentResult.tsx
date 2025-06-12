@@ -18,6 +18,17 @@ export default function PaymentResult() {
   const [message, setMessage] = useState<string>('Processing…')
   const [success, setSuccess] = useState<boolean | null>(null)
 
+  function collect3dsData() {
+    return {
+      browserColorDepth: String(window.screen.colorDepth),
+      browserJavaEnabled: navigator.javaEnabled(),
+      browserLanguage: navigator.language,
+      browserScreenHeight: String(window.screen.height),
+      browserScreenWidth: String(window.screen.width),
+      browserTimeZone: String(new Date().getTimezoneOffset())
+    }
+  }
+
   useEffect(() => {
     async function finalize() {
       if (!orderId) return
@@ -25,8 +36,11 @@ export default function PaymentResult() {
       const successFlag = result === 'accept' || status === '5' || status === '9'
       let serverSuccess: boolean | null = null
 
-      if (aliasId && orderId) {
+      if (aliasId && orderId && shaSign) {
         try {
+          const threeDS = collect3dsData()
+          const accept = `${window.location.origin}/pitch/payment/result?result=accept&amount=${amount}&product=${product}`
+          const decline = `${window.location.origin}/pitch/payment/result?result=reject&amount=${amount}&product=${product}`
           const res = await fetch('/pitch/confirm-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -35,10 +49,20 @@ export default function PaymentResult() {
               orderId,
               amount,
               product,
-              shaSign
+              shaSign,
+              threeDS,
+              acceptUrl: accept,
+              exceptionUrl: decline,
+              declineUrl: decline
             })
           })
           const data = await res.json()
+          if (data.challenge) {
+            document.open()
+            document.write(atob(data.challenge))
+            document.close()
+            return
+          }
           if (typeof data.success === 'boolean') {
             serverSuccess = data.success
           }
