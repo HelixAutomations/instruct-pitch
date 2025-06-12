@@ -1033,6 +1033,11 @@ const proofSummary = (
   useEffect(() => {
     const { orderId, shaSign, paymentMethod } = paymentData;
 
+    if (
+      !instruction.instructionRef ||
+      !instruction.instructionRef.startsWith('HLX-')
+    ) return;
+
     if (paymentMethod || orderId || shaSign) {
       const payload: any = {
         instructionRef: instruction.instructionRef,
