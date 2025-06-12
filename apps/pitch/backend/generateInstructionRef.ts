@@ -1,5 +1,3 @@
-import { nanoid } from 'nanoid';
-
 /**
  * Generate a unique instruction reference using the format HLX-[PID]-[RANDOM].
  *
@@ -7,6 +5,6 @@ import { nanoid } from 'nanoid';
  * @returns formatted instruction reference
  */
 export function generateInstructionRef(pid: string): string {
-  const random = nanoid(6); // e.g. "aB3xYz"
+  const random = Math.random().toString(36).slice(2, 8); // e.g. "4f92xa"
   return `HLX-${pid}-${random}`;
 }
