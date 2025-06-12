@@ -132,9 +132,11 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       Object.entries(params).map(([k, v]) => [k.toUpperCase(), v])
     );
 
+    const encode = v => new URLSearchParams({ x: v }).toString().slice(2);
+
     const shaInput = Object.keys(upper)
       .sort()
-      .map(k => `${k}=${upper[k]}${cachedShaPhrase}`)
+      .map(k => `${k}=${encode(upper[k])}${cachedShaPhrase}`)
       .join('');
     const shasign = crypto
       .createHash('sha256')
@@ -181,16 +183,18 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       return res.json({ challenge: parsed.HTML_ANSWER, details: parsed });
     }
 
-    await updatePaymentStatus(
-      orderId,
-      'card',
-      success,
-      amount != null ? Number(amount) : null,
-      product || null,
-      aliasId,
-      orderId,
-      shaSign || shasign
-    );
+    if (success) {
+      await updatePaymentStatus(
+        orderId,
+        'card',
+        success,
+        amount != null ? Number(amount) : null,
+        product || null,
+        aliasId,
+        orderId,
+        shaSign || shasign
+      );
+    }
 
     res.json({ success, details: parsed });
   } catch (err) {
