@@ -151,11 +151,9 @@ app.post('/pitch/confirm-payment', async (req, res) => {
 
     log('Upper-case params:', upper);
 
-    const encode = v => new URLSearchParams({ x: v }).toString().slice(2);
-
     const shaInput = Object.keys(upper)
       .sort()
-      .map(k => `${k}=${encode(upper[k])}${cachedShaPhrase}`)
+      .map(k => `${k}=${upper[k]}${cachedShaPhrase}`)
       .join('');
     log('SHA input:', shaInput);
     const shasign = crypto
