@@ -93,6 +93,7 @@ interface HomePageProps {
   step1Reveal?: boolean;
   clientId: string;
   instructionRef: string;
+  onInstructionConfirmed?: () => void;
 }
 
 interface StepHeaderProps {
@@ -224,7 +225,12 @@ const DUMMY_DEAL = {
 };
 
 
-const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionRef }) => {
+const HomePage: React.FC<HomePageProps> = ({
+  step1Reveal,
+  clientId,
+  instructionRef,
+  onInstructionConfirmed,
+}) => {
   const params = new URLSearchParams(window.location.search);
   const [paymentData, setPaymentData] = useState<{
     aliasId?: string;
@@ -648,6 +654,12 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
       goToStep(0);
     }
   }, [showFinalBanner]);
+
+  useEffect(() => {
+    if ((instructionCompleted || showFinalBanner) && onInstructionConfirmed) {
+      onInstructionConfirmed();
+    }
+  }, [instructionCompleted, showFinalBanner, onInstructionConfirmed]);
 
   // Watch for changes during an edit session
   useEffect(() => {

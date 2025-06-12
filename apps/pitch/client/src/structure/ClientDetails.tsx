@@ -1,17 +1,20 @@
 import React from 'react';
+import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import '../styles/ClientDetails.css';
 
 interface ClientDetailsProps {
   workType: string;
   stage: string;
-  instructionRef: string; // NEW
+  instructionRef: string;
+  confirmed?: boolean;
   onAnimationEnd?: () => void;
 }
 
 const ClientDetails: React.FC<ClientDetailsProps> = ({
   stage,
-  instructionRef, // ← add this
-  onAnimationEnd
+  instructionRef,
+  confirmed = false,
+  onAnimationEnd,
 }) => {
   const [loaded, setLoaded] = React.useState(false);
 
@@ -38,19 +41,40 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
     <div className="client-hero">
       <div className={`client-hero-inner center${loaded ? ' loaded' : ''}`}>
         <h1 className={`stage-title${loaded ? ' loaded' : ''}`}>{stage}</h1>
-        {instructionRef && (
-          <div className="instruction-subject">
-            RE: Instruction [{instructionRef}]
-          </div>
-        )}
-        <div className={`hero-help${loaded ? ' loaded' : ''}`}>
-          <span className="hero-help-prefix">We're here to help:</span>
-          <div className="hero-help-contact">
-            <a href="tel:03453142044">0345 314 2044</a>
-            <span className="pipe" aria-hidden="true"></span>
-            <a href="mailto:operations@helix-law.com">operations@helix-law.com</a>
-          </div>
-        </div>
+        <SwitchTransition mode="out-in">
+          <CSSTransition
+            key={confirmed ? 'confirmed' : 'help'}
+            timeout={300}
+            classNames="hero-msg-anim"
+          >
+            {confirmed ? (
+              <div className={`hero-confirmation${loaded ? ' loaded' : ''}`}>
+                <span className="completion-tick visible">
+                  <svg viewBox="0 0 24 24">
+                    <polyline
+                      points="5,13 10,18 19,7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span className="instruction-ref">Ref: {instructionRef}</span>
+              </div>
+            ) : (
+              <div className={`hero-help${loaded ? ' loaded' : ''}`}>
+                <span className="hero-help-prefix">We're here to help:</span>
+                <div className="hero-help-contact">
+                  <a href="tel:03453142044">0345 314 2044</a>
+                  <span className="pipe" aria-hidden="true"></span>
+                  <a href="mailto:automations@helix-law.com">operations@helix-law.com</a>
+                </div>
+              </div>
+            )}
+          </CSSTransition>
+        </SwitchTransition>
         {detailItems.length > 0 && (
           <div className="client-details-bar">
             {detailItems.map((item, idx) => (

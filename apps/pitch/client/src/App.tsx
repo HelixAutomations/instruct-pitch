@@ -15,6 +15,7 @@ const App: React.FC = () => {
 
   const [clientId, setClientId] = useState(cid || '');
   const [instructionRef, setInstructionRef] = useState('');
+  const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
   const location = useLocation();
 
@@ -49,8 +50,9 @@ const App: React.FC = () => {
             <Header />
             <ClientDetails
               workType="—"
-              stage="Confirmation of Instruction"
+              stage={instructionConfirmed ? 'Instruction Confirmed' : 'Confirmation of Instruction'}
               instructionRef={instructionRef}
+              confirmed={instructionConfirmed}
               onAnimationEnd={() => {
                 setTimeout(() => setStep1Reveal(true), 550);
               }}
@@ -79,6 +81,7 @@ const App: React.FC = () => {
                 step1Reveal={step1Reveal}
                 clientId={clientId}
                 instructionRef={instructionRef}
+                onInstructionConfirmed={() => setInstructionConfirmed(true)}
               />
             }
           />

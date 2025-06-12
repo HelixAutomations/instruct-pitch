@@ -88,6 +88,66 @@
   background-color: rgba(255, 255, 255, 0.5);
 }
 
+.hero-confirmation {
+  color: #fff;
+  font-size: 1rem;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-confirmation.loaded {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.2s;
+}
+
+.hero-confirmation .instruction-ref {
+  font-weight: 600;
+}
+
+.hero-confirmation .completion-tick {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #20b26c;
+}
+
+.hero-confirmation .completion-tick svg {
+  width: 14px;
+  height: 14px;
+}
+
+.hero-msg-anim-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.hero-msg-anim-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+.hero-msg-anim-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+.hero-msg-anim-exit-active {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
 /* Mobile: stack contact items, hide pipe */
 @media (max-width: 480px) {
   .hero-help-contact {
