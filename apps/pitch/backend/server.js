@@ -139,7 +139,14 @@ app.post('/pitch/confirm-payment', async (req, res) => {
     const rawBody = typeof result.data === 'string' ? result.data.trim() : '';
     if (rawBody.startsWith('<')) {
       console.warn('⚠️  Unexpected XML response from ePDQ:', rawBody.slice(0, 80));
-      return res.json({ success: false, raw: result.data });
+      const codeMatch = /NCERROR="([^"]+)"/.exec(rawBody);
+      const msgMatch  = /NCERRORPLUS="([^"]*)"/.exec(rawBody);
+      return res.json({
+        success: false,
+        error: codeMatch ? codeMatch[1] : undefined,
+        message: msgMatch ? msgMatch[1] : undefined,
+        raw: result.data
+      });
     }
     console.log('ePDQ response:', result.data);
     const parsed = {};

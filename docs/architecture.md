@@ -34,3 +34,9 @@ flowchart LR
     Functions-->KeyVault
 ```
 
+### Error Handling
+
+When ePDQ returns an XML payload instead of the normal key/value pairs, the
+backend now parses the `NCERROR` and `NCERRORPLUS` values. These fields are
+included in the JSON response so the client can surface a meaningful error
+message while still exposing the raw XML for reference.
