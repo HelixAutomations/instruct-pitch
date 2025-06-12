@@ -258,6 +258,13 @@ const HomePage: React.FC<HomePageProps> = ({ step1Reveal, clientId, instructionR
     pitchedAt: new Date().toISOString(),
   });
 
+  // Keep internal instruction reference in sync with prop updates
+  useEffect(() => {
+    if (instructionRef && instructionRef !== instruction.instructionRef) {
+      setInstruction(prev => ({ ...prev, instructionRef }));
+    }
+  }, [instructionRef]);
+
   useEffect(() => {
     if (!instruction.instructionRef) return;
     fetch(`/api/instruction?instructionRef=${instruction.instructionRef}`)
