@@ -1031,7 +1031,7 @@ const proofSummary = (
   };
 
   useEffect(() => {
-    const { aliasId, orderId, shaSign, paymentMethod } = paymentData;
+    const { orderId, shaSign, paymentMethod } = paymentData;
 
     if (paymentMethod || orderId || shaSign) {
       const payload: any = {

@@ -50,6 +50,7 @@ const App: React.FC = () => {
             <ClientDetails
               workType="—"
               stage="Confirmation of Instruction"
+              instructionRef={instructionRef}
               onAnimationEnd={() => {
                 setTimeout(() => setStep1Reveal(true), 550);
               }}
