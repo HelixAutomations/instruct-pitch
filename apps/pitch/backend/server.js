@@ -164,8 +164,15 @@ app.post('/pitch/confirm-payment', async (req, res) => {
     rawBody
       .split(/\r?\n|&/)
       .forEach(p => {
-        const [k, v] = p.split('=');
-        if (k) parsed[k] = v;
+        if (!p) return;
+        const idx = p.indexOf('=');
+        if (idx === -1) {
+          parsed[p] = '';
+        } else {
+          const key = p.slice(0, idx);
+          const val = p.slice(idx + 1);
+          parsed[key] = val;
+        }
       });
     const status = parsed.STATUS || '';
     const success = status === '5' || status === '9';
