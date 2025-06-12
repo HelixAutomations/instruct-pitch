@@ -5,6 +5,6 @@
  * @returns formatted instruction reference
  */
 export function generateInstructionRef(pid: string): string {
-  const random = Math.random().toString(36).slice(2, 8); // e.g. "4f92xa"
+  const random = Math.floor(Math.random() * 9000) + 1000; // Generates a 4-digit number between 1000 and 9999
   return `HLX-${pid}-${random}`;
 }

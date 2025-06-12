@@ -602,7 +602,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                           >
                             <option value="">Country</option>
                             {countries.map(c => (
-                              <option key={c.id} value={c.name}>{c.name}</option>
+                              <option key={c.id} value={c.name}>
+                                {c.name} ({c.code})
+                              </option>
                             ))}
                           </select>
                         </div>
@@ -777,7 +779,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                   >
                     <option value="">Nationality</option>
                     {countries.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
+                      <option key={c.id} value={c.name}>
+                        {c.name} ({c.code})
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -935,7 +939,9 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                   >
                     <option value="">Country</option>
                     {countries.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
+                      <option key={c.id} value={c.name}>
+                        {c.name} ({c.code})
+                      </option>
                     ))}
                   </select>
                 </div>

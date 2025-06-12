@@ -7,11 +7,17 @@ import logoMark from '../assets/dark blue mark.svg'
 export default function PaymentResult() {
   const { search } = useLocation()
   const params = new URLSearchParams(search)
-  const aliasId = params.get('Alias.AliasId')
-  const orderId = params.get('Alias.OrderId')
+  const aliasId =
+    params.get('Alias.AliasId') || sessionStorage.getItem('aliasId') || undefined
+  const orderId =
+    params.get('Alias.OrderId') || sessionStorage.getItem('orderId') || undefined
   const status = params.get('Alias.STATUS')
   const result = params.get('result')
-  const shaSign = params.get('SHASIGN') || params.get('SHASign')
+  const shaSign =
+    params.get('SHASIGN') ||
+    params.get('SHASign') ||
+    sessionStorage.getItem('shaSign') ||
+    undefined
   const amount = params.get('amount')
   const product = params.get('product')
 
@@ -31,6 +37,9 @@ export default function PaymentResult() {
 
   useEffect(() => {
     async function finalize() {
+      if (aliasId) sessionStorage.setItem('aliasId', aliasId)
+      if (orderId) sessionStorage.setItem('orderId', orderId)
+      if (shaSign) sessionStorage.setItem('shaSign', shaSign)
       if (!orderId) return
 
       const successFlag = result === 'accept' || status === '5' || status === '9'
