@@ -1,16 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateInstructionRef = generateInstructionRef;
+const nanoid_1 = require("nanoid");
 /**
- * Generate an instruction reference using the format HLX-[PID]-[DDMM].
- * PID is supplied by the caller and DDMM is the current UTC day and month.
+ * Generate a unique instruction reference using the format HLX-[PID]-[RANDOM].
  *
  * @param pid - client or project identifier
  * @returns formatted instruction reference
  */
 function generateInstructionRef(pid) {
-    const now = new Date();
-    const day = String(now.getUTCDate()).padStart(2, '0');
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    return `HLX-${pid}-${day}${month}`;
+    const random = (0, nanoid_1.nanoid)(6); // e.g. "aB3xYz"
+    return `HLX-${pid}-${random}`;
 }

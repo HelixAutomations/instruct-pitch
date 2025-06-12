@@ -1,13 +1,12 @@
+import { nanoid } from 'nanoid';
+
 /**
- * Generate an instruction reference using the format HLX-[PID]-[DDMM].
- * PID is supplied by the caller and DDMM is the current UTC day and month.
+ * Generate a unique instruction reference using the format HLX-[PID]-[RANDOM].
  *
  * @param pid - client or project identifier
  * @returns formatted instruction reference
  */
 export function generateInstructionRef(pid: string): string {
-  const now = new Date();
-  const day = String(now.getUTCDate()).padStart(2, '0');
-  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-  return `HLX-${pid}-${day}${month}`;
+  const random = nanoid(6); // e.g. "aB3xYz"
+  return `HLX-${pid}-${random}`;
 }
