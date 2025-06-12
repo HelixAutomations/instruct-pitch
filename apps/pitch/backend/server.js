@@ -75,11 +75,10 @@ app.post('/pitch/get-shasign', (req, res) => {
   try {
     if (!cachedShaPhrase) throw new Error('SHA phrase not loaded');
     const params = req.body;
-    const encode = v => new URLSearchParams({ x: v }).toString().slice(2);
     const toHash = Object.keys(params)
       .map(k => k.toUpperCase()) // 👈 this line is essential
       .sort()
-      .map(k => `${k}=${encode(params[k])}${cachedShaPhrase}`)
+      .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
       .join('');
     const shasign = crypto.createHash('sha256').update(toHash).digest('hex').toUpperCase();
     res.json({ shasign });
