@@ -73,21 +73,42 @@ function post(path, body) {
   });
 }
 
+const crypto = require('crypto');
+
 (async () => {
+  let sentBody;
   nock('https://payments.epdq.co.uk')
-    .post('/ncol/prod/orderdirect.asp')
+    .post('/ncol/prod/orderdirect.asp', body => {
+      sentBody = body.toString();
+      return true;
+    })
     .reply(200, 'STATUS=9');
   const ok = await post('/pitch/confirm-payment', { aliasId: 'a', orderId: 'b' });
   assert.strictEqual(ok.status, 200);
   assert.strictEqual(ok.body.success, true);
 
+  // Verify ALIASOPERATION included in payload and SHA computation
+  const params = Object.fromEntries(new URLSearchParams(sentBody));
+  assert.strictEqual(params.ALIASOPERATION, 'BYPSP');
+  const { SHASIGN, ...rest } = params;
+  const shaInput = Object.keys(rest)
+    .sort()
+    .map(k => `${k}=${rest[k]}dummy`)
+    .join('');
+  const expectedSha = crypto
+    .createHash('sha256')
+    .update(shaInput)
+    .digest('hex')
+    .toUpperCase();
+  assert.strictEqual(params.SHASIGN, expectedSha);
+
   nock('https://payments.epdq.co.uk')
     .post('/ncol/prod/orderdirect.asp')
-    .reply(200, 'STATUS=2');
-  const fail = await post('/pitch/confirm-payment', { aliasId: 'x', orderId: 'y' });
-  assert.strictEqual(fail.status, 200);
-  assert.strictEqual(fail.body.success, false);
-
+    .reply(200, '<?xml version="1.0"?><ncresponse STATUS="46" HTML_ANSWER="SGVsbG8=" />');
+  const challenge = await post('/pitch/confirm-payment', { aliasId: 'c', orderId: 'd' });
+  assert.strictEqual(challenge.status, 200);
+  assert.strictEqual(challenge.body.challenge, 'SGVsbG8=');
+  
   server.close();
   console.log('All tests passed');
 })();

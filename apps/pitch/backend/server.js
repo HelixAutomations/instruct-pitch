@@ -175,31 +175,34 @@ app.post('/pitch/confirm-payment', async (req, res) => {
     );
     const rawBody = typeof result.data === 'string' ? result.data.trim() : '';
     log('Raw response from ePDQ:', rawBody);
+    let parsed = {};
     if (rawBody.startsWith('<')) {
-      console.warn('⚠️  Unexpected XML response from ePDQ:', rawBody.slice(0, 80));
-      const codeMatch = /NCERROR="([^"]+)"/.exec(rawBody);
-      const msgMatch  = /NCERRORPLUS="([^"]*)"/.exec(rawBody);
-      return res.json({
-        success: false,
-        error: codeMatch ? codeMatch[1] : undefined,
-        message: msgMatch ? msgMatch[1] : undefined,
-        raw: result.data
-      });
-    }
-    const parsed = {};
-    rawBody
-      .split(/\r?\n|&/)
-      .forEach(p => {
-        if (!p) return;
-        const idx = p.indexOf('=');
-        if (idx === -1) {
-          parsed[p] = '';
-        } else {
-          const key = p.slice(0, idx);
-          const val = p.slice(idx + 1);
-          parsed[key] = val;
+      console.warn('⚠️  XML response from ePDQ:', rawBody.slice(0, 80));
+      const attr = rawBody.match(/<ncresponse([^>]*)>/i);
+      if (attr) {
+        const re = /(\w+)="([^"]*)"/g;
+        let m;
+        while ((m = re.exec(attr[1])) !== null) {
+          parsed[m[1]] = m[2];
         }
-      });
+      }
+      const htmlMatch = rawBody.match(/<HTML_ANSWER>([\s\S]*?)<\/HTML_ANSWER>/i);
+      if (htmlMatch) parsed.HTML_ANSWER = htmlMatch[1];
+    } else {
+      rawBody
+        .split(/\r?\n|&/)
+        .forEach(p => {
+          if (!p) return;
+          const idx = p.indexOf('=');
+          if (idx === -1) {
+            parsed[p] = '';
+          } else {
+            const key = p.slice(0, idx);
+            const val = p.slice(idx + 1);
+            parsed[key] = val;
+          }
+        });
+    }
     const status = parsed.STATUS || '';
     const success = status === '5' || status === '9';
 
