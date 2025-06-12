@@ -31,13 +31,17 @@ const IDAuth: React.FC<IDAuthProps> = ({
     return !newErrors.clientId;
   };
 
-  const handleSubmit = () => {
-    if (validateInputs()) {
-      const now = new Date();
-      const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}`;
-      const iid = `HLX-${clientId}-${ddmm}`;
-      setInstructionRef(iid);
+  const handleSubmit = async () => {
+    if (!validateInputs()) return;
+    try {
+      const resp = await fetch(`/api/generate-instruction-ref?cid=${clientId}`);
+      const data = await resp.json();
+      if (data.instructionRef) {
+        setInstructionRef(data.instructionRef);
+      }
       onConfirm();
+    } catch (err) {
+      console.error('Failed to fetch instruction reference', err);
     }
   };
 

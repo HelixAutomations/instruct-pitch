@@ -14,26 +14,23 @@ const App: React.FC = () => {
   const navigate = useNavigate();
 
   const [clientId, setClientId] = useState(cid || '');
-  const [instructionRef, setInstructionRef] = useState(() => {
-    if (!cid) return '';
-    const now  = new Date();
-    const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(
-      now.getMonth() + 1
-    ).padStart(2, '0')}`;
-    return `HLX-${cid}-${ddmm}`;
-  });
+  const [instructionRef, setInstructionRef] = useState('');
   const [step1Reveal, setStep1Reveal] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    if (cid) {
-      const now  = new Date();
-      const ddmm = `${String(now.getDate()).padStart(2, '0')}${String(
-        now.getMonth() + 1
-      ).padStart(2, '0')}`;
-      setClientId(cid);
-      setInstructionRef(`HLX-${cid}-${ddmm}`);
-    }
+    if (!cid) return;
+    setClientId(cid);
+    fetch(`/api/generate-instruction-ref?cid=${cid}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.instructionRef) {
+          setInstructionRef(data.instructionRef);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch instructionRef', err);
+      });
   }, [cid]);
 
   if (location.pathname === '/payment/result') {
