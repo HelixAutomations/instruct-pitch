@@ -15,9 +15,20 @@ const { SecretClient } = require('@azure/keyvault-secrets');
 const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, updatePaymentStatus } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
+function log(...args) {
+  console.log(new Date().toISOString(), ...args);
+}
+
+
 const app = express();
 app.set('trust proxy', true);
 app.use(express.json());
+app.use((req, _res, next) => {
+  log('>>', req.method, req.originalUrl);
+  if (Object.keys(req.query || {}).length) log('Query:', req.query);
+  if (req.body && Object.keys(req.body).length) log('Body:', req.body);
+  next();
+});
 app.use('/api', uploadRouter);
 
 // ─── Block direct access to server files ───────────────────────────────
@@ -75,12 +86,15 @@ app.post('/pitch/get-shasign', (req, res) => {
   try {
     if (!cachedShaPhrase) throw new Error('SHA phrase not loaded');
     const params = req.body;
+    log('Generating SHASIGN with params:', params);
     const toHash = Object.keys(params)
       .map(k => k.toUpperCase()) // 👈 this line is essential
       .sort()
       .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
       .join('');
+    log('SHA input string:', toHash);
     const shasign = crypto.createHash('sha256').update(toHash).digest('hex').toUpperCase();
+    log('SHASIGN:', shasign);
     res.json({ shasign });
   } catch (err) {
     console.error('❌ /pitch/get-shasign error:', err);
@@ -95,6 +109,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
     return res.status(400).json({ error: 'Missing aliasId or orderId' });
   }
   try {
+    log('Starting confirm-payment for order', orderId);
     const instruction = await getInstruction(orderId).catch(() => ({}));
     const params = {
       PSPID:     'epdq1717240',
@@ -125,6 +140,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       (req.headers['x-forwarded-for'] ?? '').split(',')[0] ||
       req.socket.remoteAddress;
     Object.assign(params, threeDS);
+    log('Payment params before upper-case:', params);
 
     // ePDQ requires all parameter names to be upper-case when computing the
     // SHA signature. The 3DS fields arrive in camelCase from the client so we
@@ -133,25 +149,33 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       Object.entries(params).map(([k, v]) => [k.toUpperCase(), v])
     );
 
+    log('Upper-case params:', upper);
+
     const encode = v => new URLSearchParams({ x: v }).toString().slice(2);
 
     const shaInput = Object.keys(upper)
       .sort()
       .map(k => `${k}=${encode(upper[k])}${cachedShaPhrase}`)
       .join('');
+    log('SHA input:', shaInput);
     const shasign = crypto
       .createHash('sha256')
       .update(shaInput)
       .digest('hex')
       .toUpperCase();
 
+    log('Computed SHASIGN:', shasign);
+
     const payload = new URLSearchParams({ ...upper, SHASIGN: shasign }).toString();
+
+    log('Payload sent to ePDQ:', payload);
     const result = await axios.post(
       'https://payments.epdq.co.uk/ncol/prod/orderdirect.asp',
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
     const rawBody = typeof result.data === 'string' ? result.data.trim() : '';
+    log('Raw response from ePDQ:', rawBody);
     if (rawBody.startsWith('<')) {
       console.warn('⚠️  Unexpected XML response from ePDQ:', rawBody.slice(0, 80));
       const codeMatch = /NCERROR="([^"]+)"/.exec(rawBody);
@@ -179,6 +203,9 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       });
     const status = parsed.STATUS || '';
     const success = status === '5' || status === '9';
+
+    log('Parsed response:', parsed);
+    log('Payment success:', success);
 
     if (status === '46' && parsed.HTML_ANSWER) {
       return res.json({ challenge: parsed.HTML_ANSWER, details: parsed });
@@ -210,6 +237,7 @@ app.get('/api/instruction', async (req, res) => {
   if (!ref) return res.status(400).json({ error: 'Missing instructionRef' });
   try {
     const data = await getInstruction(ref);
+    log('Fetched instruction', ref, data);
     res.json(data || null);
   } catch (err) {
     console.error('❌ /api/instruction GET error:', err);
@@ -225,11 +253,13 @@ app.post('/api/instruction', async (req, res) => {
 
   try {
     const existing = (await getInstruction(instructionRef)) || {};
+    log('Existing record:', existing);    
     if (existing.stage === 'completed' && stage !== 're-visit') {
       return res.json({ completed: true });
     }
 
     const normalized = normalizeInstruction(rest);
+    log('Normalized incoming data:', normalized);
     let merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
 
     if (merged.paymentMethod === 'bank') {
@@ -252,7 +282,9 @@ app.post('/api/instruction', async (req, res) => {
     }
 
     const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
+    log('Upserting instruction with:', sanitized);
     const record = await upsertInstruction(instructionRef, sanitized);
+    log('Upsert result:', record);
     res.json(record);
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
@@ -266,11 +298,14 @@ app.post('/api/instruction/complete', async (req, res) => {
 
   try {
     const existing = await getInstruction(instructionRef);
+    log('Complete instruction existing record:', existing);
     if (existing && existing.stage === 'completed') {
       return res.json({ completed: true });
     }
 
     const record = await markCompleted(instructionRef);
+
+    log('Mark completed result:', record);
 
     res.json(record);
   } catch (err) {
@@ -284,6 +319,7 @@ app.post('/api/instruction/send-emails', async (req, res) => {
 
   try {
     const record = await getInstruction(instructionRef);
+    log('Send emails for record:', record);
     if (!record) return res.status(404).json({ error: 'Instruction not found' });
 
     try {
