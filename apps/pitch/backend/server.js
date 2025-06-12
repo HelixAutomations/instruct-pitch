@@ -121,6 +121,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       OPERATION: 'SAL',
       ALIASUSAGE: 'One-off Helix payment',
       FLAG3D:    'Y',
+      ALIASOPERATION: 'BYPSP',
     };
     if (amount != null) {
       params.AMOUNT = String(Math.round(Number(amount) * 100));
