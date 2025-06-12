@@ -124,18 +124,30 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       (req.headers['x-forwarded-for'] ?? '').split(',')[0] ||
       req.socket.remoteAddress;
     Object.assign(params, threeDS);
-    const shaInput = Object.keys(params)
+
+    // ePDQ requires all parameter names to be upper-case when computing the
+    // SHA signature. The 3DS fields arrive in camelCase from the client so we
+    // normalise them here before signing and sending the request.
+    const upper = Object.fromEntries(
+      Object.entries(params).map(([k, v]) => [k.toUpperCase(), v])
+    );
+
+    const shaInput = Object.keys(upper)
       .sort()
-      .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
+      .map(k => `${k}=${upper[k]}${cachedShaPhrase}`)
       .join('');
-    const shasign = crypto.createHash('sha256').update(shaInput).digest('hex').toUpperCase();
-    const payload = new URLSearchParams({ ...params, SHASIGN: shasign }).toString();
+    const shasign = crypto
+      .createHash('sha256')
+      .update(shaInput)
+      .digest('hex')
+      .toUpperCase();
+
+    const payload = new URLSearchParams({ ...upper, SHASIGN: shasign }).toString();
     const result = await axios.post(
       'https://payments.epdq.co.uk/ncol/prod/orderdirect.asp',
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
-    console.log('ePDQ response:', result.data);
     const rawBody = typeof result.data === 'string' ? result.data.trim() : '';
     if (rawBody.startsWith('<')) {
       console.warn('⚠️  Unexpected XML response from ePDQ:', rawBody.slice(0, 80));
@@ -148,7 +160,6 @@ app.post('/pitch/confirm-payment', async (req, res) => {
         raw: result.data
       });
     }
-    console.log('ePDQ response:', result.data);
     const parsed = {};
     rawBody
       .split(/\r?\n|&/)
