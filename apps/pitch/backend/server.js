@@ -135,8 +135,15 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
+    console.log('ePDQ response:', result.data);
+    const rawBody = typeof result.data === 'string' ? result.data.trim() : '';
+    if (rawBody.startsWith('<')) {
+      console.warn('⚠️  Unexpected XML response from ePDQ:', rawBody.slice(0, 80));
+      return res.json({ success: false, raw: result.data });
+    }
+    console.log('ePDQ response:', result.data);
     const parsed = {};
-    String(result.data)
+    rawBody
       .split(/\r?\n|&/)
       .forEach(p => {
         const [k, v] = p.split('=');
