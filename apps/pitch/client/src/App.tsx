@@ -27,10 +27,17 @@ const App: React.FC = () => {
       .then(data => {
         if (data.instructionRef) {
           setInstructionRef(data.instructionRef);
+        } else if (import.meta.env.DEV) {
+          const rand = Math.floor(Math.random() * 9000) + 1000;
+          setInstructionRef(`HLX-${cid}-${rand}`);
         }
       })
       .catch(err => {
         console.error('Failed to fetch instructionRef', err);
+        if (import.meta.env.DEV) {
+          const rand = Math.floor(Math.random() * 9000) + 1000;
+          setInstructionRef(`HLX-${cid}-${rand}`);
+        }
       });
   }, [cid]);
 

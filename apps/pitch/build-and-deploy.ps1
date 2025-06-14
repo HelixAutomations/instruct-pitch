@@ -44,8 +44,6 @@ Copy-Item .\backend\package.json ..\..\ -Force
 Copy-Item .\backend\web.config ..\..\ -Force
 Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
 
-# --- utilities/normalize.js copied above via * (if utilities exists) ---
-
 # Copy backend dist (compiled TypeScript output) to root-level dist
 Copy-Item -Recurse -Force .\backend\dist ..\..\dist
 
@@ -81,8 +79,8 @@ az webapp deployment source config-zip `
   --name instruct-helixlaw-pitch `
   --src push-package.zip
 
-# Optional cleanup
-$shouldClean = $true
+# Optional cleanup - DISABLED
+$shouldClean = $false
 if ($shouldClean) {
   Remove-Item .\server.js, .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue

@@ -38,10 +38,17 @@ const IDAuth: React.FC<IDAuthProps> = ({
       const data = await resp.json();
       if (data.instructionRef) {
         setInstructionRef(data.instructionRef);
+        onConfirm();
+        return;
       }
-      onConfirm();
+      throw new Error('No instructionRef returned');
     } catch (err) {
       console.error('Failed to fetch instruction reference', err);
+      if (import.meta.env.DEV) {
+        const rand = Math.floor(Math.random() * 9000) + 1000;
+        setInstructionRef(`HLX-${clientId}-${rand}`);
+        onConfirm();
+      }
     }
   };
 
