@@ -79,8 +79,8 @@ az webapp deployment source config-zip `
   --name instruct-helixlaw-pitch `
   --src push-package.zip
 
-# Optional cleanup - DISABLED
-$shouldClean = $false
+# Optional cleanup
+$shouldClean = $true
 if ($shouldClean) {
   Remove-Item .\server.js, .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue

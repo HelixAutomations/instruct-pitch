@@ -478,7 +478,7 @@ const Payment: React.FC<PaymentProps> = ({
           <div className="service-summary-grid">
             {contactFirstName && (
               <div className="summary-item">
-                <div className="summary-label">Solicitor</div>
+                <div className="summary-label">Solifgggcitor</div>
                 <div className="summary-value">{contactFirstName}</div>
               </div>
             )}
