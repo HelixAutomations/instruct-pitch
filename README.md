@@ -2,6 +2,8 @@
 
 This repository contains a small React client and an Express backend used to demonstrate a payment flow with Barclays ePDQ.
 
+Clients access the app using a unique **passcode** included in their invitation email. The passcode maps to the latest deal and is required to generate an instruction reference and upload documents.
+
 For an overview of how these pieces fit together, see the [architecture diagram](docs/architecture.md).
 
 ## Prerequisites

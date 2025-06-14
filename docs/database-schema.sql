@@ -2,6 +2,7 @@ CREATE TABLE [dbo].[Deals] (
     [DealId]             INT            IDENTITY (1, 1) NOT NULL,
     [InstructionRef]     NVARCHAR (50)  NULL,
     [ProspectId]         INT            NULL,
+    [Passcode]           NVARCHAR (50)  NULL,
     [ServiceDescription] NVARCHAR (255) NOT NULL,
     [Amount]             MONEY          NOT NULL,
     [AreaOfWork]         NVARCHAR (100) NOT NULL,

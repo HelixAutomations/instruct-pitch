@@ -91,7 +91,7 @@ const ALLOWED_FIELDS = [
 
 interface HomePageProps {
   step1Reveal?: boolean;
-  clientId: string;
+  passcode: string;
   instructionRef: string;
   onInstructionConfirmed?: () => void;
 }
@@ -227,7 +227,7 @@ const DUMMY_DEAL = {
 
 const HomePage: React.FC<HomePageProps> = ({
   step1Reveal,
-  clientId,
+  passcode,
   instructionRef,
   onInstructionConfirmed,
 }) => {
@@ -600,9 +600,9 @@ const HomePage: React.FC<HomePageProps> = ({
   // Clear any persisted progress on first load so refreshing starts clean
   useEffect(() => {
     sessionStorage.removeItem('paymentDone');
-    sessionStorage.removeItem(`uploadedDocs-${clientId}-${instructionRef}`);
+    sessionStorage.removeItem(`uploadedDocs-${passcode}-${instructionRef}`);
     setDetailsConfirmed(false);
-  }, [clientId, instructionRef]);
+  }, [passcode, instructionRef]);
 
   useEffect(() => {
     if (localStorage.getItem('paymentSuccess') === 'true') {
@@ -1258,7 +1258,7 @@ const proofSummary = (
                         onNext={next}
                         setUploadSkipped={setUploadSkipped}
                         isUploadSkipped={isUploadSkipped}
-                        clientId={clientId}
+                        passcode={passcode}
                         instructionRef={instruction.instructionRef}
                         instructionReady={instructionReady}
                         instructionError={instructionError}

@@ -22,6 +22,18 @@ async function getLatestDeal(prospectId) {
   return result.recordset[0]
 }
 
+async function getDealByPasscode(passcode) {
+  const pool = await getSqlPool()
+  const result = await pool.request()
+    .input('code', sql.NVarChar, passcode)
+    .query(`
+      SELECT TOP 1 DealId, ProspectId, ServiceDescription, Amount, AreaOfWork
+      FROM Deals
+      WHERE Passcode = @code
+    `)
+  return result.recordset[0]
+}
+
 async function upsertInstruction(ref, fields) {
   const pool = await getSqlPool()
   const allowed = new Set([
@@ -147,6 +159,7 @@ async function updatePaymentStatus(
 module.exports = {
   getInstruction,
   getLatestDeal,
+  getDealByPasscode,
   upsertInstruction,
   markCompleted,
   updatePaymentStatus

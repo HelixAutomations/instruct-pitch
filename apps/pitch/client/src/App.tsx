@@ -9,44 +9,44 @@ import PaymentResult from './structure/PaymentResult';  // ← make sure this im
 import './styles/App.css';
 
 const App: React.FC = () => {
-  const match = useMatch('/:cid/*');
-  const cid = match?.params.cid;
+  const match = useMatch('/:code/*');
+  const code = match?.params.code;
   const navigate = useNavigate();
 
-  const [clientId, setClientId] = useState(cid || '');
+  const [passcode, setPasscode] = useState(code || '');
   const [instructionRef, setInstructionRef] = useState('');
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    if (!cid) return;
-    setClientId(cid);
-    fetch(`/api/generate-instruction-ref?cid=${cid}`)
+    if (!code) return;
+    setPasscode(code);
+    fetch(`/api/generate-instruction-ref?passcode=${code}`)
       .then(res => res.json())
       .then(data => {
         if (data.instructionRef) {
           setInstructionRef(data.instructionRef);
         } else if (import.meta.env.DEV) {
           const rand = Math.floor(Math.random() * 9000) + 1000;
-          setInstructionRef(`HLX-${cid}-${rand}`);
+          setInstructionRef(`HLX-${code}-${rand}`);
         }
       })
       .catch(err => {
         console.error('Failed to fetch instructionRef', err);
         if (import.meta.env.DEV) {
           const rand = Math.floor(Math.random() * 9000) + 1000;
-          setInstructionRef(`HLX-${cid}-${rand}`);
+          setInstructionRef(`HLX-${code}-${rand}`);
         }
       });
-  }, [cid]);
+  }, [code]);
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
   }
 
   const handleConfirm = () => {
-    navigate(`/${clientId}`);
+    navigate(`/${passcode}`);
   };
 
   return (
@@ -74,19 +74,19 @@ const App: React.FC = () => {
             path="/"
             element={
               <IDAuth
-                clientId={clientId}
-                setClientId={setClientId}
+                passcode={passcode}
+                setPasscode={setPasscode}
                 setInstructionRef={setInstructionRef}
                 onConfirm={handleConfirm}
               />
             }
           />
           <Route
-            path="/:cid/*"
+            path="/:code/*"
             element={
               <HomePage
                 step1Reveal={step1Reveal}
-                clientId={clientId}
+                passcode={passcode}
                 instructionRef={instructionRef}
                 onInstructionConfirmed={() => setInstructionConfirmed(true)}
               />

@@ -137,9 +137,11 @@ export default function PaymentResult() {
   return (
     <div className="payment-section">
       {challengeHtml ? (
-        <div
-          className="challenge-container"
-          dangerouslySetInnerHTML={{ __html: challengeHtml }}
+        <iframe
+          className="challenge-iframe"
+          srcDoc={challengeHtml}
+          style={{ width: '100%', maxWidth: 420, border: 'none', height: 400 }}
+          title="3‑D Secure Challenge"
         />
       ) : (
         <div className="combined-section payment-pane">

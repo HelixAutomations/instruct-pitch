@@ -4,37 +4,37 @@ import InfoPopover from '../components/InfoPopover';
 import '../styles/IDAuth.css';
 
 /**
- * Collects and confirms the user’s Client ID.
+ * Collects and confirms the user’s passcode.
  *  */
 interface IDAuthProps {
-  clientId?: string;
-  setClientId: (cid: string) => void;
+  passcode?: string;
+  setPasscode: (code: string) => void;
   setInstructionRef: (iid: string) => void;
   onConfirm: () => void;
 }
 
 const IDAuth: React.FC<IDAuthProps> = ({
-  clientId = '',
-  setClientId,
+  passcode = '',
+  setPasscode,
   setInstructionRef,
   onConfirm,
 }) => {
-  const [errors, setErrors] = useState<{ clientId: string }>({
-    clientId: '',
+  const [errors, setErrors] = useState<{ passcode: string }>({
+    passcode: '',
   });
 
   const validateInputs = () => {
-    const newErrors = { clientId: '' };
-    if (!clientId.trim()) newErrors.clientId = 'Your Client ID is mandatory.';
+    const newErrors = { passcode: '' };
+    if (!passcode.trim()) newErrors.passcode = 'Your passcode is mandatory.';
 
     setErrors(newErrors);
-    return !newErrors.clientId;
+    return !newErrors.passcode;
   };
 
   const handleSubmit = async () => {
     if (!validateInputs()) return;
     try {
-      const resp = await fetch(`/api/generate-instruction-ref?cid=${clientId}`);
+      const resp = await fetch(`/api/generate-instruction-ref?passcode=${passcode}`);
       const data = await resp.json();
       if (data.instructionRef) {
         setInstructionRef(data.instructionRef);
@@ -46,13 +46,13 @@ const IDAuth: React.FC<IDAuthProps> = ({
       console.error('Failed to fetch instruction reference', err);
       if (import.meta.env.DEV) {
         const rand = Math.floor(Math.random() * 9000) + 1000;
-        setInstructionRef(`HLX-${clientId}-${rand}`);
+        setInstructionRef(`HLX-${passcode}-${rand}`);
         onConfirm();
       }
     }
   };
 
-  const isButtonDisabled = !clientId.trim();
+  const isButtonDisabled = !passcode.trim();
 
   return (
     <div
@@ -69,25 +69,25 @@ const IDAuth: React.FC<IDAuthProps> = ({
         <header className="modal-header">
           <div className="info-box">
             <span>
-              Please confirm your unique <span className="highlight">Client ID</span>.
+              Please confirm your unique <span className="highlight">Passcode</span>.
             </span>
-            <InfoPopover text="Your Client ID is included in our email invitation. Enter that ID to continue." />
+            <InfoPopover text="Your Passcode is included in our email invitation. Enter that code to continue." />
           </div>
         </header>
 
         {/* inputs side‑by‑side */}
         <div className="modal-body input-row">
           <div className="input-group">
-            <FaUser className={`input-icon ${clientId ? 'filled' : ''}`} />
+            <FaUser className={`input-icon ${passcode ? 'filled' : ''}`} />
             <input
               type="text"
               id="clientIdInput"
               className="input-field"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              placeholder="Client ID"
+              value={passcode}
+              onChange={(e) => setPasscode(e.target.value)}
+              placeholder="Passcode"
             />
-            {errors.clientId && <span className="error-text">{errors.clientId}</span>}
+            {errors.passcode && <span className="error-text">{errors.passcode}</span>}
           </div>
         </div>
 

@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, updatePaymentStatus } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
 function log(...args) {
@@ -42,11 +42,18 @@ app.all('/favicon.ico', (_req, res) => {
 
 // ─── Health probe support ───────────────────────────────────────────────
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
-app.get('/api/generate-instruction-ref', (req, res) => {
-  const cid = req.query.cid;
-  if (!cid) return res.status(400).json({ error: 'Missing cid' });
-  const ref = generateInstructionRef(String(cid));
-  res.json({ instructionRef: ref });
+app.get('/api/generate-instruction-ref', async (req, res) => {
+  const passcode = req.query.passcode;
+  if (!passcode) return res.status(400).json({ error: 'Missing passcode' });
+  try {
+    const deal = await getDealByPasscode(String(passcode));
+    if (!deal) return res.status(404).json({ error: 'Invalid passcode' });
+    const ref = generateInstructionRef(String(deal.ProspectId));
+    res.json({ instructionRef: ref });
+  } catch (err) {
+    console.error('❌ generate-instruction-ref error:', err);
+    res.status(500).json({ error: 'Failed to generate reference' });
+  }
 });
 
 // ─── Key Vault setup ──────────────────────────────────────────────────
@@ -405,11 +412,16 @@ app.get('/payment/result', (_req, res) => {
 });
 
 // 4) catch-all for /pitch SSR + prefill injection
-app.get(['/pitch', '/pitch/:cid', '/pitch/:cid/*'], async (req, res) => {
+app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
   try {
     let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
-    const cid = req.params.cid;
-    if (cid && cachedFetchInstructionDataCode) {
+    const code = req.params.code;
+    if (code && cachedFetchInstructionDataCode) {
+      let cid = code;
+      try {
+        const deal = await getDealByPasscode(code);
+        if (deal && deal.ProspectId) cid = String(deal.ProspectId);
+      } catch (err) { /* ignore lookup failures */ }
       const fnUrl  = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
       const fnCode = cachedFetchInstructionDataCode;
       const url    = `${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`;

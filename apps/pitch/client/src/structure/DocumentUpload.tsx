@@ -32,7 +32,7 @@ interface DocumentUploadProps {
   onNext: () => void;
   setUploadSkipped: Dispatch<SetStateAction<boolean>>;
   isUploadSkipped: boolean;
-  clientId: string;
+  passcode: string;
   instructionRef: string;
   instructionReady: boolean;
   instructionError?: string | null;
@@ -125,7 +125,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   onNext,
   setUploadSkipped,
   isUploadSkipped,
-  clientId,
+  passcode,
   instructionRef,
   instructionReady,
   instructionError
@@ -173,7 +173,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (isUploadSkipped || allSuccess) {
       setIsComplete(true);
       sessionStorage.setItem(
-        `uploadedDocs-${clientId}-${instructionRef}`,
+        `uploadedDocs-${passcode}-${instructionRef}`,
         'true'
       );
     } else {
@@ -189,7 +189,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         .filter(d => d.file)
         .map(d => ({ file: d.file!, uploaded: !!d.blobUrl }))
     );
-  }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, clientId, instructionRef]);
+  }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, passcode, instructionRef]);
 
   // Add new files to the document list
   const addExtraDocuments = (files: File[]) =>
@@ -228,7 +228,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (!doc.file) return doc;
     const formData = new FormData();
     formData.append('file', doc.file);
-    formData.append('clientId', clientId);
+    formData.append('passcode', passcode);
     formData.append('instructionRef', instructionRef);
 
     try {
@@ -450,7 +450,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             onClick={() => {
               setUploadSkipped(true);
               setIsComplete(true);
-              sessionStorage.setItem(`uploadedDocs-${clientId}-${instructionRef}`, 'true');
+              sessionStorage.setItem(`uploadedDocs-${passcode}-${instructionRef}`, 'true');
               setUploadedFiles([]);
               onNext();
             }}

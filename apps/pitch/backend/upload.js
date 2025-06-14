@@ -33,10 +33,11 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       throw new Error('Missing storage account or container');
     }
 
-    let { clientId, instructionRef } = req.body;
+    let { passcode, clientId, instructionRef } = req.body;
+    clientId = clientId || passcode;
     if (!req.file) return res.status(400).json({ error: 'No file provided' });
     if (!clientId) {
-      return res.status(400).json({ error: 'Missing clientId' });
+      return res.status(400).json({ error: 'Missing passcode' });
     }
     // If not provided, generate one
     if (!instructionRef) {
