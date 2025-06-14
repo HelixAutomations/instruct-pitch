@@ -50,3 +50,13 @@
 .result-panel p {
   margin: 0.5rem 0;
 }
+
+.challenge-container {
+  margin-top: 2rem;
+}
+
+.challenge-container form {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}

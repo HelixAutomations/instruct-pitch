@@ -2,14 +2,11 @@
 Push-Location $PSScriptRoot
 
 # Clean up old files
-$cleanBeforeBuild = $false
-if ($cleanBeforeBuild) {
-  Remove-Item -Recurse -Force ..\..\client -ErrorAction SilentlyContinue
-  Remove-Item -Force ..\..\push-package.zip -ErrorAction SilentlyContinue
-  Remove-Item -Recurse -Force ..\..\node_modules -ErrorAction SilentlyContinue
-  Remove-Item -Recurse -Force ..\..\dist -ErrorAction SilentlyContinue
-  Remove-Item -Recurse -Force ..\..\utilities -ErrorAction SilentlyContinue
-}
+Remove-Item -Recurse -Force ..\..\client -ErrorAction SilentlyContinue
+Remove-Item -Force ..\..\push-package.zip -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force ..\..\node_modules -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force ..\..\dist -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force ..\..\utilities -ErrorAction SilentlyContinue
 
 # Build frontend
 Push-Location .\client

@@ -24,6 +24,8 @@ export default function PaymentResult() {
   const [message, setMessage] = useState<string>('Processing…')
   const [success, setSuccess] = useState<boolean | null>(null)
 
+  const [challengeHtml, setChallengeHtml] = useState<string | null>(null)
+
   function collect3dsData() {
     return {
       browserColorDepth: String(window.screen.colorDepth),
@@ -68,9 +70,7 @@ export default function PaymentResult() {
           })
           const data = await res.json()
           if (data.challenge) {
-            document.open()
-            document.write(atob(data.challenge))
-            document.close()
+            setChallengeHtml(atob(data.challenge))
             return
           }
           if (typeof data.success === 'boolean') {
@@ -136,38 +136,46 @@ export default function PaymentResult() {
 
   return (
     <div className="payment-section">
-      <div className="combined-section payment-pane">
-        <div className="service-summary-box result-panel">
-          <h2 className="result-header">
-            <span className="completion-tick visible">
-              <svg viewBox="0 0 24 24">
-                <polyline
-                  points="5,13 10,18 19,7"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            {message}
-            <img src={logoMark} alt="" className="result-logo" />
-          </h2>
-          {success && (
-            <>
-              <p>
-                Thank you for your payment which we have received. We will contact you separately under separate cover shortly and will take it from there.
-              </p>
-              <p>
-                To finalise your instruction, please upload documents requested by {feeEarner || 'us'}, if any.
-              </p>
-            </>
-          )}
-          {success === false && <p>Please try again or contact support.</p>}
-          {success === null && <p>Contact support if this persists.</p>}
+      {challengeHtml ? (
+        <div
+          className="challenge-container"
+          dangerouslySetInnerHTML={{ __html: challengeHtml }}
+        />
+      ) : (
+        <div className="combined-section payment-pane">
+          <div className="service-summary-box result-panel">
+            <h2 className="result-header">
+              <span className="completion-tick visible">
+                <svg viewBox="0 0 24 24">
+                  <polyline
+                    points="5,13 10,18 19,7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              {message}
+              <img src={logoMark} alt="" className="result-logo" />
+            </h2>
+            {success && (
+              <>
+                <p>
+                  Thank you for your payment which we have received. We will contact you separately under separate cover shortly and will take it from there.
+                </p>
+                <p>
+                  To finalise your instruction, please upload documents requested by {feeEarner || 'us'}, if any.
+                </p>
+              </>
+            )}
+            {success === false && <p>Please try again or contact support.</p>}
+            {success === null && <p>Contact support if this persists.</p>}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
+  
 }
