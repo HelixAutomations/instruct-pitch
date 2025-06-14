@@ -22,6 +22,10 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!code) return;
     setPasscode(code);
+    if (/^HLX-\d+-\d+$/.test(code)) {
+      setInstructionRef(code);
+      return;
+    }
     fetch(`/api/generate-instruction-ref?passcode=${code}`)
       .then(res => res.json())
       .then(data => {

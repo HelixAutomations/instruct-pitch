@@ -29,7 +29,8 @@ const stubs = {
   },
   './instructionDb': {
     getInstruction: async () => stubs.getInstructionResponse,
-    updatePaymentStatus: async () => { stubs.updateCalled = true; }
+    updatePaymentStatus: async () => { stubs.updateCalled = true; },
+    closeDeal: async () => { stubs.closed = true; }
   },
   getInstructionResponse: { Email: 'test@example.com' }
 };

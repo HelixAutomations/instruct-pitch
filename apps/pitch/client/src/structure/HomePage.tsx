@@ -290,8 +290,14 @@ const HomePage: React.FC<HomePageProps> = ({
             workType: WorkType ?? prev.workType,
           }));
           if (stage === 'completed') {
-            setInstructionCompleted(false);
-            saveInstruction('re-visit').then(() => setInstructionReady(true));
+            setInstructionCompleted(true);
+            if (data.InternalStatus === 'paid') {
+              const fname = rest.FirstName || '';
+              const hr = new Date().getHours();
+              const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+              setCompletionGreeting(`${greet}, ${fname}.`);
+            }
+            setInstructionReady(true);
           } else {
             setInstructionReady(true);
           }
@@ -354,6 +360,7 @@ const HomePage: React.FC<HomePageProps> = ({
   const [proofStartStep, setProofStartStep] = useState<number>(1);
   const [restartId, setRestartId] = useState(0);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
+  const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
@@ -1081,7 +1088,7 @@ const proofSummary = (
     <div className="home-page">
       {instructionCompleted && (
         <div className="completed-banner">
-          This instruction has been completed and can no longer be edited.
+          {completionGreeting || 'This instruction has been completed and can no longer be edited.'}
         </div>
       )}
       <main className="main-content">

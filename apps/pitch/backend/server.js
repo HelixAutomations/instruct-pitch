@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, closeDeal } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
 function log(...args) {
@@ -235,6 +235,11 @@ app.post('/pitch/confirm-payment', async (req, res) => {
         orderId,
         shaSign || shasign
       );
+      try {
+        await closeDeal(orderId);
+      } catch (err) {
+        console.error('❌ Failed to close deal:', err);
+      }
     }
 
     res.json({ success, alreadyProcessed, details: parsed });
@@ -416,22 +421,38 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
   try {
     let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
     const code = req.params.code;
-    if (code && cachedFetchInstructionDataCode) {
-      let cid = code;
-      try {
-        const deal = await getDealByPasscode(code);
-        if (deal && deal.ProspectId) cid = String(deal.ProspectId);
-      } catch (err) { /* ignore lookup failures */ }
-      const fnUrl  = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
-      const fnCode = cachedFetchInstructionDataCode;
-      const url    = `${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`;
-      const { data } = await axios.get(url, { timeout: 8_000 });
-        if (data && Object.keys(data).length > 0) {
-          // escape closing script tags so embedded JSON cannot break the page
-          const safeData = JSON.stringify(data).replace(/<\/script/g, '<\\/script');
+    if (code) {
+      if (/^HLX-\d+-\d+$/i.test(code)) {
+        const record = await getInstruction(code).catch(() => null);
+        if (record) {
+          const prefill = {
+            First_Name: record.FirstName || '',
+            Last_Name: record.LastName || '',
+            Email: record.Email || '',
+            Phone_Number: record.Phone || '',
+            Point_of_Contact: record.HelixContact || '',
+            activeTeam: []
+          };
+          const safeData = JSON.stringify(prefill).replace(/<\/script/g, '<\\/script');
           const script   = `<script>window.helixPrefillData = ${safeData};</script>`;
           html = html.replace('</head>', `${script}\n</head>`);
         }
+      } else if (cachedFetchInstructionDataCode) {
+        let cid = code;
+        try {
+          const deal = await getDealByPasscode(code);
+          if (deal && deal.ProspectId) cid = String(deal.ProspectId);
+        } catch (err) { /* ignore lookup failures */ }
+        const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
+        const fnCode = cachedFetchInstructionDataCode;
+        const url = `${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`;
+        const { data } = await axios.get(url, { timeout: 8_000 });
+        if (data && Object.keys(data).length > 0) {
+          const safeData = JSON.stringify(data).replace(/<\/script/g, '<\\/script');
+          const script = `<script>window.helixPrefillData = ${safeData};</script>`;
+          html = html.replace('</head>', `${script}\n</head>`);
+        }
+      }
     }
     res.send(html);
   } catch (err) {

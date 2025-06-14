@@ -156,11 +156,32 @@ async function updatePaymentStatus(
   `)
 }
 
+async function closeDeal(ref) {
+  const pool = await getSqlPool()
+  const now = new Date()
+  await pool.request()
+    .input('ref', sql.NVarChar, ref)
+    .input('date', sql.Date, now)
+    .input('time', sql.Time, now)
+    .query(`
+      UPDATE Deals
+        SET Status='closed',
+            CloseDate=@date,
+            CloseTime=@time
+        WHERE InstructionRef=@ref;
+
+      IF @@ROWCOUNT = 0
+        INSERT INTO Deals (InstructionRef, Status, CloseDate, CloseTime)
+        VALUES (@ref, 'closed', @date, @time);
+    `)
+}
+
 module.exports = {
   getInstruction,
   getLatestDeal,
   getDealByPasscode,
   upsertInstruction,
   markCompleted,
-  updatePaymentStatus
+  updatePaymentStatus,
+  closeDeal
 }
