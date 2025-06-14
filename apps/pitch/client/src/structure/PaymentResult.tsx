@@ -44,6 +44,7 @@ export default function PaymentResult() {
 
       const successFlag = result === 'accept' || status === '5' || status === '9'
       let serverSuccess: boolean | null = null
+      let alreadyProcessed = false
 
       if (aliasId && orderId && shaSign) {
         try {
@@ -75,12 +76,20 @@ export default function PaymentResult() {
           if (typeof data.success === 'boolean') {
             serverSuccess = data.success
           }
+          if (data.alreadyProcessed) {
+            alreadyProcessed = true
+          }
         } catch (err) {
           console.error(err)
         }
       }
 
-      if (serverSuccess === true) {
+      if (serverSuccess === true && alreadyProcessed) {
+        sessionStorage.setItem('paymentDone', 'true')
+        localStorage.setItem('paymentSuccess', 'true')
+        setMessage('Payment already processed')
+        setSuccess(true)
+      } else if (serverSuccess === true) {
         sessionStorage.setItem('paymentDone', 'true')
         localStorage.setItem('paymentSuccess', 'true')
         setMessage('Payment received')
@@ -108,11 +117,13 @@ export default function PaymentResult() {
       }
 
       try {
-        await fetch('/api/instruction/send-emails', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ instructionRef: orderId })
-        })
+        if (!alreadyProcessed) {
+          await fetch('/api/instruction/send-emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ instructionRef: orderId })
+          })
+        }
       } catch (err) {
         console.error(err)
       }

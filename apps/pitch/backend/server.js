@@ -204,8 +204,12 @@ app.post('/pitch/confirm-payment', async (req, res) => {
         });
     }
     const status = parsed.STATUS || '';
-    const success = status === '5' || status === '9';
-
+    const ncError = parsed.NCERROR || '';
+    // STATUS 5 and 9 are direct success codes. NCERROR 50001113 indicates the
+    // order has already been processed (typically after a 3-D Secure flow).
+    const success = status === '5' || status === '9' || ncError === '50001113';
+    const alreadyProcessed =
+      success && ncError === '50001113' && instruction.PaymentResult === 'successful';
     log('Parsed response:', parsed);
     log('Payment success:', success);
 
@@ -213,7 +217,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       return res.json({ challenge: parsed.HTML_ANSWER, details: parsed });
     }
 
-    if (success) {
+    if (success && !alreadyProcessed) {
       await updatePaymentStatus(
         orderId,
         'card',
@@ -226,7 +230,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       );
     }
 
-    res.json({ success, details: parsed });
+    res.json({ success, alreadyProcessed, details: parsed });
   } catch (err) {
     console.error('❌ /pitch/confirm-payment error:', err);
     res.status(500).json({ error: err.message });

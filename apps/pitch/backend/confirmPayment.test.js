@@ -28,9 +28,10 @@ const stubs = {
     SecretClient: class { async getSecret() { return { value: 'dummy' }; } }
   },
   './instructionDb': {
-    getInstruction: async () => ({ Email: 'test@example.com' }),
+    getInstruction: async () => stubs.getInstructionResponse,
     updatePaymentStatus: async () => { stubs.updateCalled = true; }
-  }
+  },
+  getInstructionResponse: { Email: 'test@example.com' }
 };
 
 const originalRequire = Module.prototype.require;
@@ -108,7 +109,18 @@ const crypto = require('crypto');
   const challenge = await post('/pitch/confirm-payment', { aliasId: 'c', orderId: 'd' });
   assert.strictEqual(challenge.status, 200);
   assert.strictEqual(challenge.body.challenge, 'SGVsbG8=');
-  
+
+  nock('https://payments.epdq.co.uk')
+    .post('/ncol/prod/orderdirect.asp')
+    .reply(
+      200,
+      '<?xml version="1.0"?><ncresponse NCERROR="50001113" STATUS="0" />'
+    );
+  stubs.getInstructionResponse = { Email: 'test@example.com', PaymentResult: 'successful' };
+  const dup = await post('/pitch/confirm-payment', { aliasId: 'e', orderId: 'f' });
+  assert.strictEqual(dup.status, 200);
+  assert.strictEqual(dup.body.success, true);
+  assert.strictEqual(dup.body.alreadyProcessed, true);
   server.close();
   console.log('All tests passed');
 })();
