@@ -94,3 +94,9 @@ Pop-Location
 
 # Pop again to return to the caller's starting directory
 Pop-Location
+
+# Restore client dependencies removed during packaging so the
+# workspace remains ready for local development after deployment.
+Push-Location .\client
+npm ci
+Pop-Location
