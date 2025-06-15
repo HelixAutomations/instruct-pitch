@@ -4,9 +4,11 @@ import InfoPopover from '../components/InfoPopover';
 import '../styles/IDAuth.css';
 
 /**
- * Collects and confirms the user’s passcode.
+ * Collects and confirms the user’s Client ID and passcode.
  *  */
 interface IDAuthProps {
+  clientId?: string;
+  setClientId: (cid: string) => void;
   passcode?: string;
   setPasscode: (code: string) => void;
   setInstructionRef: (iid: string) => void;
@@ -14,27 +16,31 @@ interface IDAuthProps {
 }
 
 const IDAuth: React.FC<IDAuthProps> = ({
+  clientId = '',
+  setClientId,
   passcode = '',
   setPasscode,
   setInstructionRef,
   onConfirm,
 }) => {
-  const [errors, setErrors] = useState<{ passcode: string }>({
+  const [errors, setErrors] = useState<{ clientId: string; passcode: string }>({
+    clientId: '',
     passcode: '',
   });
 
   const validateInputs = () => {
-    const newErrors = { passcode: '' };
+    const newErrors = { clientId: '', passcode: '' };
+    if (!clientId.trim()) newErrors.clientId = 'Your Client ID is mandatory.';
     if (!passcode.trim()) newErrors.passcode = 'Your passcode is mandatory.';
 
     setErrors(newErrors);
-    return !newErrors.passcode;
+    return !newErrors.clientId && !newErrors.passcode;
   };
 
   const handleSubmit = async () => {
     if (!validateInputs()) return;
     try {
-      const resp = await fetch(`/api/generate-instruction-ref?passcode=${passcode}`);
+      const resp = await fetch(`/api/generate-instruction-ref?cid=${clientId}&passcode=${passcode}`);
       const data = await resp.json();
       if (data.instructionRef) {
         setInstructionRef(data.instructionRef);
@@ -52,7 +58,7 @@ const IDAuth: React.FC<IDAuthProps> = ({
     }
   };
 
-  const isButtonDisabled = !passcode.trim();
+  const isButtonDisabled = !clientId.trim() || !passcode.trim();
 
   return (
     <div
@@ -82,6 +88,18 @@ const IDAuth: React.FC<IDAuthProps> = ({
             <input
               type="text"
               id="clientIdInput"
+              className="input-field"
+              value={passcode}
+              onChange={(e) => setPasscode(e.target.value)}
+              placeholder="Passcode"
+            />
+            {errors.passcode && <span className="error-text">{errors.passcode}</span>}
+          </div>
+          <div className="input-group">
+            <FaUser className={`input-icon ${passcode ? 'filled' : ''}`} />
+            <input
+              type="text"
+              id="passcodeInput"
               className="input-field"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}

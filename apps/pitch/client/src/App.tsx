@@ -9,48 +9,28 @@ import PaymentResult from './structure/PaymentResult';  // ← make sure this im
 import './styles/App.css';
 
 const App: React.FC = () => {
-  const match = useMatch('/:code/*');
-  const code = match?.params.code;
+  const match = useMatch('/:cid/*');
+  const cid = match?.params.cid;
   const navigate = useNavigate();
 
-  const [passcode, setPasscode] = useState(code || '');
+  const [clientId, setClientId] = useState(cid || '');
+  const [passcode, setPasscode] = useState('');
   const [instructionRef, setInstructionRef] = useState('');
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    if (!code) return;
-    setPasscode(code);
-    if (/^HLX-\d+-\d+$/.test(code)) {
-      setInstructionRef(code);
-      return;
-    }
-    fetch(`/api/generate-instruction-ref?passcode=${code}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.instructionRef) {
-          setInstructionRef(data.instructionRef);
-        } else if (import.meta.env.DEV) {
-          const rand = Math.floor(Math.random() * 9000) + 1000;
-          setInstructionRef(`HLX-${code}-${rand}`);
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch instructionRef', err);
-        if (import.meta.env.DEV) {
-          const rand = Math.floor(Math.random() * 9000) + 1000;
-          setInstructionRef(`HLX-${code}-${rand}`);
-        }
-      });
-  }, [code]);
+    if (!cid) return;
+    setClientId(cid);
+  }, [cid]);
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
   }
 
   const handleConfirm = () => {
-    navigate(`/${passcode}`);
+    navigate(`/${clientId}`);
   };
 
   return (
@@ -78,6 +58,8 @@ const App: React.FC = () => {
             path="/"
             element={
               <IDAuth
+                clientId={clientId}
+                setClientId={setClientId}
                 passcode={passcode}
                 setPasscode={setPasscode}
                 setInstructionRef={setInstructionRef}
@@ -86,10 +68,11 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/:code/*"
+            path="/:cid/*"
             element={
               <HomePage
                 step1Reveal={step1Reveal}
+                clientId={clientId}
                 passcode={passcode}
                 instructionRef={instructionRef}
                 onInstructionConfirmed={() => setInstructionConfirmed(true)}

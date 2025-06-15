@@ -22,14 +22,18 @@ async function getLatestDeal(prospectId) {
   return result.recordset[0]
 }
 
-async function getDealByPasscode(passcode) {
+async function getDealByPasscode(passcode, prospectId) {
   const pool = await getSqlPool()
-  const result = await pool.request()
+  const request = pool.request()
     .input('code', sql.NVarChar, passcode)
-    .query(`
+  if (prospectId != null) {
+    request.input('pid', sql.Int, prospectId)
+  }
+  const wherePid = prospectId != null ? 'AND ProspectId = @pid' : ''
+  const result = await request.query(`
       SELECT TOP 1 DealId, ProspectId, ServiceDescription, Amount, AreaOfWork
       FROM Deals
-      WHERE Passcode = @code
+      WHERE Passcode = @code ${wherePid}
     `)
   return result.recordset[0]
 }

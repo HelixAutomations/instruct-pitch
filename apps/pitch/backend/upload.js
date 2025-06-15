@@ -5,14 +5,15 @@ const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
+const { getDealByPasscode } = require('./instructionDb');
 
 const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_EXTS = new Set([
-  'pdf','doc','docx','xls','xlsx','ppt','pptx',
-  'txt','zip','rar','jpg','jpeg','png','mp3','mp4',
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+  'txt', 'zip', 'rar', 'jpg', 'jpeg', 'png', 'mp3', 'mp4',
 ]);
 
 const account = process.env.AZURE_STORAGE_ACCOUNT;
@@ -33,11 +34,19 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       throw new Error('Missing storage account or container');
     }
 
-    let { passcode, clientId, instructionRef } = req.body;
-    clientId = clientId || passcode;
+    let { clientId, passcode, instructionRef } = req.body;
     if (!req.file) return res.status(400).json({ error: 'No file provided' });
-    if (!clientId) {
-      return res.status(400).json({ error: 'Missing passcode' });
+    if (!clientId || !passcode) {
+      return res.status(400).json({ error: 'Missing clientId or passcode' });
+    }
+    try {
+      const deal = await getDealByPasscode(String(passcode), Number(clientId));
+      if (!deal) {
+        return res.status(403).json({ error: 'Invalid passcode' });
+      }
+    } catch (err) {
+      console.error('Deal lookup failed:', err);
+      return res.status(500).json({ error: 'Verification failed' });
     }
     // If not provided, generate one
     if (!instructionRef) {
@@ -62,7 +71,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     console.log(`✅ Uploaded ${blobName}`);
 
     const pool = await getSqlPool();
-      await pool.request()
+    await pool.request()
         .input('InstructionRef', sql.NVarChar, instructionRef)
         .input('FileName', sql.NVarChar, req.file.originalname)
         .input('BlobUrl', sql.NVarChar, blockBlob.url)

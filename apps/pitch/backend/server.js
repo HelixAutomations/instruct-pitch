@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, closeDeal } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 
 function log(...args) {
@@ -43,17 +43,21 @@ app.all('/favicon.ico', (_req, res) => {
 // ─── Health probe support ───────────────────────────────────────────────
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
 app.get('/api/generate-instruction-ref', async (req, res) => {
+  const cid = req.query.cid;
   const passcode = req.query.passcode;
-  if (!passcode) return res.status(400).json({ error: 'Missing passcode' });
+  if (!cid || !passcode) {
+    return res.status(400).json({ error: 'Missing cid or passcode' });
+  }
   try {
-    const deal = await getDealByPasscode(String(passcode));
-    if (!deal) return res.status(404).json({ error: 'Invalid passcode' });
-    const ref = generateInstructionRef(String(deal.ProspectId));
+    const deal = await getDealByPasscode(String(passcode), Number(cid));
+    if (!deal) return res.status(404).json({ error: 'Invalid combination' });
+    const ref = generateInstructionRef(String(cid));
     res.json({ instructionRef: ref });
   } catch (err) {
     console.error('❌ generate-instruction-ref error:', err);
     res.status(500).json({ error: 'Failed to generate reference' });
   }
+
 });
 
 // ─── Key Vault setup ──────────────────────────────────────────────────

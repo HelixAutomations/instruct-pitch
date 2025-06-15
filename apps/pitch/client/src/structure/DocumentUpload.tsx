@@ -32,6 +32,7 @@ interface DocumentUploadProps {
   onNext: () => void;
   setUploadSkipped: Dispatch<SetStateAction<boolean>>;
   isUploadSkipped: boolean;
+  clientId: string;
   passcode: string;
   instructionRef: string;
   instructionReady: boolean;
@@ -125,6 +126,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   onNext,
   setUploadSkipped,
   isUploadSkipped,
+  clientId,
   passcode,
   instructionRef,
   instructionReady,
@@ -189,7 +191,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         .filter(d => d.file)
         .map(d => ({ file: d.file!, uploaded: !!d.blobUrl }))
     );
-  }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, passcode, instructionRef]);
+  }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, clientId, passcode, instructionRef]);
 
   // Add new files to the document list
   const addExtraDocuments = (files: File[]) =>
@@ -228,6 +230,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (!doc.file) return doc;
     const formData = new FormData();
     formData.append('file', doc.file);
+    formData.append('clientId', clientId);
     formData.append('passcode', passcode);
     formData.append('instructionRef', instructionRef);
 

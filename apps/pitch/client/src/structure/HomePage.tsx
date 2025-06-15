@@ -91,6 +91,7 @@ const ALLOWED_FIELDS = [
 
 interface HomePageProps {
   step1Reveal?: boolean;
+  clientId: string;
   passcode: string;
   instructionRef: string;
   onInstructionConfirmed?: () => void;
@@ -227,6 +228,7 @@ const DUMMY_DEAL = {
 
 const HomePage: React.FC<HomePageProps> = ({
   step1Reveal,
+  clientId,
   passcode,
   instructionRef,
   onInstructionConfirmed,
@@ -1265,6 +1267,7 @@ const proofSummary = (
                         onNext={next}
                         setUploadSkipped={setUploadSkipped}
                         isUploadSkipped={isUploadSkipped}
+                        clientId={clientId}
                         passcode={passcode}
                         instructionRef={instruction.instructionRef}
                         instructionReady={instructionReady}
