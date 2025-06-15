@@ -12,11 +12,20 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, closeDeal } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
+const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
 
 function log(...args) {
+  if (!DEBUG_LOG) return;
   console.log(new Date().toISOString(), ...args);
+}
+
+function mask(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  const clone = { ...obj };
+  if (clone.PSWD) clone.PSWD = '[REDACTED]';
+  return clone;
 }
 
 function injectPrefill(html, data) {
@@ -104,13 +113,13 @@ app.post('/pitch/get-shasign', (req, res) => {
   try {
     if (!cachedShaPhrase) throw new Error('SHA phrase not loaded');
     const params = req.body;
-    log('Generating SHASIGN with params:', params);
+    log('Generating SHASIGN with params:', mask(params));
     const toHash = Object.keys(params)
       .map(k => k.toUpperCase()) // 👈 this line is essential
       .sort()
       .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
       .join('');
-    log('SHA input string:', toHash);
+    log('SHA input string length:', toHash.length);
     const shasign = crypto.createHash('sha256').update(toHash).digest('hex').toUpperCase();
     log('SHASIGN:', shasign);
     res.json({ shasign });
@@ -159,7 +168,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       (req.headers['x-forwarded-for'] ?? '').split(',')[0] ||
       req.socket.remoteAddress;
     Object.assign(params, threeDS);
-    log('Payment params before upper-case:', params);
+    log('Payment params before upper-case:', mask(params));
 
     // ePDQ requires all parameter names to be upper-case when computing the
     // SHA signature. The 3DS fields arrive in camelCase from the client so we
@@ -168,13 +177,13 @@ app.post('/pitch/confirm-payment', async (req, res) => {
       Object.entries(params).map(([k, v]) => [k.toUpperCase(), v])
     );
 
-    log('Upper-case params:', upper);
+    log('Upper-case params:', mask(upper));
 
     const shaInput = Object.keys(upper)
       .sort()
       .map(k => `${k}=${upper[k]}${cachedShaPhrase}`)
       .join('');
-    log('SHA input:', shaInput);
+    log('SHA input length:', shaInput.length);
     const shasign = crypto
       .createHash('sha256')
       .update(shaInput)
@@ -185,7 +194,7 @@ app.post('/pitch/confirm-payment', async (req, res) => {
 
     const payload = new URLSearchParams({ ...upper, SHASIGN: shasign }).toString();
 
-    log('Payload sent to ePDQ:', payload);
+    log('Payload sent to ePDQ:', payload.replace(/PSWD=[^&]*/i, 'PSWD=[REDACTED]'));
     const result = await axios.post(
       'https://payments.epdq.co.uk/ncol/prod/orderdirect.asp',
       payload,

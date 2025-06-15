@@ -88,6 +88,7 @@ const crypto = require('crypto');
   const ok = await post('/pitch/confirm-payment', { aliasId: 'a', orderId: 'b' });
   assert.strictEqual(ok.status, 200);
   assert.strictEqual(ok.body.success, true);
+  assert.strictEqual(stubs.closed, true);
 
   // Verify ALIASOPERATION included in payload and SHA computation
   const params = Object.fromEntries(new URLSearchParams(sentBody));

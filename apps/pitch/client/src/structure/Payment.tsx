@@ -88,23 +88,15 @@ const Payment: React.FC<PaymentProps> = ({
       }
       setPaymentDone(true);
       setIsComplete(true);
-      if (savedMethod === 'bank') {
-        setStage('result');
-      } else {
-        setStage('card');
-      }
+      setStage('result');
     }
   }, [setIsComplete]);
 
   useEffect(() => {
     if (paymentDone) {
-      const method =
-        choice || (sessionStorage.getItem('paymentMethod') as 'card' | 'bank' | null);
-      if (method === 'bank') {
-        setStage('result');
-      }
+      setStage('result');
     }
-  }, [paymentDone, choice]);
+  }, [paymentDone]);
 
   useEffect(() => {
     if (sessionStorage.getItem('paymentDone') === 'true') {
@@ -198,6 +190,7 @@ const Payment: React.FC<PaymentProps> = ({
             console.error('Failed to parse payment params', err);
           }
           setPaymentDone(true);
+          setStage('result');
           setSubmitting(false);
           sessionStorage.setItem('paymentDone', 'true');
           localStorage.setItem('paymentSuccess', 'true');
