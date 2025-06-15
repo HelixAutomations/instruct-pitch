@@ -40,15 +40,18 @@ const App: React.FC = () => {
         })
         .catch(err => console.error('auto generate error', err));
     } else {
-      setShowIdAuth(true);
+      // Only show the passcode modal if we don't already have a passcode from
+      // the initial IDAuth step (e.g., when arriving via "/" route).
+      setShowIdAuth(passcode === '');
     }
-  }, [cidParam, navigate]);
+  }, [cidParam, navigate, passcode]);
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
   }
 
   const handleConfirm = () => {
+    setShowIdAuth(false);
     navigate(`/${clientId}`);
   };
 
