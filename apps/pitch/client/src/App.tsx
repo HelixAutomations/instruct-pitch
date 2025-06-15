@@ -44,7 +44,7 @@ const App: React.FC = () => {
       // the initial IDAuth step (e.g., when arriving via "/" route).
       setShowIdAuth(passcode === '');
     }
-  }, [cidParam, navigate, passcode]);
+  }, [cidParam, navigate]);
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
