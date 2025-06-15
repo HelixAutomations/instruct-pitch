@@ -13,6 +13,11 @@ interface IDAuthProps {
   setPasscode: (code: string) => void;
   setInstructionRef: (iid: string) => void;
   onConfirm: () => void;
+  /**
+   * Whether to request the Client ID from the user. When false the clientId
+   * field is omitted and the provided value is used directly.
+   */
+  showClientId?: boolean;
 }
 
 const IDAuth: React.FC<IDAuthProps> = ({
@@ -22,6 +27,7 @@ const IDAuth: React.FC<IDAuthProps> = ({
   setPasscode,
   setInstructionRef,
   onConfirm,
+  showClientId = true,
 }) => {
   const [errors, setErrors] = useState<{ clientId: string; passcode: string }>({
     clientId: '',
@@ -29,9 +35,15 @@ const IDAuth: React.FC<IDAuthProps> = ({
   });
 
   const validateInputs = () => {
-    const newErrors = { clientId: '', passcode: '' };
-    if (!clientId.trim()) newErrors.clientId = 'Your Client ID is mandatory.';
-    if (!passcode.trim()) newErrors.passcode = 'Your passcode is mandatory.';
+    const newErrors = { clientId: '', passcode: '' } as {
+      clientId: string; passcode: string;
+    };
+    if (showClientId && !clientId.trim()) {
+      newErrors.clientId = 'Your Client ID is mandatory.';
+    }
+    if (!passcode.trim()) {
+      newErrors.passcode = 'Your passcode is mandatory.';
+    }
 
     setErrors(newErrors);
     return !newErrors.clientId && !newErrors.passcode;
@@ -58,7 +70,8 @@ const IDAuth: React.FC<IDAuthProps> = ({
     }
   };
 
-  const isButtonDisabled = !clientId.trim() || !passcode.trim();
+  const isButtonDisabled =
+    (showClientId && !clientId.trim()) || !passcode.trim();
 
   return (
     <div
@@ -83,18 +96,22 @@ const IDAuth: React.FC<IDAuthProps> = ({
 
         {/* inputs side‑by‑side */}
         <div className="modal-body input-row">
-          <div className="input-group">
-            <FaUser className={`input-icon ${passcode ? 'filled' : ''}`} />
-            <input
-              type="text"
-              id="clientIdInput"
-              className="input-field"
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-              placeholder="Passcode"
-            />
-            {errors.passcode && <span className="error-text">{errors.passcode}</span>}
-          </div>
+          {showClientId && (
+            <div className="input-group">
+              <FaUser className={`input-icon ${clientId ? 'filled' : ''}`} />
+              <input
+                type="text"
+                id="clientIdInput"
+                className="input-field"
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                placeholder="Client ID"
+              />
+              {errors.clientId && (
+                <span className="error-text">{errors.clientId}</span>
+              )}
+            </div>
+          )}
           <div className="input-group">
             <FaUser className={`input-icon ${passcode ? 'filled' : ''}`} />
             <input
@@ -105,7 +122,9 @@ const IDAuth: React.FC<IDAuthProps> = ({
               onChange={(e) => setPasscode(e.target.value)}
               placeholder="Passcode"
             />
-            {errors.passcode && <span className="error-text">{errors.passcode}</span>}
+            {errors.passcode && (
+              <span className="error-text">{errors.passcode}</span>
+            )}
           </div>
         </div>
 

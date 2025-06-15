@@ -10,20 +10,39 @@ import './styles/App.css';
 
 const App: React.FC = () => {
   const match = useMatch('/:cid/*');
-  const cid = match?.params.cid;
+  const cidParam = match?.params.cid;
   const navigate = useNavigate();
 
-  const [clientId, setClientId] = useState(cid || '');
+  const [clientId, setClientId] = useState('');
   const [passcode, setPasscode] = useState('');
+  // Determines whether the IDAuth modal should be displayed on the /:cid route
+  const [showIdAuth, setShowIdAuth] = useState(false);
   const [instructionRef, setInstructionRef] = useState('');
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    if (!cid) return;
+    if (!cidParam) return;
+    const [cid, code] = cidParam.split('-');
     setClientId(cid);
-  }, [cid]);
+    if (code) {
+      setPasscode(code);
+      setShowIdAuth(false);
+      // Auto-generate instruction reference when both values supplied
+      fetch(`/api/generate-instruction-ref?cid=${cid}&passcode=${code}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.instructionRef) {
+            setInstructionRef(data.instructionRef);
+            navigate(`/${cid}`);
+          }
+        })
+        .catch(err => console.error('auto generate error', err));
+    } else {
+      setShowIdAuth(true);
+    }
+  }, [cidParam, navigate]);
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
@@ -64,19 +83,33 @@ const App: React.FC = () => {
                 setPasscode={setPasscode}
                 setInstructionRef={setInstructionRef}
                 onConfirm={handleConfirm}
+                showClientId={true}
               />
             }
           />
           <Route
             path="/:cid/*"
             element={
-              <HomePage
-                step1Reveal={step1Reveal}
-                clientId={clientId}
-                passcode={passcode}
-                instructionRef={instructionRef}
-                onInstructionConfirmed={() => setInstructionConfirmed(true)}
-              />
+              <>
+                {showIdAuth && (
+                  <IDAuth
+                    clientId={clientId}
+                    setClientId={setClientId}
+                    passcode={passcode}
+                    setPasscode={setPasscode}
+                    setInstructionRef={setInstructionRef}
+                    onConfirm={handleConfirm}
+                    showClientId={false}
+                  />
+                )}
+                <HomePage
+                  step1Reveal={step1Reveal}
+                  clientId={clientId}
+                  passcode={passcode}
+                  instructionRef={instructionRef}
+                  onInstructionConfirmed={() => setInstructionConfirmed(true)}
+                />
+              </>
             }
           />
         </Routes>
