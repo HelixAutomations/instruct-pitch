@@ -19,6 +19,13 @@ function log(...args) {
   console.log(new Date().toISOString(), ...args);
 }
 
+function injectPrefill(html, data) {
+  if (!data || Object.keys(data).length === 0) return html;
+  const safe = JSON.stringify(data).replace(/<\/script/g, '<\\/script');
+  const script = `<script>window.helixPrefillData = ${safe};</script>`;
+  return html.replace('</head>', `${script}\n</head>`);
+}
+
 
 const app = express();
 app.set('trust proxy', true);
@@ -437,9 +444,7 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
             Point_of_Contact: record.HelixContact || '',
             activeTeam: []
           };
-          const safeData = JSON.stringify(prefill).replace(/<\/script/g, '<\\/script');
-          const script   = `<script>window.helixPrefillData = ${safeData};</script>`;
-          html = html.replace('</head>', `${script}\n</head>`);
+          html = injectPrefill(html, prefill);
         }
       } else if (cachedFetchInstructionDataCode) {
         let cid = code;
@@ -452,9 +457,7 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         const url = `${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`;
         const { data } = await axios.get(url, { timeout: 8_000 });
         if (data && Object.keys(data).length > 0) {
-          const safeData = JSON.stringify(data).replace(/<\/script/g, '<\\/script');
-          const script = `<script>window.helixPrefillData = ${safeData};</script>`;
-          html = html.replace('</head>', `${script}\n</head>`);
+          html = injectPrefill(html, data);
         }
       }
     }

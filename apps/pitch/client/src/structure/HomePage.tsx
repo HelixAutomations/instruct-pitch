@@ -469,28 +469,56 @@ const HomePage: React.FC<HomePageProps> = ({
     }
   }, [instructionCompleted]);
 
+  // Prefill basic contact info when arriving with a Client ID.
+  // If the server injected window.helixPrefillData we use that
+  // otherwise fall back to calling the legacy fetch endpoint.
+
   useEffect(() => {
-    const prefill = window.helixPrefillData;
-    if (prefill) {
-      setProofData(prev => ({
-        ...prev,
-        firstName:    prefill.First_Name       ?? prev.firstName,
-        lastName:     prefill.Last_Name        ?? prev.lastName,
-        email:        prefill.Email            ?? prev.email,
-        phone:        prefill.Phone_Number     ?? prev.phone,
-        helixContact: prefill.Point_of_Contact ?? prev.helixContact,
-      }));
-      if (instruction.instructionRef) {
-        saveInstruction('initialised').then(() => setInstructionReady(true));
+    async function maybeFetchPrefill() {
+      const apply = (prefill: any) => {
+        setProofData(prev => ({
+          ...prev,
+          firstName: prefill.First_Name ?? prev.firstName,
+          lastName: prefill.Last_Name ?? prev.lastName,
+          email: prefill.Email ?? prev.email,
+          phone: prefill.Phone_Number ?? prev.phone,
+          helixContact: prefill.Point_of_Contact ?? prev.helixContact,
+        }));
+        if (instruction.instructionRef) {
+          saveInstruction('initialised').then(() => setInstructionReady(true));
+        }
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('✅ Prefilled data from backend:', prefill);
+        }
+      };
+
+      const existing = window.helixPrefillData;
+      if (existing) {
+        apply(existing);
+        return;
       }
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('✅ Prefilled data from backend:', prefill);
+
+      if (!clientId) return;
+
+      try {
+        const res = await fetch(
+          `/api/internal/fetch-instruction-data?cid=${encodeURIComponent(clientId)}`
+        );
+        if (!res.ok) throw new Error('Fetch failed');
+        const data = await res.json();
+        (window as any).helixPrefillData = data;
+        apply(data);
+      } catch (err) {
+        console.error('prefill fetch error', err);
       }
     }
+
+    maybeFetchPrefill();
+  
     if (process.env.NODE_ENV !== 'production') {
       console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
     }
-  }, []);
+  }, [clientId]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') return;
