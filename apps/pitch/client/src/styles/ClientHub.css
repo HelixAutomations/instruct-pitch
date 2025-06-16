@@ -58,19 +58,16 @@
     justify-content: flex-start;
     text-align: left;
     gap: 0.5rem;
-    padding: 0.25rem 0 0.25rem 0.75rem;
+    padding: 0.25rem 0.75rem;
     border-left: 2px solid var(--helix-cta);
+    transition: background-color 0.2s;
+        width: 100%;
+        box-sizing: border-box;
 }
 
 /* Offset the first item so its accent isn't flush with the container */
 .hub-row .hub-item:first-child {
     margin-left: 0.5rem;
-}
-
-.hub-item:not(:last-child) {
-    border-right: none;
-    margin-right: 0;
-    padding-right: 0;
 }
 
 /* ICONS & TEXT */
@@ -81,7 +78,23 @@
     justify-content: center;
     font-size: 1.25em;
     color: var(--helix-dark-blue, #2f497d);
-} 
+}
+
+.hub-icon .icon-filled {
+    display: none;
+}
+
+.hub-item:hover {
+    background-color: rgba(54, 144, 206, 0.05);
+}
+
+.hub-item:hover .icon-outline {
+    display: none;
+}
+
+.hub-item:hover .icon-filled {
+    display: inline-flex;
+}
 
 
 .hub-text {

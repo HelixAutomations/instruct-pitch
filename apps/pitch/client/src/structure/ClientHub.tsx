@@ -1,12 +1,19 @@
 import React from 'react';
 import {
     FaClipboardList,
+    FaRegClipboard,
     FaIdBadge,
-    FaUserTie,
+    FaRegIdBadge,
+    FaUser,
+    FaRegUser,
     FaCheckCircle,
+    FaRegCheckCircle,
     FaFolderOpen,
-    FaDownload,
+    FaRegFolderOpen,
+    FaArrowAltCircleDown,
+    FaRegArrowAltCircleDown,
     FaCalendarAlt,
+    FaRegCalendarAlt,
 } from 'react-icons/fa';
 import '../styles/ClientHub.css';
 
@@ -19,6 +26,14 @@ interface ClientHubProps {
     matterRef?: string;
 }
 
+interface HubItem {
+    label: string;
+    value: string;
+    icon: JSX.Element;
+    hoverIcon?: JSX.Element;
+    link?: string;
+}
+
 const ClientHub: React.FC<ClientHubProps> = ({
     instructionRef,
     clientId,
@@ -28,31 +43,80 @@ const ClientHub: React.FC<ClientHubProps> = ({
     matterRef,
 }) => {
     const primaryItems = [
-        { label: 'Instruction Ref', value: instructionRef, icon: <FaClipboardList /> },
-        { label: 'Client ID', value: clientId, icon: <FaIdBadge /> },
-        feeEarner ? { label: 'Solicitor', value: feeEarner, icon: <FaUserTie /> } : null,
-        idExpiry ? { label: 'ID Expiry', value: idExpiry, icon: <FaCalendarAlt /> } : null,
-    ].filter(Boolean) as { label: string; value: string; icon: JSX.Element }[];
+        {
+            label: 'Instruction Ref',
+            value: instructionRef,
+            icon: <FaRegClipboard />,
+            hoverIcon: <FaClipboardList />,
+        },
+        {
+            label: 'Client ID',
+            value: clientId,
+            icon: <FaRegIdBadge />,
+            hoverIcon: <FaIdBadge />,
+        },
+        feeEarner
+            ? {
+                label: 'Solicitor',
+                value: feeEarner,
+                icon: <FaRegUser />,
+                hoverIcon: <FaUser />,
+            }
+            : null,
+        idExpiry
+            ? {
+                label: 'ID Expiry',
+                value: idExpiry,
+                icon: <FaRegCalendarAlt />,
+                hoverIcon: <FaCalendarAlt />,
+            }
+            : null,
+    ].filter(Boolean) as HubItem[];
 
     const secondaryItems = [
         idVerified != null
-            ? { label: 'ID Check', value: idVerified ? 'Verified' : 'Pending', icon: <FaCheckCircle /> }
+            ? {
+                label: 'ID Check',
+                value: idVerified ? 'Verified' : 'Pending',
+                icon: <FaRegCheckCircle />,
+                hoverIcon: <FaCheckCircle />,
+            }
             : null,
-        { label: 'Matter Ref', value: matterRef ?? 'Pending', icon: <FaFolderOpen /> },
-        { label: 'CCL', value: 'Ready', icon: <FaDownload />, link: '/pitch/docs/ccl.pdf' },
-        { label: 'Terms of Business', value: 'Ready', icon: <FaDownload />, link: '/pitch/docs/terms-of-business.pdf' },
-    ].filter(Boolean) as { label: string; value: string; icon: JSX.Element; link?: string }[];
+        {
+            label: 'Matter Ref',
+            value: matterRef ?? 'Pending',
+            icon: <FaRegFolderOpen />,
+            hoverIcon: <FaFolderOpen />,
+        },
+        {
+            label: 'CCL',
+            value: 'Ready',
+            icon: <FaRegArrowAltCircleDown />,
+            hoverIcon: <FaArrowAltCircleDown />,
+            link: '/pitch/docs/ccl.pdf',
+        },
+        {
+            label: 'Terms of Business',
+            value: 'Ready',
+            icon: <FaRegArrowAltCircleDown />,
+            hoverIcon: <FaArrowAltCircleDown />,
+            link: '/pitch/docs/terms-of-business.pdf',
+        },
+    ].filter(Boolean) as HubItem[];
 
     if (!primaryItems.length && !secondaryItems.length) return null;
 
     const renderRow = (
-        items: { label: string; value: string; icon: JSX.Element; link?: string }[],
+        items: HubItem[],
         type: 'primary' | 'secondary'
     ) => (
         <div className={`hub-row ${type}-row`}>
             {items.map((item) => (
                 <div className="hub-item" key={item.label}>
-                    <span className="hub-icon">{item.icon}</span>
+                    <span className="hub-icon">
+                        <span className="icon-outline">{item.icon}</span>
+                        <span className="icon-filled">{item.hoverIcon || item.icon}</span>
+                    </span>
                     <span className="hub-text">
                         <span className="hub-key">{item.label}</span>
                         <span className="hub-value">
