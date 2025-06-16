@@ -1,11 +1,11 @@
 .client-hub {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: stretch;
     flex-wrap: wrap;
     gap: 1.5rem;
     padding: 1rem 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
 }
 
 .hub-item {
@@ -24,6 +24,7 @@
     display: flex;
     flex-direction: column;
     text-align: left;
+    padding: 0.25rem 0;
 }
 
 .hub-key {
