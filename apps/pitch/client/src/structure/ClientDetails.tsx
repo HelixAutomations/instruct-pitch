@@ -2,10 +2,21 @@ import React from 'react';
 
 import '../styles/ClientDetails.css';
 
+import {
+  FaClipboardList,
+  FaIdBadge,
+  FaUserTie,
+  FaEnvelope,
+} from 'react-icons/fa';
+
+
 interface ClientDetailsProps {
   workType: string;
   stage: string;
   instructionRef: string;
+  clientId?: string;
+  feeEarner?: string;
+  email?: string;
   confirmed?: boolean;
   greeting?: string | null;
   onAnimationEnd?: () => void;
@@ -14,6 +25,9 @@ interface ClientDetailsProps {
 const ClientDetails: React.FC<ClientDetailsProps> = ({
   stage,
   instructionRef,
+  clientId,
+  feeEarner,
+  email,
   confirmed = false,
   greeting = null,
   onAnimationEnd,
@@ -36,17 +50,48 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
     }
   }, [loaded, onAnimationEnd]);
 
-  // No details shown in the hero section for now
-  const detailItems: { label: string; value: string }[] = [];
+  const detailItems: { label: string; value: string; icon: JSX.Element }[] = [];
+
+  if (instructionRef) {
+    detailItems.push({
+      label: 'Instruction Ref',
+      value: instructionRef,
+      icon: <FaClipboardList />,
+    });
+  }
+
+  if (clientId) {
+    detailItems.push({
+      label: 'Client ID',
+      value: clientId,
+      icon: <FaIdBadge />,
+    });
+  }
+
+  if (feeEarner) {
+    detailItems.push({
+      label: 'Fee Earner',
+      value: feeEarner,
+      icon: <FaUserTie />,
+    });
+  }
+
+  if (email) {
+    detailItems.push({
+      label: 'Email',
+      value: email,
+      icon: <FaEnvelope />,
+    });
+  }
+
 
   return (
     <div className="client-hero">
       <div className={`client-hero-inner center${loaded ? ' loaded' : ''}`}>
-        <h1 className={`stage-title${loaded ? ' loaded' : ''}${confirmed ? ' confirmed' : ''}`}>{stage}</h1>
-
-        {confirmed && (
+        {confirmed ? (
           <div className={`hero-confirmation${loaded ? ' loaded' : ''}`}>
             {greeting && <span className="hero-greeting">{greeting}</span>}
+            <h1 className={`stage-title confirmed${loaded ? ' loaded' : ''}`}>{stage}</h1>
             <span className="instruction-ref">
               <span className="completion-tick visible">
                 <svg viewBox="0 0 24 24">
@@ -63,6 +108,8 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
               {instructionRef}
             </span>
           </div>
+        ) : (
+          <h1 className={`stage-title${loaded ? ' loaded' : ''}`}>{stage}</h1>
         )}
 
         {!confirmed && (
@@ -79,7 +126,10 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
           <div className="client-details-bar">
             {detailItems.map((item, idx) => (
               <React.Fragment key={item.label}>
-                <div className={`details-item detail-animate detail-animate-${idx}${loaded ? ' loaded' : ''}`}>
+                <div
+                  className={`details-item detail-animate detail-animate-${idx}${loaded ? ' loaded' : ''}`}
+                >
+                  <span className="detail-icon">{item.icon}</span>
                   <span className="label">{item.label}</span>
                   <span className="value">{item.value}</span>
                 </div>

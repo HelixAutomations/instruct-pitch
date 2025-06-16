@@ -17,6 +17,7 @@ async function getLatestDeal(prospectId) {
       SELECT TOP 1 ServiceDescription, Amount, AreaOfWork
       FROM Deals
       WHERE ProspectId = @pid
+        AND (InstructionRef IS NULL OR InstructionRef = '')
       ORDER BY DealId DESC
     `)
   return result.recordset[0]
@@ -34,6 +35,7 @@ async function getDealByPasscode(passcode, prospectId) {
       SELECT TOP 1 DealId, ProspectId, ServiceDescription, Amount, AreaOfWork
       FROM Deals
       WHERE Passcode = @code ${wherePid}
+        AND (InstructionRef IS NULL OR InstructionRef = '')
     `)
   return result.recordset[0]
 }

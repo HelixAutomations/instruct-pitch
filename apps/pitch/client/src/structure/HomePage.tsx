@@ -98,6 +98,7 @@ interface HomePageProps {
   returning?: boolean;
   onInstructionConfirmed?: () => void;
   onGreetingChange?: (greeting: string | null) => void;
+  onContactInfoChange?: (info: { feeEarner?: string; email?: string }) => void;
 }
 
 interface StepHeaderProps {
@@ -237,6 +238,7 @@ const HomePage: React.FC<HomePageProps> = ({
   returning = false,
   onInstructionConfirmed,
   onGreetingChange,
+  onContactInfoChange,
 }) => {
   const params = new URLSearchParams(window.location.search);
   const [paymentData, setPaymentData] = useState<{
@@ -383,6 +385,7 @@ const HomePage: React.FC<HomePageProps> = ({
       onGreetingChange(completionGreeting);
     }
   }, [completionGreeting, onGreetingChange]);
+
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
@@ -444,6 +447,15 @@ const HomePage: React.FC<HomePageProps> = ({
     idNumber: '',
     helixContact: '',
   });
+
+  useEffect(() => {
+    if (onContactInfoChange) {
+      onContactInfoChange({
+        feeEarner: proofData.helixContact,
+        email: proofData.email,
+      });
+    }
+  }, [proofData.helixContact, proofData.email, onContactInfoChange]);
 
   const saveInstruction = async (stage: string) => {
     if (!instruction.instructionRef) return Promise.resolve();
@@ -1317,12 +1329,12 @@ const proofSummary = (
                     complete={isUploadDone || isUploadSkipped}
                     open={openStep === 3}
                     toggle={() => goToStep(openStep === 3 ? 0 : 3)}
-                    locked={instructionCompleted}
+                    locked={false}
                     allowToggleWhenLocked
                     dimOnLock={false}
                   />
                   <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone || isUploadSkipped)}`}>
-                    {(openStep === 3 || closingStep === 3) && !instructionCompleted && (
+                    {(openStep === 3 || closingStep === 3) && (
                       <DocumentUpload
                         uploadedFiles={uploadedFiles}
                         setUploadedFiles={setUploadedFiles}

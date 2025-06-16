@@ -100,3 +100,6 @@ Pop-Location
 Push-Location .\client
 npm ci
 Pop-Location
+
+# ✅ Play sound to indicate deployment is complete
+[console]::beep(1000, 500)

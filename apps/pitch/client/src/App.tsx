@@ -22,6 +22,8 @@ const App: React.FC = () => {
   const [step1Reveal, setStep1Reveal] = useState(false);
   const [returning, setReturning] = useState(false);
   const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
+  const [feeEarner, setFeeEarner] = useState<string | undefined>();
+  const [clientEmail, setClientEmail] = useState<string | undefined>();
   const location = useLocation();
 
   useEffect(() => {
@@ -81,6 +83,11 @@ const App: React.FC = () => {
     navigate(`/${clientId}`);
   };
 
+  const handleContactInfoChange = (info: { feeEarner?: string; email?: string }) => {
+    setFeeEarner(info.feeEarner);
+    setClientEmail(info.email);
+  };
+
   return (
     <div className="app-page">
       <div className="page-hero">
@@ -95,6 +102,9 @@ const App: React.FC = () => {
                   : 'Confirmation of Instruction'
               }
               instructionRef={instructionRef}
+              clientId={clientId}
+              feeEarner={feeEarner}
+              email={clientEmail}
               confirmed={instructionConfirmed}
               greeting={completionGreeting ?? undefined}
               onAnimationEnd={() => {
@@ -144,6 +154,7 @@ const App: React.FC = () => {
                   returning={returning}
                   onInstructionConfirmed={() => setInstructionConfirmed(true)}
                   onGreetingChange={setCompletionGreeting}
+                  onContactInfoChange={handleContactInfoChange}
                 />
               </>
             }
