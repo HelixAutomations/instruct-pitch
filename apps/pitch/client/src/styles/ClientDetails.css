@@ -131,6 +131,8 @@
   text-align: left !important;
   margin: 0 !important;
   padding: 0 !important;
+  font-size: 2rem;
+  font-weight: 600;
 }
 
 .hero-confirmation.minimal {
@@ -319,5 +321,12 @@
 
   .client-details-bar .pipe {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-line {
+    font-size: 1.25rem !important;
+    font-weight: 500 !important;
   }
 }
