@@ -1148,11 +1148,6 @@ const proofSummary = (
 
   return (
     <div className="home-page">
-      {instructionCompleted && (
-        <div className="completed-banner">
-          {completionGreeting || 'This instruction has been completed and can no longer be edited.'}
-        </div>
-      )}
       <main className="main-content">
         <div className="checkout-container">
           <div className="steps-column">

@@ -89,7 +89,11 @@ const App: React.FC = () => {
             <Header />
             <ClientDetails
               workType="—"
-              stage={instructionConfirmed ? 'Instruction Confirmed' : 'Confirmation of Instruction'}
+              stage={
+                instructionConfirmed
+                  ? "We've got your instructions."
+                  : 'Confirmation of Instruction'
+              }
               instructionRef={instructionRef}
               confirmed={instructionConfirmed}
               greeting={completionGreeting ?? undefined}

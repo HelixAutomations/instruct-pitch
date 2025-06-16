@@ -1,5 +1,5 @@
 import React from 'react';
-import { CSSTransition, SwitchTransition } from 'react-transition-group';
+
 import '../styles/ClientDetails.css';
 
 interface ClientDetailsProps {
@@ -42,49 +42,39 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   return (
     <div className="client-hero">
       <div className={`client-hero-inner center${loaded ? ' loaded' : ''}`}>
-        <h1 className={`stage-title${loaded ? ' loaded' : ''}`}>
-          {confirmed && (
-            <span className="completion-tick visible stage-tick">
-              <svg viewBox="0 0 24 24">
-                <polyline
-                  points="5,13 10,18 19,7"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+        {confirmed && (
+          <div className={`hero-confirmation${loaded ? ' loaded' : ''}`}>
+            {greeting && <span className="hero-greeting">{greeting}</span>}
+            <span className="instruction-ref">
+              <span className="completion-tick visible">
+                <svg viewBox="0 0 24 24">
+                  <polyline
+                    points="5,13 10,18 19,7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              {instructionRef}
             </span>
-          )}
-          {stage}
-        </h1>
+          </div>
+        )}
 
-        <SwitchTransition mode="out-in">
-          <CSSTransition
-            key={confirmed ? 'confirmed' : 'help'}
-            timeout={300}
-            classNames="hero-msg-anim"
-          >
-            {confirmed ? (
-              <div className={`hero-confirmation${loaded ? ' loaded' : ''}`}>
-                {greeting && (
-                  <span className="hero-greeting">{greeting}</span>
-                )}
-                <span className="instruction-ref">Ref: {instructionRef}</span>
-              </div>
-            ) : (
-              <div className={`hero-help${loaded ? ' loaded' : ''}`}>
-                <span className="hero-help-prefix">We're here to help:</span>
-                <div className="hero-help-contact">
-                  <a href="tel:03453142044">0345 314 2044</a>
-                  <span className="pipe" aria-hidden="true"></span>
-                  <a href="mailto:operations@helix-law.com">operations@helix-law.com</a>
-                </div>
-              </div>
-            )}
-          </CSSTransition>
-        </SwitchTransition>
+        <h1 className={`stage-title${loaded ? ' loaded' : ''}${confirmed ? ' confirmed' : ''}`}>{stage}</h1>
+
+        {!confirmed && (
+          <div className={`hero-help${loaded ? ' loaded' : ''}`}>
+            <span className="hero-help-prefix">We're here to help:</span>
+            <div className="hero-help-contact">
+              <a href="tel:03453142044">0345 314 2044</a>
+              <span className="pipe" aria-hidden="true"></span>
+              <a href="mailto:operations@helix-law.com">operations@helix-law.com</a>
+            </div>
+          </div>
+        )}
         {detailItems.length > 0 && (
           <div className="client-details-bar">
             {detailItems.map((item, idx) => (
