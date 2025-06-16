@@ -32,45 +32,56 @@ const ClientHub: React.FC<ClientHubProps> = ({ instructionRef, clientId, passcod
     return (
         <div className="client-hub">
             <h2>Client Hub</h2>
-            <div className="hub-details">
-                <p><strong>Instruction Ref:</strong> {instructionRef}</p>
-                <p><strong>Client ID:</strong> {clientId}</p>
-                {contactName && <p><strong>Fee Earner:</strong> {contactName}</p>}
-                {email && <p><strong>Email:</strong> {email}</p>}
-            </div>
+            <div className="hub-grid">
+                <div className="hub-item">
+                    <div className="label">Instruction Ref</div>
+                    <div className="value">{instructionRef}</div>
+                </div>
+                <div className="hub-item">
+                    <div className="label">Client ID</div>
+                    <div className="value">{clientId}</div>
+                </div>
+                {contactName && (
+                    <div className="hub-item">
+                        <div className="label">Fee Earner</div>
+                        <div className="value">{contactName}</div>
+                    </div>
+                )}
+                {email && (
+                    <div className="hub-item">
+                        <div className="label">Email</div>
+                        <div className="value">{email}</div>
+                    </div>
+                )}
+                {docs.length > 0 && (
+                    <div className="hub-item docs">
+                        <div className="label">Uploaded Documents</div>
+                        <ul className="value">
+                            {docs.map(d => (
+                                <li key={d.BlobUrl}>
+                                    <a href={d.BlobUrl} target="_blank" rel="noopener noreferrer">{d.FileName}</a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
-            <div className="existing-docs">
-                <h3>Uploaded Documents</h3>
-                {docs.length ? (
-                    <ul>
-                        {docs.map(d => (
-                            <li key={d.BlobUrl}>
-                                <a href={d.BlobUrl} target="_blank" rel="noopener noreferrer">{d.FileName}</a>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No documents uploaded yet.</p>
                 )}
             </div>
 
-            <div className="upload-new">
-                <h3>Upload Additional Documents</h3>
-                <DocumentUpload
-                    uploadedFiles={uploadedFiles}
-                    setUploadedFiles={setUploadedFiles}
-                    setIsComplete={setComplete}
-                    onBack={() => { }}
-                    onNext={() => { }}
-                    setUploadSkipped={setSkipped}
-                    isUploadSkipped={skipped}
-                    clientId={clientId}
-                    passcode={passcode}
-                    instructionRef={instructionRef}
-                    instructionReady={true}
-                    instructionError={null}
-                />
-            </div>
+            <DocumentUpload
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                setIsComplete={setComplete}
+                onBack={() => { }}
+                onNext={() => { }}
+                setUploadSkipped={setSkipped}
+                isUploadSkipped={skipped}
+                clientId={clientId}
+                passcode={passcode}
+                instructionRef={instructionRef}
+                instructionReady={true}
+                instructionError={null}
+            />
 
             <div className="ccl-section">
                 <button className="btn primary" type="button" disabled>

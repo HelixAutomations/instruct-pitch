@@ -1,16 +1,53 @@
 .client-hub {
-    margin: 2rem auto;
-    max-width: 700px;
+    flex: 1 1 100%;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e3e8ef;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
 .client-hub h2 {
-    font-size: 1.5rem;
+    margin-top: 0;
+    font-size: 1.25rem;
     margin-bottom: 1rem;
 }
 
-.client-hub .existing-docs ul {
-    padding-left: 20px;
-    opacity: 0.6;
+.hub-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.hub-item {
+    flex: 1 1 120px;
+}
+
+.hub-item .label {
+    font-size: 0.75rem;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.hub-item .value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--helix-dark-blue);
+}
+
+.hub-item.docs ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.hub-item.docs li {
+    margin-bottom: 0.25rem;
+    word-break: break-word;
 }
 
 .ccl-section {

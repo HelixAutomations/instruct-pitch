@@ -42,6 +42,8 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   return (
     <div className="client-hero">
       <div className={`client-hero-inner center${loaded ? ' loaded' : ''}`}>
+        <h1 className={`stage-title${loaded ? ' loaded' : ''}${confirmed ? ' confirmed' : ''}`}>{stage}</h1>
+
         {confirmed && (
           <div className={`hero-confirmation${loaded ? ' loaded' : ''}`}>
             {greeting && <span className="hero-greeting">{greeting}</span>}
@@ -62,8 +64,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
             </span>
           </div>
         )}
-
-        <h1 className={`stage-title${loaded ? ' loaded' : ''}${confirmed ? ' confirmed' : ''}`}>{stage}</h1>
 
         {!confirmed && (
           <div className={`hero-help${loaded ? ' loaded' : ''}`}>

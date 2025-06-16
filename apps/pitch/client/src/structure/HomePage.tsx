@@ -1150,6 +1150,15 @@ const proofSummary = (
     <div className="home-page">
       <main className="main-content">
         <div className="checkout-container">
+          {returning && instructionCompleted && (
+            <ClientHub
+              instructionRef={instruction.instructionRef}
+              clientId={clientId}
+              passcode={passcode}
+              contactName={proofData.helixContact}
+              email={proofData.email}
+            />
+          )}
           <div className="steps-column">
 
             <div ref={step1Ref} className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
@@ -1223,9 +1232,9 @@ const proofSummary = (
                     complete={isPaymentDone}
                     open={openStep === 2}
                     toggle={() => goToStep(openStep === 2 ? 0 : 2)}
-                    locked={instructionCompleted || showFinalBanner || (isPaymentDone && paymentData.paymentMethod === 'card')}
+                    locked={instructionCompleted || showFinalBanner || isPaymentDone}
                     allowToggleWhenLocked
-                    editable={paymentData.paymentMethod !== 'card'}
+                    editable={!isPaymentDone}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
                     {!isPaymentDone && (
@@ -1356,15 +1365,6 @@ const proofSummary = (
             </aside>
           )}
         </div>
-        {returning && instructionCompleted && (
-          <ClientHub
-            instructionRef={instruction.instructionRef}
-            clientId={clientId}
-            passcode={passcode}
-            contactName={proofData.helixContact}
-            email={proofData.email}
-          />
-        )}
       </main>
     </div>
   );
