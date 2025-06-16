@@ -23,7 +23,7 @@
   width: 100%;
   display: flex;
   gap: 32px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   min-width: 0;
   box-sizing: border-box;
   background: #fff;
