@@ -5,7 +5,7 @@ import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
 import ClientDetails from './structure/ClientDetails';
-import ClientHub from './structure/ClientHub'; // <--- ADD THIS
+import ClientHub from './structure/ClientHub';
 import PaymentResult from './structure/PaymentResult';
 import './styles/App.css';
 
@@ -105,7 +105,6 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* --- ADD THIS: ClientHub always shown under hero, above main --- */}
       <ClientHub
         instructionRef={instructionRef}
         clientId={clientId}

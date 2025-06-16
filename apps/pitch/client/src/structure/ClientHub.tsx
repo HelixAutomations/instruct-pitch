@@ -25,20 +25,24 @@ const ClientHub: React.FC<ClientHubProps> = ({ instructionRef, clientId, feeEarn
     if (!items.length) return null;
 
     return (
-        <div className="client-hub">
-            {items.map((item, idx) => (
-                <React.Fragment key={item.label}>
-                    <div className="hub-item">
-                        <span className="hub-icon">{item.icon}</span>
-                        <span className="hub-text">
-                            <span className="hub-key">{item.label}</span>
-                            <span className="hub-value">{item.value}</span>
-                        </span>
-                    </div>
-                    {idx < items.length - 1 && <div className="hub-divider" aria-hidden="true" />}
-                </React.Fragment>
-            ))}
-        </div>
+        <section className="client-hub-section">
+            <div className="client-hub">
+                {items.map((item, idx) => (
+                    <React.Fragment key={item.label}>
+                        <div className="hub-item">
+                            <span className="hub-icon">{item.icon}</span>
+                            <span className="hub-text">
+                                <span className="hub-key">{item.label}</span>
+                                <span className="hub-value">{item.value}</span>
+                            </span>
+                        </div>
+                        {idx < items.length - 1 && (
+                            <div className="hub-divider" aria-hidden="true" />
+                        )}
+                    </React.Fragment>
+                ))}
+            </div>
+        </section>
     );
 };
 

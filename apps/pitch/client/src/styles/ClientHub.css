@@ -1,26 +1,45 @@
+/* 
+   Your main wrapper (e.g., .page-root or .main-content) should control max-width and centering.
+   Example:
+   .page-root { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+*/
+
+.client-hub-section {
+    width: 100%;
+    margin: -2.5rem 0 2rem 0;
+    /* match .checkout-container negative top margin/overlap */
+    padding: 2.5rem 2rem 2rem 2rem;
+    /* match .checkout-container padding */
+    background: #fff;
+    border-radius: 2rem 2rem 1rem 1rem;
+    /* match .checkout-container corners */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    /* match .checkout-container shadow */
+    box-sizing: border-box;
+    position: relative;
+    z-index: 3;
+}
+
 .client-hub {
     display: flex;
     justify-content: flex-start;
-    align-items: stretch;
+    align-items: center;
     flex-wrap: wrap;
     gap: 1.5rem;
-    padding: 1rem 0 1rem 16px;
-    margin-bottom: 2.5rem;
 }
 
 .hub-item {
     display: flex;
-    align-items: stretch;
-    /* key change */
+    align-items: center;
     gap: 0.5rem;
 }
 
 .hub-icon {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
-    height: auto;
-    /* key change: allow it to stretch */
+    font-size: 1.6em;
+    color: #2f497d;
 }
 
 .hub-text {
@@ -31,8 +50,6 @@
     padding: 0.25rem 0;
 }
 
-
-
 .hub-key {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -42,8 +59,24 @@
 .hub-value {
     font-size: 1rem;
     font-weight: 600;
+    color: #333;
 }
 
 .hub-divider {
     width: 1px;
-    background: #d0d4d9; }
+    height: 32px;
+    background: #d0d4d9;
+    margin: 0 24px;
+}
+
+@media (max-width: 768px) {
+    .client-hub-section {
+        padding: 1.5rem 0.5rem;
+        margin: -1.5rem 0 1rem 0;
+        border-radius: 1.5rem;
+    }
+
+    .client-hub {
+        justify-content: center;
+    }
+}
