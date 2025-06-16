@@ -237,6 +237,7 @@ const HomePage: React.FC<HomePageProps> = ({
   clientId,
   passcode,
   instructionRef,
+  returning,
   feeEarner,
   clientEmail,
   onInstructionConfirmed,
@@ -709,10 +710,15 @@ const HomePage: React.FC<HomePageProps> = ({
   }, [uploadedFiles]);
 
   useEffect(() => {
-    if ((isUploadDone || isUploadSkipped) && openStep !== 3 && !showFinalBanner) {
+    if (
+      !returning &&
+      (isUploadDone || isUploadSkipped) &&
+      openStep !== 3 &&
+      !showFinalBanner
+    ) {
       setShowFinalBanner(true);
     }
-  }, [isUploadDone, isUploadSkipped, showFinalBanner, openStep]);
+  }, [isUploadDone, isUploadSkipped, showFinalBanner, openStep, returning]);
 
   useEffect(() => {
     if (openStep === 3) {
@@ -790,12 +796,21 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
 }
 
   useEffect(() => {
-    if (step1Reveal) goToStep(1);
-  }, [step1Reveal]);
+    if (step1Reveal && !returning) goToStep(1);
+  }, [step1Reveal, returning]);
 
+  const initialStepScrollSkipped = useRef(false);
   useEffect(() => {
     const refs = [step1Ref, step2Ref, step3Ref];
     if (openStep > 0) {
+      if (
+        openStep === 1 &&
+        !initialStepScrollSkipped.current &&
+        window.scrollY === 0
+      ) {
+        initialStepScrollSkipped.current = true;
+        return;
+      }
       scrollIntoViewIfNeeded(refs[openStep - 1]?.current);
     }
   }, [openStep]);
@@ -1165,12 +1180,14 @@ const proofSummary = (
     <div className="home-page">
       <main className="main-content">
         <div className="checkout-container">
-          <ClientHub
-            instructionRef={instructionRef}
-            clientId={clientId}
-            feeEarner={feeEarner}
-            email={clientEmail}
-          />
+          {returning && (
+            <ClientHub
+              instructionRef={instructionRef}
+              clientId={clientId}
+              feeEarner={feeEarner}
+              email={clientEmail}
+            />
+          )}
           <div className="steps-column">
 
             <div ref={step1Ref} className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>

@@ -1,0 +1,21 @@
+[
+  {
+    "DealId": 1,
+    "InstructionRef": "HLX-22338-4843",
+    "ProspectId": 22338,
+    "Passcode": "12345",
+    "ServiceDescription": "Test service description",
+    "Amount": 0.50,
+    "AreaOfWork": "Test Area",
+    "PitchedBy": "Tester",
+    "PitchedDate": "2025-06-15T00:00:00",
+    "PitchedTime": "13:09:55",
+    "PitchValidUntil": "2025-07-15T00:00:00",
+    "Status": "open",
+    "IsMultiClient": "0",
+    "LeadClientId": 22338,
+    "LeadClientEmail": "lz@helix-law.com",
+    "CloseDate": null,
+    "CloseTime": null
+  }
+]
