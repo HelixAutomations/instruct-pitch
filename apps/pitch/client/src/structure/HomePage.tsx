@@ -41,7 +41,6 @@ import {
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
-import ClientHub from './ClientHub';
 import Payment from './Payment';
 import ReviewConfirm from './ReviewConfirm';
 import '../styles/HomePage.css';
@@ -235,7 +234,6 @@ const HomePage: React.FC<HomePageProps> = ({
   clientId,
   passcode,
   instructionRef,
-  returning = false,
   onInstructionConfirmed,
   onGreetingChange,
   onContactInfoChange,
@@ -1162,15 +1160,6 @@ const proofSummary = (
     <div className="home-page">
       <main className="main-content">
         <div className="checkout-container">
-          {returning && instructionCompleted && (
-            <ClientHub
-              instructionRef={instruction.instructionRef}
-              clientId={clientId}
-              passcode={passcode}
-              contactName={proofData.helixContact}
-              email={proofData.email}
-            />
-          )}
           <div className="steps-column">
 
             <div ref={step1Ref} className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
@@ -1180,9 +1169,9 @@ const proofSummary = (
                 complete={isIdReviewDone}
                 open={openStep === 1}
                 toggle={() => goToStep(openStep === 1 ? 0 : 1)}
-                locked={instructionCompleted || showFinalBanner}
-                allowToggleWhenLocked
-                onEdit={handleEdit}
+                locked={isIdReviewDone}
+                editable={!isIdReviewDone}
+                onEdit={isIdReviewDone ? undefined : handleEdit}
               />
               <div
                 className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone, editing)}`}
@@ -1244,8 +1233,7 @@ const proofSummary = (
                     complete={isPaymentDone}
                     open={openStep === 2}
                     toggle={() => goToStep(openStep === 2 ? 0 : 2)}
-                    locked={instructionCompleted || showFinalBanner || isPaymentDone}
-                    allowToggleWhenLocked
+                    locked={isPaymentDone}
                     editable={!isPaymentDone}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>

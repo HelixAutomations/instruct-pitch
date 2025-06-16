@@ -3,7 +3,7 @@
   width: 100%;
   background-color: var(--website-blue);
   color: #fff;
-  padding-bottom: 4rem;
+  padding-bottom: 1rem;
   position: relative;
   z-index: 1;
 }
@@ -109,7 +109,6 @@
   height: 1.25rem;
   background-color: rgba(255, 255, 255, 0.5);
 }
-
 .hero-confirmation {
   color: #fff;
   font-size: 1rem;
@@ -123,18 +122,26 @@
     opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .hero-confirmation.loaded {
   opacity: 1;
   transform: translateY(0);
   transition-delay: 0.2s;
 }
-
-.hero-confirmation .instruction-ref {
-  font-weight: 600;
+.hero-line {
+  text-align: left !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-.hero-confirmation .completion-tick {
+.hero-confirmation.minimal {
+  align-items: flex-start !important;
+  flex-direction: column !important;
+}
+
+.hero-ref {
+  font-weight: 600;
+}
+.hero-ref .completion-tick {
   margin-right: 0.5rem;
   width: 20px;
   height: 20px;
@@ -146,16 +153,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   color: #20b26c;
 }
-
-.hero-confirmation .completion-tick svg {
+.hero-ref .completion-tick svg {
   width: 14px;
   height: 14px;
-}
-
-.hero-confirmation .hero-greeting {
-  display: block;
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
 }
 
 .hero-msg-anim-enter {

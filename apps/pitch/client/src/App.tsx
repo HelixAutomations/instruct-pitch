@@ -5,7 +5,8 @@ import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
 import ClientDetails from './structure/ClientDetails';
-import PaymentResult from './structure/PaymentResult';  // ← make sure this import is here
+import ClientHub from './structure/ClientHub'; // <--- ADD THIS
+import PaymentResult from './structure/PaymentResult';
 import './styles/App.css';
 
 const App: React.FC = () => {
@@ -15,7 +16,6 @@ const App: React.FC = () => {
 
   const [clientId, setClientId] = useState('');
   const [passcode, setPasscode] = useState('');
-  // Determines whether the IDAuth modal should be displayed on the /:cid route
   const [showIdAuth, setShowIdAuth] = useState(false);
   const [instructionRef, setInstructionRef] = useState('');
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
@@ -32,7 +32,6 @@ const App: React.FC = () => {
     let cid = parts[0];
     setReturning(false);
 
-    // If the URL contains a full instruction reference (HLX-XXXXX-XXXX)
     if (parts.length >= 3 && parts[0].toUpperCase() === 'HLX') {
       cid = parts[1];
       setInstructionRef(cidParam);
@@ -44,8 +43,6 @@ const App: React.FC = () => {
     }
     setClientId(cid);
 
-    // If the URL contains a full instruction reference (e.g. HLX-12345-6789)
-    // skip passcode validation and prefill from that record.
     if (parts.length >= 3) {
       setInstructionRef(cidParam);
       setPasscode('');
@@ -57,7 +54,6 @@ const App: React.FC = () => {
     if (code) {
       setPasscode(code);
       setShowIdAuth(false);
-      // Auto-generate instruction reference when both values supplied
       fetch(`/api/generate-instruction-ref?cid=${cid}&passcode=${code}`)
         .then(res => res.json())
         .then(data => {
@@ -68,8 +64,6 @@ const App: React.FC = () => {
         })
         .catch(err => console.error('auto generate error', err));
     } else {
-      // Only show the passcode modal if we don't already have a passcode from
-      // the initial IDAuth step (e.g., when arriving via "/" route).
       setShowIdAuth(passcode === '');
     }
   }, [cidParam, navigate]);
@@ -95,16 +89,12 @@ const App: React.FC = () => {
           <div className="page-hero-content-inner">
             <Header />
             <ClientDetails
-              workType="—"
               stage={
                 instructionConfirmed
                   ? "We've got your instructions."
                   : 'Confirmation of Instruction'
               }
               instructionRef={instructionRef}
-              clientId={clientId}
-              feeEarner={feeEarner}
-              email={clientEmail}
               confirmed={instructionConfirmed}
               greeting={completionGreeting ?? undefined}
               onAnimationEnd={() => {
@@ -114,6 +104,14 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* --- ADD THIS: ClientHub always shown under hero, above main --- */}
+      <ClientHub
+        instructionRef={instructionRef}
+        clientId={clientId}
+        feeEarner={feeEarner}
+        email={clientEmail}
+      />
 
       <main className="app-container">
         <Routes>
