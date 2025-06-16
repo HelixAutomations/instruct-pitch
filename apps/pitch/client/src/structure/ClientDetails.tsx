@@ -43,7 +43,14 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
         <div className={`hero-confirmation minimal${loaded ? ' loaded' : ''}`}
         >
           {greeting && <span className="hero-line">{greeting}</span>}
-          <span className="hero-line">{stage}</span>
+          <span
+            className={
+              "hero-line hero-stage" +
+              (stage === "We've got your instructions." ? " hero-stage-main" : "")
+            }
+          >
+            {stage}
+          </span>
           {confirmed && (
             <span className="hero-line hero-ref">
               <span className="completion-tick visible">
