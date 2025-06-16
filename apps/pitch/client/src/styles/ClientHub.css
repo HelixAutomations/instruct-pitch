@@ -102,6 +102,7 @@
     font-size: 1rem;
     font-weight: 600;
     color: #333;
+    overflow-wrap: anywhere;
 }
 
 @media (max-width: 768px) {
@@ -118,4 +119,8 @@
     .hub-row {
         grid-template-columns: repeat(2, 1fr);
     }
+/* Offset the first item of each wrapped row */
+.hub-row .hub-item:nth-child(2n + 1) {
+    margin-left: 0.5rem;
+}
 }
