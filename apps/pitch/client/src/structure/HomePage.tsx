@@ -41,6 +41,7 @@ import {
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
+import ClientHub from './ClientHub';
 import Payment from './Payment';
 import ReviewConfirm from './ReviewConfirm';
 import '../styles/HomePage.css';
@@ -94,6 +95,7 @@ interface HomePageProps {
   clientId: string;
   passcode: string;
   instructionRef: string;
+  returning?: boolean;
   onInstructionConfirmed?: () => void;
 }
 
@@ -231,6 +233,7 @@ const HomePage: React.FC<HomePageProps> = ({
   clientId,
   passcode,
   instructionRef,
+  returning = false,
   onInstructionConfirmed,
 }) => {
   const params = new URLSearchParams(window.location.search);
@@ -1329,6 +1332,15 @@ const proofSummary = (
             </aside>
           )}
         </div>
+        {returning && instructionCompleted && (
+          <ClientHub
+            instructionRef={instruction.instructionRef}
+            clientId={clientId}
+            passcode={passcode}
+            contactName={proofData.helixContact}
+            email={proofData.email}
+          />
+        )}
       </main>
     </div>
   );

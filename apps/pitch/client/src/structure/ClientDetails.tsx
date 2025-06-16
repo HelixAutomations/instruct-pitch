@@ -40,7 +40,24 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   return (
     <div className="client-hero">
       <div className={`client-hero-inner center${loaded ? ' loaded' : ''}`}>
-        <h1 className={`stage-title${loaded ? ' loaded' : ''}`}>{stage}</h1>
+        <h1 className={`stage-title${loaded ? ' loaded' : ''}`}>
+          {confirmed && (
+            <span className="completion-tick visible stage-tick">
+              <svg viewBox="0 0 24 24">
+                <polyline
+                  points="5,13 10,18 19,7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          )}
+          {stage}
+        </h1>
+
         <SwitchTransition mode="out-in">
           <CSSTransition
             key={confirmed ? 'confirmed' : 'help'}
@@ -49,18 +66,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
           >
             {confirmed ? (
               <div className={`hero-confirmation${loaded ? ' loaded' : ''}`}>
-                <span className="completion-tick visible">
-                  <svg viewBox="0 0 24 24">
-                    <polyline
-                      points="5,13 10,18 19,7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
                 <span className="instruction-ref">Ref: {instructionRef}</span>
               </div>
             ) : (

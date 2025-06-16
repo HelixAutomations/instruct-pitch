@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, closeDeal } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
 
@@ -327,6 +327,17 @@ app.post('/api/instruction', async (req, res) => {
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
     res.status(500).json({ error: 'Failed to save instruction' });
+  }
+});
+
+app.get('/api/instruction/:ref/documents', async (req, res) => {
+  const ref = req.params.ref;
+  try {
+    const docs = await getDocumentsForInstruction(ref);
+    res.json(docs);
+  } catch (err) {
+    console.error('❌ fetch documents error:', err);
+    res.status(500).json({ error: 'Failed to fetch documents' });
   }
 });
 

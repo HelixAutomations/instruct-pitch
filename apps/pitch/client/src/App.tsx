@@ -20,12 +20,37 @@ const App: React.FC = () => {
   const [instructionRef, setInstructionRef] = useState('');
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
+  const [returning, setReturning] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     if (!cidParam) return;
-    const [cid, code] = cidParam.split('-');
+    const parts = cidParam.split('-');
+    let cid = parts[0];
+    setReturning(false);
+
+    // If the URL contains a full instruction reference (HLX-XXXXX-XXXX)
+    if (parts.length >= 3 && parts[0].toUpperCase() === 'HLX') {
+      cid = parts[1];
+      setInstructionRef(cidParam);
+      setPasscode(parts[1]);
+      setReturning(true);
+      setShowIdAuth(false);
+      setClientId(cid);
+      return;
+    }
     setClientId(cid);
+
+    // If the URL contains a full instruction reference (e.g. HLX-12345-6789)
+    // skip passcode validation and prefill from that record.
+    if (parts.length >= 3) {
+      setInstructionRef(cidParam);
+      setPasscode('');
+      setShowIdAuth(false);
+      return;
+    }
+
+    const code = parts[1];
     if (code) {
       setPasscode(code);
       setShowIdAuth(false);
@@ -110,6 +135,7 @@ const App: React.FC = () => {
                   clientId={clientId}
                   passcode={passcode}
                   instructionRef={instructionRef}
+                  returning={returning}
                   onInstructionConfirmed={() => setInstructionConfirmed(true)}
                 />
               </>

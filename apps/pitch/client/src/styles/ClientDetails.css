@@ -44,6 +44,25 @@
   opacity: 1;
 }
 
+.stage-title .completion-tick {
+  margin-right: 0.5rem;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #20b26c;
+  vertical-align: middle;
+}
+
+.stage-title .completion-tick svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* Help section */
 .hero-help {
   color: #fff;
@@ -110,23 +129,6 @@
 
 .hero-confirmation .instruction-ref {
   font-weight: 600;
-}
-
-.hero-confirmation .completion-tick {
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  color: #20b26c;
-}
-
-.hero-confirmation .completion-tick svg {
-  width: 14px;
-  height: 14px;
 }
 
 .hero-msg-anim-enter {

@@ -180,6 +180,14 @@ async function closeDeal(ref) {
     `)
 }
 
+async function getDocumentsForInstruction(ref) {
+  const pool = await getSqlPool()
+  const result = await pool.request()
+    .input('ref', sql.NVarChar, ref)
+    .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref')
+  return result.recordset || []
+}
+
 module.exports = {
   getInstruction,
   getLatestDeal,
@@ -187,5 +195,6 @@ module.exports = {
   upsertInstruction,
   markCompleted,
   updatePaymentStatus,
-  closeDeal
+  closeDeal,
+  getDocumentsForInstruction
 }
