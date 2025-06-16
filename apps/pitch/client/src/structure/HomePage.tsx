@@ -286,7 +286,15 @@ const HomePage: React.FC<HomePageProps> = ({
       .then(res => res.json())
       .then(data => {
         if (data) {
-          const { stage, PaymentAmount, PaymentProduct, WorkType, ...rest } = data;
+          const {
+            stage,
+            Stage: StageCap,
+            PaymentAmount,
+            PaymentProduct,
+            WorkType,
+            ...rest
+          } = data;
+          const mergedStage = stage || StageCap;
           setProofData(prev => ({ ...prev, ...rest }));
           setInstruction(prev => ({
             ...prev,
@@ -294,7 +302,7 @@ const HomePage: React.FC<HomePageProps> = ({
             product: PaymentProduct ?? prev.product,
             workType: WorkType ?? prev.workType,
           }));
-          if (stage === 'completed') {
+          if (mergedStage === 'completed') {
             setInstructionCompleted(true);
             if (data.InternalStatus === 'paid') {
               const fname = rest.FirstName || '';
