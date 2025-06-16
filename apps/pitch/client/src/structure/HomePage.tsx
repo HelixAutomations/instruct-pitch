@@ -632,6 +632,12 @@ const HomePage: React.FC<HomePageProps> = ({
   const [showFinalBanner, setShowFinalBanner] = useState(false);
   const { summaryComplete, setSummaryComplete } = useCompletion();
 
+  const idExpiry = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toLocaleDateString('en-GB');
+  }, []);
+
   // Steps are considered locked once the final banner is shown or the
   // instruction is marked completed server-side. At this stage we no
   // longer want users editing earlier steps.
@@ -1186,6 +1192,7 @@ const proofSummary = (
               instructionRef={instructionRef}
               clientId={clientId}
               feeEarner={feeEarner}
+              idExpiry={idExpiry}
               idVerified={summaryComplete}
               matterRef={instruction.matterId || undefined}
             />
