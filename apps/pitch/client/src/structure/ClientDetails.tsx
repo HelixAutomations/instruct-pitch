@@ -8,6 +8,7 @@ interface ClientDetailsProps {
   confirmed?: boolean;
   greeting?: string | null;
   onAnimationEnd?: () => void;
+  showHelp?: boolean;
 }
 
 const ClientDetails: React.FC<ClientDetailsProps> = ({
@@ -16,6 +17,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   confirmed = false,
   greeting = null,
   onAnimationEnd,
+  showHelp = false,
 }) => {
   const [loaded, setLoaded] = React.useState(false);
 
@@ -61,6 +63,16 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
             </span>
           )}
         </div>
+        {showHelp && (
+          <div className={`hero-help${loaded ? ' loaded' : ''}`}>
+            <span className="hero-help-prefix">We're here to help:</span>
+            <div className="hero-help-contact">
+              <a href="tel:03453142044">0345 314 2044</a>
+              <span className="pipe" aria-hidden="true"></span>
+              <a href="mailto:operations@helix-law.com">operations@helix-law.com</a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

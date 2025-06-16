@@ -99,6 +99,7 @@ const App: React.FC = () => {
               onAnimationEnd={() => {
                 setTimeout(() => setStep1Reveal(true), 550);
               }}
+              showHelp={!returning}
             />
           </div>
         </div>
