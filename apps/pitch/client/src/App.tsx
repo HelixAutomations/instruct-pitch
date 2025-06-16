@@ -5,7 +5,6 @@ import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
 import ClientDetails from './structure/ClientDetails';
-import ClientHub from './structure/ClientHub';
 import PaymentResult from './structure/PaymentResult';
 import './styles/App.css';
 
@@ -105,13 +104,6 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <ClientHub
-        instructionRef={instructionRef}
-        clientId={clientId}
-        feeEarner={feeEarner}
-        email={clientEmail}
-      />
-
       <main className="app-container">
         <Routes>
           <Route
@@ -152,6 +144,8 @@ const App: React.FC = () => {
                   onInstructionConfirmed={() => setInstructionConfirmed(true)}
                   onGreetingChange={setCompletionGreeting}
                   onContactInfoChange={handleContactInfoChange}
+                  feeEarner={feeEarner}
+                  clientEmail={clientEmail}
                 />
               </>
             }

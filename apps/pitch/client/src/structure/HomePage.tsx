@@ -50,6 +50,7 @@ import SummaryReview from './SummaryReview';
 import { CSSTransition } from 'react-transition-group';
 import { toTitleCase } from '../utils/format';
 import InfoPopover from '../components/InfoPopover';
+import ClientHub from './ClientHub';
 
 const ALLOWED_FIELDS = [
   'isCompanyClient',
@@ -98,6 +99,8 @@ interface HomePageProps {
   onInstructionConfirmed?: () => void;
   onGreetingChange?: (greeting: string | null) => void;
   onContactInfoChange?: (info: { feeEarner?: string; email?: string }) => void;
+  feeEarner?: string;
+  clientEmail?: string;
 }
 
 interface StepHeaderProps {
@@ -234,6 +237,8 @@ const HomePage: React.FC<HomePageProps> = ({
   clientId,
   passcode,
   instructionRef,
+  feeEarner,
+  clientEmail,
   onInstructionConfirmed,
   onGreetingChange,
   onContactInfoChange,
@@ -1160,6 +1165,12 @@ const proofSummary = (
     <div className="home-page">
       <main className="main-content">
         <div className="checkout-container">
+          <ClientHub
+            instructionRef={instructionRef}
+            clientId={clientId}
+            feeEarner={feeEarner}
+            email={clientEmail}
+          />
           <div className="steps-column">
 
             <div ref={step1Ref} className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
