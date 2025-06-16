@@ -291,14 +291,19 @@ app.post('/api/instruction', async (req, res) => {
 
   try {
     const existing = (await getInstruction(instructionRef)) || {};
-    log('Existing record:', existing);    
-    if (existing.stage === 'completed' && stage !== 're-visit') {
+    log('Existing record:', existing);
+    const existingStage = existing.stage || existing.Stage;
+    if (existingStage === 'completed' && stage !== 're-visit') {
       return res.json({ completed: true });
     }
 
     const normalized = normalizeInstruction(rest);
     log('Normalized incoming data:', normalized);
-    let merged = { ...existing, ...normalized, stage: stage || existing.stage || 'in_progress' };
+    let merged = {
+      ...existing,
+      ...normalized,
+      stage: stage || existingStage || 'in_progress',
+    };
 
     if (merged.paymentMethod === 'bank') {
       merged.paymentResult = 'verifying';
@@ -348,7 +353,8 @@ app.post('/api/instruction/complete', async (req, res) => {
   try {
     const existing = await getInstruction(instructionRef);
     log('Complete instruction existing record:', existing);
-    if (existing && existing.stage === 'completed') {
+    const existingStage = existing && (existing.stage || existing.Stage);
+    if (existing && existingStage === 'completed') {
       return res.json({ completed: true });
     }
 
