@@ -11,7 +11,9 @@ interface ClientDetailsProps {
 }
 
 const ClientDetails: React.FC<ClientDetailsProps> = ({
+  stage,
   instructionRef,
+  confirmed = false,
   greeting = null,
   onAnimationEnd,
 }) => {
@@ -39,23 +41,25 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
         <div className={`hero-confirmation minimal${loaded ? ' loaded' : ''}`}
         >
           {greeting && <span className="hero-line">{greeting}</span>}
-          <span className="hero-line">We've got your instructions.</span>
-          <span className="hero-line hero-ref">
-            <span className="completion-tick visible">
-              <svg viewBox="0 0 24 24">
-                <polyline
-                  points="5,13 10,18 19,7"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+          <span className="hero-line">{stage}</span>
+          {confirmed && (
+            <span className="hero-line hero-ref">
+              <span className="completion-tick visible">
+                <svg viewBox="0 0 24 24">
+                  <polyline
+                    points="5,13 10,18 19,7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
 
+              </span>
+              {instructionRef}
             </span>
-            {instructionRef}
-          </span>
+          )}
         </div>
       </div>
     </div>
