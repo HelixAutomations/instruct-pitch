@@ -98,9 +98,8 @@ interface HomePageProps {
   returning?: boolean;
   onInstructionConfirmed?: () => void;
   onGreetingChange?: (greeting: string | null) => void;
-  onContactInfoChange?: (info: { feeEarner?: string; email?: string }) => void;
+  onContactInfoChange?: (info: { feeEarner?: string }) => void;
   feeEarner?: string;
-  clientEmail?: string;
 }
 
 interface StepHeaderProps {
@@ -229,6 +228,7 @@ const DUMMY_DEAL = {
   amount: 999,
   product: 'Local Development Deal',
   workType: 'Demo Work',
+  matterId: null,
 };
 
 
@@ -239,7 +239,6 @@ const HomePage: React.FC<HomePageProps> = ({
   instructionRef,
   returning,
   feeEarner,
-  clientEmail,
   onInstructionConfirmed,
   onGreetingChange,
   onContactInfoChange,
@@ -275,6 +274,7 @@ const HomePage: React.FC<HomePageProps> = ({
     product: '',
     workType: 'Shareholder Dispute',
     pitchedAt: new Date().toISOString(),
+    matterId: null as string | null,
   });
 
   // Keep internal instruction reference in sync with prop updates. This ensures
@@ -309,6 +309,7 @@ const HomePage: React.FC<HomePageProps> = ({
             amount: PaymentAmount != null ? Number(PaymentAmount) : prev.amount,
             product: PaymentProduct ?? prev.product,
             workType: WorkType ?? prev.workType,
+            matterId: rest.MatterId ?? prev.matterId,
           }));
           if (mergedStage === 'completed') {
             setInstructionCompleted(true);
@@ -331,6 +332,7 @@ const HomePage: React.FC<HomePageProps> = ({
                   amount: saved.PaymentAmount != null ? Number(saved.PaymentAmount) : prev.amount,
                   product: saved.PaymentProduct ?? prev.product,
                   workType: saved.WorkType ?? prev.workType,
+                  matterId: saved.MatterId ?? prev.matterId,
                 }));
               } else if (import.meta.env.DEV) {
                 setInstruction(prev => ({ ...prev, ...DUMMY_DEAL }));
@@ -456,10 +458,9 @@ const HomePage: React.FC<HomePageProps> = ({
     if (onContactInfoChange) {
       onContactInfoChange({
         feeEarner: proofData.helixContact,
-        email: proofData.email,
       });
     }
-  }, [proofData.helixContact, proofData.email, onContactInfoChange]);
+  }, [proofData.helixContact, onContactInfoChange]);
 
   const saveInstruction = async (stage: string) => {
     if (!instruction.instructionRef) return Promise.resolve();
@@ -1185,7 +1186,8 @@ const proofSummary = (
               instructionRef={instructionRef}
               clientId={clientId}
               feeEarner={feeEarner}
-              email={clientEmail}
+              idVerified={summaryComplete}
+              matterRef={instruction.matterId || undefined}
             />
           )}
           <div className="steps-column">

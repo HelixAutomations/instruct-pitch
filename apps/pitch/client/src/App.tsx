@@ -22,7 +22,6 @@ const App: React.FC = () => {
   const [returning, setReturning] = useState(false);
   const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const [feeEarner, setFeeEarner] = useState<string | undefined>();
-  const [clientEmail, setClientEmail] = useState<string | undefined>();
   const location = useLocation();
 
   useEffect(() => {
@@ -76,9 +75,8 @@ const App: React.FC = () => {
     navigate(`/${clientId}`);
   };
 
-  const handleContactInfoChange = (info: { feeEarner?: string; email?: string }) => {
+  const handleContactInfoChange = (info: { feeEarner?: string }) => {
     setFeeEarner(info.feeEarner);
-    setClientEmail(info.email);
   };
 
   return (
@@ -146,7 +144,6 @@ const App: React.FC = () => {
                   onGreetingChange={setCompletionGreeting}
                   onContactInfoChange={handleContactInfoChange}
                   feeEarner={feeEarner}
-                  clientEmail={clientEmail}
                 />
               </>
             }

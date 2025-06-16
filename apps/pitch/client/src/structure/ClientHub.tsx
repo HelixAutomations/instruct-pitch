@@ -3,7 +3,8 @@ import {
     FaClipboardList,
     FaIdBadge,
     FaUserTie,
-    FaEnvelope,
+    FaCheckCircle,
+    FaFolderOpen,
 } from 'react-icons/fa';
 import '../styles/ClientHub.css';
 
@@ -11,15 +12,17 @@ interface ClientHubProps {
     instructionRef: string;
     clientId: string;
     feeEarner?: string;
-    email?: string;
+    idVerified?: boolean;
+    matterRef?: string;
 }
 
-const ClientHub: React.FC<ClientHubProps> = ({ instructionRef, clientId, feeEarner, email }) => {
+const ClientHub: React.FC<ClientHubProps> = ({ instructionRef, clientId, feeEarner, idVerified, matterRef }) => {
     const items = [
         { label: 'Instruction Ref', value: instructionRef, icon: <FaClipboardList /> },
         { label: 'Client ID', value: clientId, icon: <FaIdBadge /> },
-        feeEarner ? { label: 'Fee Earner', value: feeEarner, icon: <FaUserTie /> } : null,
-        email ? { label: 'Email', value: email, icon: <FaEnvelope /> } : null,
+        feeEarner ? { label: 'Solicitor', value: feeEarner, icon: <FaUserTie /> } : null,
+        idVerified != null ? { label: 'ID Check', value: idVerified ? 'Verified' : 'Pending', icon: <FaCheckCircle /> } : null,
+        { label: 'Matter Ref', value: matterRef ?? 'Pending', icon: <FaFolderOpen /> },
     ].filter(Boolean) as { label: string; value: string; icon: JSX.Element }[];
 
     if (!items.length) return null;
