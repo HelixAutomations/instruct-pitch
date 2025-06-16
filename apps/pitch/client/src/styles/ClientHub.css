@@ -24,7 +24,7 @@
     width: 100%;
     grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
-    justify-items: center;
+    justify-items: start;
     align-items: center;
 }
 
@@ -55,32 +55,40 @@
 .hub-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    justify-content: flex-start;
+    text-align: left;
     gap: 0.5rem;
+    padding: 0.25rem 0 0.25rem 0.75rem;
+    border-left: 2px solid var(--helix-cta);
+}
+
+/* Offset the first item so its accent isn't flush with the container */
+.hub-row .hub-item:first-child {
+    margin-left: 0.5rem;
 }
 
 .hub-item:not(:last-child) {
-    border-right: 1px solid #d0d4d9;
-    padding-right: 1.5rem;
-    margin-right: 1.5rem;
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
 }
 
 /* ICONS & TEXT */
-
+ 
 .hub-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6em;
-    color: #2f497d;
-}
+    font-size: 1.25em;
+    color: var(--helix-dark-blue, #2f497d);
+} 
+
 
 .hub-text {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    text-align: center;
+    text-align: left;
     padding: 0.25rem 0;
 }
 
