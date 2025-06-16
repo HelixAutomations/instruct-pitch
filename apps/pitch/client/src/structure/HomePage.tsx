@@ -97,6 +97,7 @@ interface HomePageProps {
   instructionRef: string;
   returning?: boolean;
   onInstructionConfirmed?: () => void;
+  onGreetingChange?: (greeting: string | null) => void;
 }
 
 interface StepHeaderProps {
@@ -235,6 +236,7 @@ const HomePage: React.FC<HomePageProps> = ({
   instructionRef,
   returning = false,
   onInstructionConfirmed,
+  onGreetingChange,
 }) => {
   const params = new URLSearchParams(window.location.search);
   const [paymentData, setPaymentData] = useState<{
@@ -375,6 +377,12 @@ const HomePage: React.FC<HomePageProps> = ({
   const [instructionCompleted, setInstructionCompleted] = useState(false);
   const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
+
+  useEffect(() => {
+    if (onGreetingChange) {
+      onGreetingChange(completionGreeting);
+    }
+  }, [completionGreeting, onGreetingChange]);
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
@@ -708,6 +716,19 @@ const HomePage: React.FC<HomePageProps> = ({
       onInstructionConfirmed();
     }
   }, [instructionCompleted, showFinalBanner, onInstructionConfirmed]);
+
+  useEffect(() => {
+    if (instructionCompleted) {
+      setIdReviewDone(true);
+      if (hasDeal) {
+        setPaymentDone(true);
+        setUploadDone(true);
+      }
+      setSummaryComplete(true);
+      setDetailsConfirmed(true);
+    }
+  }, [instructionCompleted, hasDeal, setSummaryComplete]);
+
 
   // Watch for changes during an edit session
   useEffect(() => {
@@ -1297,7 +1318,7 @@ const proofSummary = (
                     dimOnLock={false}
                   />
                   <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone || isUploadSkipped)}`}>
-                    {(openStep === 3 || closingStep === 3) && (
+                    {(openStep === 3 || closingStep === 3) && !instructionCompleted && (
                       <DocumentUpload
                         uploadedFiles={uploadedFiles}
                         setUploadedFiles={setUploadedFiles}

@@ -131,6 +131,12 @@
   font-weight: 600;
 }
 
+.hero-confirmation .hero-greeting {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
 .hero-msg-anim-enter {
   opacity: 0;
   transform: translateY(12px);

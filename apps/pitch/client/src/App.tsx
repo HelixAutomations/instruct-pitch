@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
   const [returning, setReturning] = useState(false);
+  const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -91,6 +92,7 @@ const App: React.FC = () => {
               stage={instructionConfirmed ? 'Instruction Confirmed' : 'Confirmation of Instruction'}
               instructionRef={instructionRef}
               confirmed={instructionConfirmed}
+              greeting={completionGreeting ?? undefined}
               onAnimationEnd={() => {
                 setTimeout(() => setStep1Reveal(true), 550);
               }}
@@ -137,6 +139,7 @@ const App: React.FC = () => {
                   instructionRef={instructionRef}
                   returning={returning}
                   onInstructionConfirmed={() => setInstructionConfirmed(true)}
+                  onGreetingChange={setCompletionGreeting}
                 />
               </>
             }

@@ -7,6 +7,7 @@ interface ClientDetailsProps {
   stage: string;
   instructionRef: string;
   confirmed?: boolean;
+  greeting?: string | null;
   onAnimationEnd?: () => void;
 }
 
@@ -14,6 +15,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   stage,
   instructionRef,
   confirmed = false,
+  greeting = null,
   onAnimationEnd,
 }) => {
   const [loaded, setLoaded] = React.useState(false);
@@ -66,6 +68,9 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
           >
             {confirmed ? (
               <div className={`hero-confirmation${loaded ? ' loaded' : ''}`}>
+                {greeting && (
+                  <span className="hero-greeting">{greeting}</span>
+                )}
                 <span className="instruction-ref">Ref: {instructionRef}</span>
               </div>
             ) : (
