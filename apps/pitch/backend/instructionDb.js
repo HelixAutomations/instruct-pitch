@@ -162,6 +162,24 @@ async function updatePaymentStatus(
   `)
 }
 
+async function attachInstructionRefToDeal(ref) {
+  const match = /^HLX-(\d+)-/.exec(ref)
+  if (!match) return
+  const pid = Number(match[1])
+  const pool = await getSqlPool()
+  await pool.request()
+    .input('ref', sql.NVarChar, ref)
+    .input('pid', sql.Int, pid)
+    .query(`
+      UPDATE Deals SET InstructionRef=@ref
+      WHERE DealId = (
+        SELECT TOP 1 DealId FROM Deals
+        WHERE ProspectId=@pid AND (InstructionRef IS NULL OR InstructionRef='')
+        ORDER BY DealId DESC
+      )
+    `)
+}
+
 async function closeDeal(ref) {
   const pool = await getSqlPool()
   const now = new Date()
@@ -197,6 +215,7 @@ module.exports = {
   upsertInstruction,
   markCompleted,
   updatePaymentStatus,
+  attachInstructionRefToDeal,
   closeDeal,
   getDocumentsForInstruction
 }

@@ -30,6 +30,7 @@ const stubs = {
   './instructionDb': {
     getInstruction: async () => stubs.getInstructionResponse,
     updatePaymentStatus: async () => { stubs.updateCalled = true; },
+    attachInstructionRefToDeal: async () => { stubs.linked = true; },
     closeDeal: async () => { stubs.closed = true; }
   },
   getInstructionResponse: { Email: 'test@example.com' }
@@ -88,7 +89,8 @@ const crypto = require('crypto');
   const ok = await post('/pitch/confirm-payment', { aliasId: 'a', orderId: 'b' });
   assert.strictEqual(ok.status, 200);
   assert.strictEqual(ok.body.success, true);
-  assert.strictEqual(stubs.closed, true);
+  assert.strictEqual(stubs.linked, true);
+  assert.strictEqual(stubs.closed, undefined);
 
   // Verify ALIASOPERATION included in payload and SHA computation
   const params = Object.fromEntries(new URLSearchParams(sentBody));

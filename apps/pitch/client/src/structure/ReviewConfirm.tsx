@@ -90,13 +90,6 @@ const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
           workType,
         })
       });
-      if (hasDeal) {
-        await fetch('/api/instruction/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ instructionRef })
-        });
-      }
       setSummaryComplete(true);
       if (onConfirmed) onConfirmed();
     } catch (err) {

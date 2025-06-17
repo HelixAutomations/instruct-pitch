@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
 
@@ -256,9 +256,9 @@ app.post('/pitch/confirm-payment', async (req, res) => {
         shaSign || shasign
       );
       try {
-        await closeDeal(orderId);
+        await attachInstructionRefToDeal(orderId);
       } catch (err) {
-        console.error('❌ Failed to close deal:', err);
+        console.error('❌ Failed to link instruction to deal:', err);
       }
     }
 
@@ -361,6 +361,12 @@ app.post('/api/instruction/complete', async (req, res) => {
     const record = await markCompleted(instructionRef);
 
     log('Mark completed result:', record);
+
+    try {
+      await closeDeal(instructionRef);
+    } catch (err) {
+      console.error('❌ Failed to close deal:', err);
+    }
 
     res.json(record);
   } catch (err) {

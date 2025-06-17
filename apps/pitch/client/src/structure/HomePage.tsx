@@ -740,6 +740,30 @@ const HomePage: React.FC<HomePageProps> = ({
   }, [showFinalBanner]);
 
   useEffect(() => {
+    if (showFinalBanner && !instructionCompleted && instruction.instructionRef) {
+      fetch('/api/instruction/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructionRef: instruction.instructionRef }),
+      })
+        .then(() => setInstructionCompleted(true))
+        .catch(err => console.error('Failed to mark instruction completed', err));
+    }
+  }, [showFinalBanner, instructionCompleted, instruction.instructionRef]);
+
+  useEffect(() => {
+    if (showFinalBanner && !instructionCompleted && instruction.instructionRef) {
+      fetch('/api/instruction/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructionRef: instruction.instructionRef }),
+      })
+        .then(() => setInstructionCompleted(true))
+        .catch(err => console.error('Failed to mark instruction completed', err));
+    }
+  }, [showFinalBanner, instructionCompleted, instruction.instructionRef]);
+
+  useEffect(() => {
     if ((instructionCompleted || showFinalBanner) && onInstructionConfirmed) {
       onInstructionConfirmed();
     }

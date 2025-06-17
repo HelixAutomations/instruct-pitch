@@ -44,4 +44,4 @@ async function markCompleted(ref) {
 }
 ```
 
-Ensure the client calls `/api/instruction/complete` after a successful payment or manual workflow step. Without this call the server continues to return `Stage: 'in_progress'` even if `InternalStatus` is `paid`, so the UI will not display the completed state.
+Ensure the client calls `/api/instruction/complete` once the user has uploaded any required documents and confirms the instruction. This endpoint marks the instruction as completed **and** closes the associated deal so no further payments can be taken. Without this call the server continues to return `Stage: 'in_progress'` even if payment succeeded, so the UI will not display the completed state.
