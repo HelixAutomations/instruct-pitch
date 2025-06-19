@@ -71,6 +71,15 @@ function normalizeInstruction(data) {
   if (out.title)        out.title     = toTitleCase(out.title);
   if (out.email)        out.email     = String(out.email).toLowerCase();
 
+  if (out.helixContact) {
+    const initials = String(out.helixContact)
+      .split(' ')
+      .filter(Boolean)
+      .map(w => w[0].toUpperCase())
+      .join('');
+    out.helixContact = initials;
+  }
+
   // Handle user-entered date-of-birth format DD/MM/YYYY
   if (out.dob && typeof out.dob === 'string') {
     const m = out.dob.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);

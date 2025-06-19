@@ -32,9 +32,9 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const prospectId = req.query.prospectId || req.query.cid;
-  if (!prospectId) {
-    context.res = { status: 400, body: 'Missing prospectId/cid query parameter' };
+  const initials = req.query.initials;
+  if (!initials) {
+    context.res = { status: 400, body: 'Missing initials query parameter' };
     return;
   }
 
@@ -42,58 +42,33 @@ module.exports = async function (context, req) {
     await ensureDbPassword();
     const pool = await getSqlPool();
 
-    const dealsResult = await pool.request()
-      .input('pid', sql.Int, Number(prospectId))
-      .query('SELECT * FROM Deals WHERE ProspectId=@pid');
-    const deals = dealsResult.recordset;
+    context.log(`Fetching team details for initials: ${initials}`);
+    const teamResult = await pool.request()
+      .input('initials', sql.NVarChar, initials)
+      .query(`
+        SELECT
+          [Full Name],
+          [Last],
+          [First],
+          [Nickname],
+          [Initials],
+          [Email],
+          [Entra ID],
+          [Clio ID],
+          [Rate],
+          [Role],
+          [AOW],
+          [status]
+        FROM team
+        WHERE [Initials]=@initials`);
+    const member = teamResult.recordset[0] || null;
 
-    const jointClients = [];
-    const instructions = [];
-    const documents = [];
-    const riskAssessments = [];
-    const electronicIDChecks = [];
-
-    for (const deal of deals) {
-      if (deal.DealId != null) {
-        const jc = await pool.request()
-          .input('dealId', sql.Int, deal.DealId)
-          .query('SELECT * FROM DealJointClients WHERE DealId=@dealId');
-        jointClients.push(...jc.recordset);
-      }
-      if (deal.InstructionRef) {
-        const ref = deal.InstructionRef;
-        const instr = await pool.request()
-          .input('ref', sql.NVarChar, ref)
-          .query('SELECT * FROM Instructions WHERE InstructionRef=@ref');
-        instructions.push(...instr.recordset);
-
-        const doc = await pool.request()
-          .input('ref', sql.NVarChar, ref)
-          .query('SELECT * FROM Documents WHERE InstructionRef=@ref');
-        documents.push(...doc.recordset);
-
-        const risk = await pool.request()
-          .input('ref', sql.NVarChar, ref)
-          .query('SELECT * FROM RiskAssessment WHERE MatterId=@ref');
-        riskAssessments.push(...risk.recordset);
-
-        const eid = await pool.request()
-          .input('ref', sql.NVarChar, ref)
-          .query('SELECT * FROM ElectronicIDCheck WHERE MatterId=@ref');
-        electronicIDChecks.push(...eid.recordset);
-      }
-    }
+    context.log(member ? `Found team member ${member['Full Name']}` : 'No matching team member');
 
     context.res = {
       status: 200,
       body: {
-        prospectId: Number(prospectId),
-        deals,
-        jointClients,
-        instructions,
-        documents,
-        riskAssessments,
-        electronicIDChecks
+        message: member ? `Team details retrieved for ${initials}` : `No team member found for ${initials}`
       }
     };
   } catch (err) {
