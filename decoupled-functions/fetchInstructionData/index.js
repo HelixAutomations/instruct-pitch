@@ -42,34 +42,35 @@ module.exports = async function (context, req) {
     await ensureDbPassword();
     const pool = await getSqlPool();
 
-    context.log(`Fetching team details for initials: ${initials}`);
-    const teamResult = await pool.request()
+    // ─── Deals pitched by this user ──────────────────────────────────────
+    const dealsResult = await pool.request()
       .input('initials', sql.NVarChar, initials)
-      .query(`
-        SELECT
-          [Full Name],
-          [Last],
-          [First],
-          [Nickname],
-          [Initials],
-          [Email],
-          [Entra ID],
-          [Clio ID],
-          [Rate],
-          [Role],
-          [AOW],
-          [status]
-        FROM team
-        WHERE [Initials]=@initials`);
-    const member = teamResult.recordset[0] || null;
+      .query('SELECT * FROM Deals WHERE PitchedBy=@initials ORDER BY DealId DESC');
+    const deals = dealsResult.recordset || [];
 
-    context.log(member ? `Found team member ${member['Full Name']}` : 'No matching team member');
+    for (const deal of deals) {
+      const jointRes = await pool.request()
+        .input('dealId', sql.Int, deal.DealId)
+        .query(`SELECT * FROM DealJointClients WHERE DealId=@dealId ORDER BY DealJointClientId`);
+      deal.jointClients = jointRes.recordset || [];
+    }
+
+    // ─── Instructions for this user ──────────────────────────────────────
+    const instrResult = await pool.request()
+      .input('initials', sql.NVarChar, initials)
+      .query('SELECT * FROM Instructions WHERE HelixContact=@initials ORDER BY InstructionRef DESC');
+    const instructions = instrResult.recordset || [];
+
+    for (const inst of instructions) {
+      const docRes = await pool.request()
+        .input('ref', sql.NVarChar, inst.InstructionRef)
+        .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
+      inst.documents = docRes.recordset || [];
+    }
 
     context.res = {
       status: 200,
-      body: {
-        message: member ? `Team details retrieved for ${initials}` : `No team member found for ${initials}`
-      }
+      body: { deals, instructions }
     };
   } catch (err) {
     context.log.error('fetchInstructionData error:', err);

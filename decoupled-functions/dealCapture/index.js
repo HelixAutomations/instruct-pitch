@@ -42,7 +42,7 @@ module.exports = async function (context, req) {
   }
 
   const body = req.body || {};
-  const { serviceDescription, amount, areaOfWork, prospectId, pitchedBy, isMultiClient, leadClientEmail, clients } = body;
+  const { serviceDescription, amount, areaOfWork, prospectId, pitchedBy, isMultiClient, leadClientEmail, clients, passcode } = body;
 
   if (!serviceDescription || amount == null || !areaOfWork || !pitchedBy) {
     context.res = { status: 400, body: 'Missing required fields' };
@@ -70,11 +70,12 @@ module.exports = async function (context, req) {
       .input('IsMultiClient', sql.Bit, isMultiClient ? 1 : 0)
       .input('LeadClientId', sql.Int, prospectId || null)
       .input('LeadClientEmail', sql.NVarChar(255), leadClientEmail || null)
+      .input('Passcode', sql.NVarChar(50), passcode || null)
       .input('CloseDate', sql.Date, null)
       .input('CloseTime', sql.Time, null)
-      .query(`INSERT INTO Deals (InstructionRef, ProspectId, ServiceDescription, Amount, AreaOfWork, PitchedBy, PitchedDate, PitchedTime, PitchValidUntil, Status, IsMultiClient, LeadClientId, LeadClientEmail, CloseDate, CloseTime)
+      .query(`INSERT INTO Deals (InstructionRef, ProspectId, ServiceDescription, Amount, AreaOfWork, PitchedBy, PitchedDate, PitchedTime, PitchValidUntil, Status, IsMultiClient, LeadClientId, LeadClientEmail, Passcode, CloseDate, CloseTime)
               OUTPUT INSERTED.DealId
-              VALUES (@InstructionRef, @ProspectId, @ServiceDescription, @Amount, @AreaOfWork, @PitchedBy, @PitchedDate, @PitchedTime, @PitchValidUntil, @Status, @IsMultiClient, @LeadClientId, @LeadClientEmail, @CloseDate, @CloseTime)`);
+              VALUES (@InstructionRef, @ProspectId, @ServiceDescription, @Amount, @AreaOfWork, @PitchedBy, @PitchedDate, @PitchedTime, @PitchValidUntil, @Status, @IsMultiClient, @LeadClientId, @LeadClientEmail, @Passcode, @CloseDate, @CloseTime)`);
 
     const dealId = dealResult.recordset[0].DealId;
 
@@ -88,7 +89,7 @@ module.exports = async function (context, req) {
       }
     }
 
-    context.res = { status: 200, body: { ok: true, dealId } };
+    context.res = { status: 200, body: { ok: true, dealId, passcode } };
   } catch (err) {
     context.log.error('dealCapture error:', err);
     context.res = { status: 500, body: { error: 'Failed to insert deal', detail: err.message } };

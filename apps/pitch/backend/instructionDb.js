@@ -68,6 +68,13 @@ async function upsertInstruction(ref, fields) {
 
     if (col === 'ConsentGiven') {
       request.input(col, sql.Bit, Boolean(val))
+    } else if (col === 'HelixContact') {
+      const initials = val == null ? null : String(val)
+        .split(' ')
+        .filter(Boolean)
+        .map(w => w[0].toUpperCase())
+        .join('')
+      request.input(col, sql.NVarChar, initials)
     } else if (['DOB','SubmissionDate','PaymentTimestamp'].includes(col)) {
       let dateVal = null
       if (val) {
