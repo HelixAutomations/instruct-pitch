@@ -334,9 +334,12 @@ app.post('/api/instruction', async (req, res) => {
     if (normalized.internalStatus === 'poid' && existingStatus !== 'poid') {
       try {
         const { submitVerification } = require('./utilities/tillerApi');
-        submitVerification(record).catch(err => {
-          console.error('❌ Tiller verification error:', err.message);
-        });
+        log('Submitting record to Tiller:', record.InstructionRef);
+        submitVerification(record)
+          .then(() => log('Tiller verification request sent'))
+          .catch(err => {
+            console.error('❌ Tiller verification error:', err.message);
+          });
       } catch (err) {
         console.error('❌ Failed to start Tiller verification:', err);
       }

@@ -60,7 +60,7 @@ async function submitVerification(instructionData) {
     const payload = buildTillerPayload(instructionData);
     console.log('▶️ Tiller payload:', JSON.stringify(payload));
     try {
-        const { data } = await axios.post(
+        const res = await axios.post(
             'https://verify-api.tiller-verify.com/api/v1/verifications',
             payload,
             {
@@ -70,10 +70,17 @@ async function submitVerification(instructionData) {
                 },
             }
         );
-        console.log('◀️ Tiller response:', JSON.stringify(data));
-        return data;
+        console.log('◀️ Tiller status:', res.status);
+        console.log('◀️ Tiller response:', JSON.stringify(res.data));
+        return res.data;
     } catch (err) {
-        console.error('❌ Tiller request failed:', err.response?.data || err.message);
+        if (err.response) {
+            console.error('❌ Tiller status:', err.response.status);
+            console.error('❌ Tiller error data:', JSON.stringify(err.response.data));
+        } else {
+            console.error('❌ Tiller request error:', err.message);
+        }
+        console.error('❌ Failed payload:', JSON.stringify(payload));
         throw err;
     }
 }
