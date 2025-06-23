@@ -346,6 +346,20 @@ app.get('/api/instruction/:ref/documents', async (req, res) => {
   }
 });
 
+app.get('/api/instruction/:ref/tiller-preview', async (req, res) => {
+  const ref = req.params.ref;
+  try {
+    const record = await getInstruction(ref);
+    if (!record) return res.status(404).json({ error: 'Instruction not found' });
+    const { buildTillerPayload } = require('./utilities/buildTillerPayload');
+    const payload = buildTillerPayload(record);
+    res.json(payload);
+  } catch (err) {
+    console.error('❌ tiller preview error:', err);
+    res.status(500).json({ error: 'Failed to build payload' });
+  }
+});
+
 app.post('/api/instruction/complete', async (req, res) => {
   const { instructionRef } = req.body;
   if (!instructionRef) return res.status(400).json({ error: 'Missing instructionRef' });
@@ -369,6 +383,16 @@ app.post('/api/instruction/complete', async (req, res) => {
     }
 
     res.json(record);
+
+    // Trigger Tiller verification in the background
+    try {
+      const { submitVerification } = require('./utilities/tillerApi');
+      submitVerification(record).catch(err => {
+        console.error('❌ Tiller verification error:', err.message);
+      });
+    } catch (err) {
+      console.error('❌ Failed to start Tiller verification:', err);
+    }
   } catch (err) {
     console.error('❌ /api/instruction/send-emails error:', err);
     res.status(500).json({ error: 'Failed to send emails' });
