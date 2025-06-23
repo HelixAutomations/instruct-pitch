@@ -329,6 +329,18 @@ app.post('/api/instruction', async (req, res) => {
     const record = await upsertInstruction(instructionRef, sanitized);
     log('Upsert result:', record);
     res.json(record);
+
+    const existingStatus = existing.internalStatus || existing.InternalStatus;
+    if (normalized.internalStatus === 'poid' && existingStatus !== 'poid') {
+      try {
+        const { submitVerification } = require('./utilities/tillerApi');
+        submitVerification(record).catch(err => {
+          console.error('❌ Tiller verification error:', err.message);
+        });
+      } catch (err) {
+        console.error('❌ Failed to start Tiller verification:', err);
+      }
+    }
   } catch (err) {
     console.error('❌ /api/instruction POST error:', err);
     res.status(500).json({ error: 'Failed to save instruction' });
@@ -384,15 +396,6 @@ app.post('/api/instruction/complete', async (req, res) => {
 
     res.json(record);
 
-    // Trigger Tiller verification in the background
-    try {
-      const { submitVerification } = require('./utilities/tillerApi');
-      submitVerification(record).catch(err => {
-        console.error('❌ Tiller verification error:', err.message);
-      });
-    } catch (err) {
-      console.error('❌ Failed to start Tiller verification:', err);
-    }
   } catch (err) {
     console.error('❌ /api/instruction/send-emails error:', err);
     res.status(500).json({ error: 'Failed to send emails' });
