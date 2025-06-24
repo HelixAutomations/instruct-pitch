@@ -75,7 +75,7 @@ async function getToken() {
 async function submitVerification(instructionData) {
     const token = await getToken();
     const payload = buildTillerPayload(instructionData);
-    console.log('▶️ Tiller payload:', JSON.stringify(payload));
+    console.log('▶️ Tiller payload built');
     try {
         const res = await axios.post(
             'https://verify-api.tiller-verify.com/api/v1/verifications',
@@ -97,7 +97,10 @@ async function submitVerification(instructionData) {
         } else {
             console.error('❌ Tiller request error:', err.message);
         }
-        console.error('❌ Failed payload:', JSON.stringify(payload));
+        console.error(
+            '❌ Failed payload for',
+            instructionData.instructionRef || instructionData.InstructionRef
+        );
         throw err;
     }
 }

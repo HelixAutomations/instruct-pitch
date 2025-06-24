@@ -524,7 +524,7 @@ const HomePage: React.FC<HomePageProps> = ({
           saveInstruction('initialised').then(() => setInstructionReady(true));
         }
         if (process.env.NODE_ENV !== 'production') {
-          console.log('✅ Prefilled data from backend:', prefill);
+          console.log('✅ Prefilled data loaded');
         }
       };
 
@@ -552,7 +552,7 @@ const HomePage: React.FC<HomePageProps> = ({
     maybeFetchPrefill();
   
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[HomePage] window.helixPrefillData:', window.helixPrefillData);
+      console.log('[HomePage] prefill data available');
     }
   }, [clientId]);
 

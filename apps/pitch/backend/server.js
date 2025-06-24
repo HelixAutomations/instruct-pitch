@@ -41,8 +41,10 @@ app.set('trust proxy', true);
 app.use(express.json());
 app.use((req, _res, next) => {
   log('>>', req.method, req.originalUrl);
-  if (Object.keys(req.query || {}).length) log('Query:', req.query);
-  if (req.body && Object.keys(req.body).length) log('Body:', req.body);
+  if (Object.keys(req.query || {}).length)
+    log('Query keys:', Object.keys(req.query));
+  if (req.body && Object.keys(req.body).length)
+    log('Body keys:', Object.keys(req.body));
   next();
 });
 app.use('/api', uploadRouter);
@@ -277,7 +279,7 @@ app.get('/api/instruction', async (req, res) => {
   if (!ref) return res.status(400).json({ error: 'Missing instructionRef' });
   try {
     const data = await getInstruction(ref);
-    log('Fetched instruction', ref, data);
+    log('Fetched instruction', ref);
     res.json(data || null);
   } catch (err) {
     console.error('❌ /api/instruction GET error:', err);
@@ -293,14 +295,16 @@ app.post('/api/instruction', async (req, res) => {
 
   try {
     const existing = (await getInstruction(instructionRef)) || {};
-    log('Existing record:', existing);
+    if (existing.InstructionRef) {
+      log('Fetched existing record for', instructionRef);
+    }
     const existingStage = existing.stage || existing.Stage;
     if (existingStage === 'completed' && stage !== 're-visit') {
       return res.json({ completed: true });
     }
 
     const normalized = normalizeInstruction(rest);
-    log('Normalized incoming data:', normalized);
+    log('Normalized data keys:', Object.keys(normalized));
     let merged = {
       ...existing,
       ...normalized,
@@ -327,9 +331,9 @@ app.post('/api/instruction', async (req, res) => {
     }
 
     const sanitized = { ...normalizeInstruction(merged), stage: merged.stage };
-    log('Upserting instruction with:', sanitized);
+    log('Upserting instruction', instructionRef);
     const record = await upsertInstruction(instructionRef, sanitized);
-    log('Upsert result:', record);
+    log('Upsert result id:', record && (record.InstructionRef || record.instructionRef));
     res.json(record);
 
     const existingStatus = existing.internalStatus || existing.InternalStatus;
@@ -383,7 +387,7 @@ app.post('/api/instruction/complete', async (req, res) => {
 
   try {
     const existing = await getInstruction(instructionRef);
-    log('Complete instruction existing record:', existing);
+    if (existing) log('Completing instruction', instructionRef);
     const existingStage = existing && (existing.stage || existing.Stage);
     if (existing && existingStage === 'completed') {
       return res.json({ completed: true });
@@ -391,7 +395,7 @@ app.post('/api/instruction/complete', async (req, res) => {
 
     const record = await markCompleted(instructionRef);
 
-    log('Mark completed result:', record);
+    log('Marked completed for', instructionRef);
 
     try {
       await closeDeal(instructionRef);
@@ -412,7 +416,7 @@ app.post('/api/instruction/send-emails', async (req, res) => {
 
   try {
     const record = await getInstruction(instructionRef);
-    log('Send emails for record:', record);
+    log('Sending emails for', instructionRef);
     if (!record) return res.status(404).json({ error: 'Instruction not found' });
 
     try {
