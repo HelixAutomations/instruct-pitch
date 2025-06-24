@@ -35,3 +35,14 @@
   margin: 0; /* Remove any custom margins that might push it too far left */
   padding: 0; /* Remove any padding that might interfere */
 }
+
+/* Layout container so footer stays at page bottom */
+.app-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-container {
+  flex: 1;
+}
