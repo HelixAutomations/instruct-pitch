@@ -34,24 +34,41 @@ async function refreshToken() {
         client_secret: clientSecret,
     }).toString();
 
-    const { data } = await axios.post(
-        'https://verify-auth.tiller-verify.com/connect/token',
-        body,
-        {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept: 'application/json',
-            },
-        }
-    );
+    console.log('▶️ Requesting Tiller token for', clientId);
 
-    cachedToken = data.access_token;
-    tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-    return cachedToken;
+    try {
+        const res = await axios.post(
+            'https://verify-auth.tiller-verify.com/connect/token',
+            body,
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Accept: 'application/json',
+                },
+            }
+        );
+
+        console.log('◀️ Token status:', res.status);
+        cachedToken = res.data.access_token;
+        tokenExpiry = Date.now() + (res.data.expires_in - 60) * 1000;
+        console.log('◀️ Token expires in:', res.data.expires_in);
+        return cachedToken;
+    } catch (err) {
+        if (err.response) {
+            console.error('❌ Token status:', err.response.status);
+            console.error('❌ Token error data:', JSON.stringify(err.response.data));
+        } else {
+            console.error('❌ Token request error:', err.message);
+        }
+        throw err;
+    }
 }
 
 async function getToken() {
-    if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
+    if (cachedToken && Date.now() < tokenExpiry) {
+        console.log('ℹ️ Using cached Tiller token');
+        return cachedToken;
+    }
     return refreshToken();
 }
 
