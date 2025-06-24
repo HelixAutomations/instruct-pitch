@@ -30,7 +30,7 @@ async function refreshToken() {
     const body = new URLSearchParams({
         grant_type: 'client_credentials',
         scope: 'VerificationsAPI',
-        client_id: `tiller-${clientId}`,
+        client_id: clientId,
         client_secret: clientSecret,
     }).toString();
 

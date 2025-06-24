@@ -102,6 +102,8 @@ let cachedShaPhrase, cachedEpdqUser, cachedEpdqPassword, cachedFetchInstructionD
     cachedDbPassword              = dbPass.value;
     process.env.DB_PASSWORD = cachedDbPassword;
     console.log('✅ All secrets loaded from Key Vault');
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));
   } catch (err) {
     console.error('❌ Failed to load secrets:', err);
     process.exit(1);
@@ -529,7 +531,3 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
     res.status(500).send('Could not load page');
   }
 });
-
-// ─── Start the server ───────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));

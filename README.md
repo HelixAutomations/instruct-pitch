@@ -9,7 +9,8 @@ For an overview of how these pieces fit together, see the [architecture diagram]
 ## Prerequisites
 - Node.js 18+
 - npm
-- SQL Server database with an `Instructions` table and connection variables (`DB_USER`, `DB_PASSWORD`, `DB_SERVER`, `DB_NAME`)
+- SQL Server database with an `Instructions` table and connection variables (`DB_USER`, `DB_PASSWORD_SECRET`, `DB_SERVER`, `DB_NAME`)
+  where `DB_PASSWORD_SECRET` is the Key Vault secret name for the database password
 
 ## Installing dependencies
 Install backend and client dependencies:
@@ -27,6 +28,15 @@ npm start --prefix apps/pitch/backend
 ```
 
 This starts `server.js` which provides SHA-sign generation and payment confirmation endpoints.
+
+## Running tests
+Run the backend tests from the `apps/pitch/backend` folder:
+
+```bash
+npm test --prefix apps/pitch/backend
+```
+
+This executes each `*.test.js` file using Node.
 
 ## Building the client
 To build the React client:
@@ -79,7 +89,7 @@ The backend connects to a SQL Server instance using the following settings in `a
 
 ```
 DB_USER=myuser
-DB_PASSWORD=mypassword
+DB_PASSWORD_SECRET=instructionsadmin-password
 DB_SERVER=myserver
 DB_NAME=mydatabase
 ```
