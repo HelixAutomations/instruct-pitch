@@ -215,6 +215,43 @@ async function getDocumentsForInstruction(ref) {
   return result.recordset || []
 }
 
+function getCheckResult(data, typeId) {
+  const status = (data.checkStatuses || []).find(c => c.checkTypeId === typeId);
+  return status && status.result && status.result.result;
+}
+
+async function insertElectronicIDCheck(instructionRef, email, response) {
+  const pool = await getSqlPool();
+  const result = response?.result || 'unknown';
+  const payload = JSON.stringify(response);
+  const now = new Date();
+
+  return pool.request()
+    .input('ClientEmail', sql.VarChar, email)
+    .input('EIDRawResponse', sql.NVarChar, payload)
+    .input('EIDCheckedDate', sql.Date, now)
+    .input('EIDCheckedTime', sql.Time, now)
+    .input('EIDStatus', sql.VarChar, result)
+    .input('EIDProvider', sql.VarChar, 'tiller')
+    .query(`
+      INSERT INTO [dbo].[ElectronicIDCheck] (
+        ClientEmail,
+        EIDRawResponse,
+        EIDCheckedDate,
+        EIDCheckedTime,
+        EIDStatus,
+        EIDProvider
+      ) VALUES (
+        @ClientEmail,
+        @EIDRawResponse,
+        @EIDCheckedDate,
+        @EIDCheckedTime,
+        @EIDStatus,
+        @EIDProvider
+      )
+    `);
+}
+
 module.exports = {
   getInstruction,
   getLatestDeal,
@@ -224,5 +261,6 @@ module.exports = {
   updatePaymentStatus,
   attachInstructionRefToDeal,
   closeDeal,
-  getDocumentsForInstruction
+  getDocumentsForInstruction,
+  insertElectronicIDCheck
 }
