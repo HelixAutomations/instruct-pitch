@@ -99,25 +99,22 @@ CREATE TABLE [dbo].[Instructions] (
     PRIMARY KEY CLUSTERED ([InstructionRef] ASC)
 );
 
-CREATE TABLE [dbo].[ElectronicIDCheck] (
-
-[NewColumn]                  NVARCHAR
-(100) NULL,
-    [ElectronicIDCheckId]        INT            IDENTITY
-(1, 1) NOT NULL,
-    [InstructionRef]             NVARCHAR
-(50)  NULL,
-    [MatterId]                   NVARCHAR
-(50)  NULL,
+CREATE TABLE [dbo].[IDVerifications]
+(
+    [InternalId] INT IDENTITY (1, 1) NOT NULL,
+    [InstructionRef] NVARCHAR (50) NULL,
+    [MatterId] NVARCHAR (50) NULL,
     [DealJointClientId]          INT            NULL,
     [ClientId]                   INT            NULL,
     [ProspectId]                 INT            NULL,
-    [ClientEmail]                NVARCHAR
+
+[ClientEmail]                NVARCHAR
 (255) NOT NULL,
     [IsLeadClient]               BIT            DEFAULT
 ((0)) NOT NULL,
-    [AdditionalIDSubmissionDate] DATETIME2
-(7)  NULL,
+    [AdditionalIDDate]           DATE           NULL,
+    [AdditionalIDTime]           TIME
+(7)       NULL,
     [EIDCheckId]                 NVARCHAR
 (100) NULL,
     [EIDProvider]                NVARCHAR
@@ -133,11 +130,16 @@ CREATE TABLE [dbo].[ElectronicIDCheck] (
     [EIDOverallResult]           NVARCHAR (50)  NULL,
     [PEPAndSanctionsCheckResult] NVARCHAR (255) NULL,
     [AddressVerificationResult]  NVARCHAR (255) NULL,
-    PRIMARY KEY CLUSTERED ([ElectronicIDCheckId] ASC),
-    FOREIGN KEY ([DealJointClientId]) REFERENCES [dbo].[DealJointClients] ([DealJointClientId]),
-    FOREIGN KEY ([MatterId]) REFERENCES [dbo].[Instructions] ([InstructionRef])
-);
 
+PRIMARY KEY CLUSTERED
+([InternalId] ASC),
+    FOREIGN KEY
+([MatterId]) REFERENCES [dbo].[Instructions]
+([InstructionRef]),
+    CONSTRAINT [FK_IDVerifications_DealJointClient] FOREIGN KEY
+([DealJointClientId]) REFERENCES [dbo].[DealJointClients]
+([DealJointClientId])
+);
 CREATE TABLE [dbo].[RiskAssessment] (
     [MatterId]                         NVARCHAR (50)  NOT NULL,
     [InstructionRef]                   NVARCHAR (50)  NULL,

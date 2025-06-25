@@ -340,13 +340,13 @@ app.post('/api/instruction', async (req, res) => {
     if (normalized.internalStatus === 'poid' && existingStatus !== 'poid') {
       try {
         const { submitVerification } = require('./utilities/tillerApi');
-        const { insertElectronicIDCheck } = require('./instructionDb');
+        const { insertIDVerification } = require('./instructionDb');
         log('Submitting record to Tiller:', record.InstructionRef);
         submitVerification(record)
           .then(async res => {
             log('Tiller verification request sent');
             try {
-              const risk = await insertElectronicIDCheck(record.InstructionRef, record.Email, res);
+              const risk = await insertIDVerification(record.InstructionRef, record.Email, res);
               log('Tiller response saved');
               log('Risk data:', JSON.stringify(risk));
             } catch (err) {

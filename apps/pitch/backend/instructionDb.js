@@ -225,20 +225,21 @@ function getProspectId(ref) {
   return match ? Number(match[1]) : null;
 }
 
-async function insertElectronicIDCheck(instructionRef, email, response) {
+async function insertIDVerification(instructionRef, email, response) {
   const pool = await getSqlPool();
-  const payload = JSON.stringify(response);
+  const res0 = response?.[0] ?? {};
+  const payload = JSON.stringify(res0);
   const now = new Date();
 
   const status =
-    response?.overallStatus?.status?.toLowerCase() === 'completed'
+    res0?.overallStatus?.status?.toLowerCase() === 'completed'
       ? 'completed'
       : 'pending';
 
-  const overall = response?.overallResult?.result || null;
-  const pep = getCheckResult(response, 2);
-  const address = getCheckResult(response, 1);
-  const correlation = response?.correlationId || null;
+  const overall = res0?.overallResult?.result || null;
+  const pep = getCheckResult(res0, 2);
+  const address = getCheckResult(res0, 1);
+  const correlation = res0?.correlationId || null;
   const prospectId = getProspectId(instructionRef);
 
   const expiry = new Date(now);
@@ -260,7 +261,7 @@ async function insertElectronicIDCheck(instructionRef, email, response) {
     .input('PEPAndSanctionsCheckResult', sql.NVarChar, pep)
     .input('AddressVerificationResult', sql.NVarChar, address)
     .query(`
-    INSERT INTO [dbo].[ElectronicIDCheck] (
+    INSERT INTO [dbo].[IDVerifications] (
         InstructionRef,
         ProspectId,
         ClientEmail,
@@ -304,5 +305,5 @@ module.exports = {
   attachInstructionRefToDeal,
   closeDeal,
   getDocumentsForInstruction,
-  insertElectronicIDCheck
+  insertIDVerification
 }
