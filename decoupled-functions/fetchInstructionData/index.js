@@ -74,13 +74,10 @@ module.exports = async function (context, req) {
               .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
             inst.documents = docRes.recordset || [];
 
-            const pid = d.ProspectId || (/HLX-(\d+)-/.exec(d.InstructionRef) || [])[1];
-            if (pid) {
-              const riskRes = await pool.request()
-                .input('pid', sql.Int, Number(pid))
-                .query('SELECT * FROM IDVerifications WHERE ProspectId=@pid ORDER BY InternalId DESC');
-              inst.idVerifications = riskRes.recordset || [];
-            }
+            const riskRes = await pool.request()
+              .input('ref', sql.NVarChar, d.InstructionRef)
+              .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
+            inst.idVerifications = riskRes.recordset || [];
             d.instruction = inst;
           }
         }
@@ -111,13 +108,10 @@ module.exports = async function (context, req) {
               .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
             inst.documents = docRes.recordset || [];
 
-            const pid = deal.ProspectId || (/HLX-(\d+)-/.exec(deal.InstructionRef) || [])[1];
-            if (pid) {
-              const riskRes = await pool.request()
-                .input('pid', sql.Int, Number(pid))
-                .query('SELECT * FROM IDVerifications WHERE ProspectId=@pid ORDER BY InternalId DESC');
-              inst.idVerifications = riskRes.recordset || [];
-            }
+            const riskRes = await pool.request()
+              .input('ref', sql.NVarChar, deal.InstructionRef)
+              .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
+            inst.idVerifications = riskRes.recordset || [];
             deal.instruction = inst;
           }
         }
@@ -127,6 +121,7 @@ module.exports = async function (context, req) {
 
     // ─── Instructions for this user ──────────────────────────────────────
     let instructions = [];
+    const allIdVerifications = [];
     if (initials) {
       const instrResult = await pool.request()
         .input('initials', sql.NVarChar, initials)
@@ -139,14 +134,11 @@ module.exports = async function (context, req) {
           .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
         inst.documents = docRes.recordset || [];
 
-        const pidMatch = /HLX-(\d+)-/.exec(inst.InstructionRef);
-        if (pidMatch) {
-          const pid = Number(pidMatch[1]);
-          const riskRes = await pool.request()
-            .input('pid', sql.Int, pid)
-            .query('SELECT * FROM IDVerifications WHERE ProspectId=@pid ORDER BY InternalId DESC');
-          inst.idVerifications = riskRes.recordset || [];
-        }
+        const riskRes = await pool.request()
+          .input('ref', sql.NVarChar, inst.InstructionRef)
+          .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
+        inst.idVerifications = riskRes.recordset || [];
+        allIdVerifications.push(...inst.idVerifications);
 
         const dealRes = await pool.request()
           .input('ref', sql.NVarChar, inst.InstructionRef)
@@ -176,14 +168,10 @@ module.exports = async function (context, req) {
           .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
         instruction.documents = docRes.recordset || [];
 
-        const pidMatch = /HLX-(\d+)-/.exec(instructionRef);
-        if (pidMatch) {
-          const pid = Number(pidMatch[1]);
-          const riskRes = await pool.request()
-            .input('pid', sql.Int, pid)
-            .query('SELECT * FROM IDVerifications WHERE ProspectId=@pid ORDER BY InternalId DESC');
-          instruction.idVerifications = riskRes.recordset || [];
-        }
+        const riskRes = await pool.request()
+          .input('ref', sql.NVarChar, instructionRef)
+          .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
+        instruction.idVerifications = riskRes.recordset || [];
 
         const dealRes = await pool.request()
           .input('ref', sql.NVarChar, instructionRef)
@@ -199,13 +187,15 @@ module.exports = async function (context, req) {
       }
     }
 
-    // ─── ID verifications by ProspectId when requested ──────────────────
+    // ─── ID verifications by ProspectId or instruction refs ─────────────
     let idVerifications = [];
     if (prospectId != null) {
       const riskRes = await pool.request()
         .input('pid', sql.Int, prospectId)
         .query('SELECT * FROM IDVerifications WHERE ProspectId=@pid ORDER BY InternalId DESC');
       idVerifications = riskRes.recordset || [];
+    } else if (initials) {
+      idVerifications = allIdVerifications;
     }
 
 
