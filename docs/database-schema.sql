@@ -100,17 +100,31 @@ CREATE TABLE [dbo].[Instructions] (
 );
 
 CREATE TABLE [dbo].[ElectronicIDCheck] (
-    [ElectronicIDCheckId]        INT            IDENTITY (1, 1) NOT NULL,
-    [MatterId]                   NVARCHAR (50)  NOT NULL,
+
+[NewColumn]                  NVARCHAR
+(100) NULL,
+    [ElectronicIDCheckId]        INT            IDENTITY
+(1, 1) NOT NULL,
+    [InstructionRef]             NVARCHAR
+(50)  NULL,
+    [MatterId]                   NVARCHAR
+(50)  NULL,
     [DealJointClientId]          INT            NULL,
     [ClientId]                   INT            NULL,
     [ProspectId]                 INT            NULL,
-    [ClientEmail]                NVARCHAR (255) NOT NULL,
-    [IsLeadClient]               BIT            DEFAULT ((0)) NOT NULL,
-    [AdditionalIDSubmissionDate] DATETIME2 (7)  NULL,
-    [EIDCheckId]                 NVARCHAR (100) NULL,
-    [EIDProvider]                NVARCHAR (100) NULL,
-    [EIDStatus]                  NVARCHAR (20)  DEFAULT ('completed') NOT NULL,
+    [ClientEmail]                NVARCHAR
+(255) NOT NULL,
+    [IsLeadClient]               BIT            DEFAULT
+((0)) NOT NULL,
+    [AdditionalIDSubmissionDate] DATETIME2
+(7)  NULL,
+    [EIDCheckId]                 NVARCHAR
+(100) NULL,
+    [EIDProvider]                NVARCHAR
+(100) NULL,
+    [EIDStatus]                  NVARCHAR
+(20)  DEFAULT
+('completed') NULL,
     [EIDScore]                   FLOAT (53)     NULL,
     [EIDRawResponse]             NVARCHAR (MAX) NULL,
     [EIDCheckedDate]             DATE           NULL,

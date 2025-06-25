@@ -220,34 +220,76 @@ function getCheckResult(data, typeId) {
   return status && status.result && status.result.result;
 }
 
+function getProspectId(ref) {
+  const match = /HLX-(\d+)-/.exec(ref || '');
+  return match ? Number(match[1]) : null;
+}
+
 async function insertElectronicIDCheck(instructionRef, email, response) {
   const pool = await getSqlPool();
-  const result = response?.result || 'unknown';
   const payload = JSON.stringify(response);
   const now = new Date();
 
+  const status =
+    response?.overallStatus?.status?.toLowerCase() === 'completed'
+      ? 'completed'
+      : 'pending';
+
+  const overall = response?.overallResult?.result || null;
+  const pep = getCheckResult(response, 2);
+  const address = getCheckResult(response, 1);
+  const correlation = response?.correlationId || null;
+  const prospectId = getProspectId(instructionRef);
+
+  const expiry = new Date(now);
+  expiry.setMonth(expiry.getMonth() + 6);
+
   return pool.request()
+    .input('InstructionRef', sql.NVarChar, instructionRef)
+    .input('ProspectId', sql.Int, prospectId)
     .input('ClientEmail', sql.VarChar, email)
+    .input('IsLeadClient', sql.Bit, 0)
+    .input('EIDCheckId', sql.NVarChar, correlation)
     .input('EIDRawResponse', sql.NVarChar, payload)
     .input('EIDCheckedDate', sql.Date, now)
     .input('EIDCheckedTime', sql.Time, now)
-    .input('EIDStatus', sql.VarChar, result)
+    .input('EIDStatus', sql.VarChar, status)
     .input('EIDProvider', sql.VarChar, 'tiller')
+    .input('CheckExpiry', sql.Date, expiry)
+    .input('EIDOverallResult', sql.NVarChar, overall)
+    .input('PEPAndSanctionsCheckResult', sql.NVarChar, pep)
+    .input('AddressVerificationResult', sql.NVarChar, address)
     .query(`
-      INSERT INTO [dbo].[ElectronicIDCheck] (
+    INSERT INTO [dbo].[ElectronicIDCheck] (
+        InstructionRef,
+        ProspectId,
         ClientEmail,
+        IsLeadClient,
+        EIDCheckId,
         EIDRawResponse,
         EIDCheckedDate,
         EIDCheckedTime,
         EIDStatus,
-        EIDProvider
+        EIDProvider,
+        CheckExpiry,
+        EIDOverallResult,
+        PEPAndSanctionsCheckResult,
+        AddressVerificationResult
       ) VALUES (
+        @InstructionRef,
+        @ProspectId,
         @ClientEmail,
+        @IsLeadClient,
+        @EIDCheckId,
         @EIDRawResponse,
         @EIDCheckedDate,
         @EIDCheckedTime,
         @EIDStatus,
-        @EIDProvider
+        @EIDProvider,
+        @CheckExpiry,
+        @EIDOverallResult,
+        @PEPAndSanctionsCheckResult,
+        @AddressVerificationResult
       )
     `);
 }
