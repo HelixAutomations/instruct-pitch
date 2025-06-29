@@ -1,0 +1,52 @@
+[
+  {
+    "BlockId": 1,
+    "Title": "Introduction",
+    "Description": "Acknowledge the enquiry.",
+    "Placeholder": "[FE Introduction Placeholder]",
+    "CreatedBy": "seed",
+    "CreatedAt": "2025-06-28T14:19:06.0840004",
+    "UpdatedBy": null,
+    "UpdatedAt": null
+  },
+  {
+    "BlockId": 2,
+    "Title": "Issue Summary",
+    "Description": "Summarise the dispute and possible remedies.",
+    "Placeholder": "[Issue Summary Placeholder]",
+    "CreatedBy": "seed",
+    "CreatedAt": "2025-06-28T14:19:06.0840004",
+    "UpdatedBy": null,
+    "UpdatedAt": null
+  },
+  {
+    "BlockId": 3,
+    "Title": "Scope & Cost",
+    "Description": "Outline our proposed work and costs.",
+    "Placeholder": "[Scope & Cost Placeholder]",
+    "CreatedBy": "seed",
+    "CreatedAt": "2025-06-28T14:19:06.0840004",
+    "UpdatedBy": null,
+    "UpdatedAt": null
+  },
+  {
+    "BlockId": 4,
+    "Title": "Next Steps",
+    "Description": "Required documents and how to instruct us.",
+    "Placeholder": "[Next Steps Placeholder]",
+    "CreatedBy": "seed",
+    "CreatedAt": "2025-06-28T14:19:06.0840004",
+    "UpdatedBy": null,
+    "UpdatedAt": null
+  },
+  {
+    "BlockId": 5,
+    "Title": "Closing",
+    "Description": "Final notes and optional review request.",
+    "Placeholder": "[Closing Placeholder]",
+    "CreatedBy": "seed",
+    "CreatedAt": "2025-06-28T14:19:06.0840004",
+    "UpdatedBy": null,
+    "UpdatedAt": null
+  }
+]
