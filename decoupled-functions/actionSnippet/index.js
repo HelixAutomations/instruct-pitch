@@ -1,4 +1,5 @@
-const { app } = require("@azure/functions");
+// Use the same v3 programming model as other functions
+// rather than the newer "app" style to avoid runtime errors
 const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
 
@@ -30,10 +31,8 @@ async function actionSnippetHandler(req, context) {
         return { status: 405, body: "Method not allowed" };
       }
 
-    let body;
-    try {
-        body = await req.json();
-    } catch {
+    const body = req.body;
+    if (!body) {
         return { status: 400, body: "Invalid JSON" };
       }
 
@@ -121,10 +120,7 @@ async function actionSnippetHandler(req, context) {
     }
 }
 
-app.http("actionSnippet", {
-    methods: ["POST"],
-    authLevel: "function",
-    handler: actionSnippetHandler,
-});
-
-module.exports = app;
+module.exports = async function (context, req) {
+    const result = await actionSnippetHandler(req, context);
+    context.res = result;
+};
