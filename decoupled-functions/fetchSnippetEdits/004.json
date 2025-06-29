@@ -1,0 +1,35 @@
+[
+  {
+    "DocumentId": 21,
+    "InstructionRef": "HLX-22338-4581",
+    "DocumentType": null,
+    "FileName": "grey helix mark.png",
+    "BlobUrl": "https://instructionfiles.blob.core.windows.net/instruction-files/22338/HLX-22338-4581/grey%20helix%20mark.png",
+    "FileSizeBytes": null,
+    "UploadedBy": null,
+    "UploadedAt": "2025-06-20T14:29:32.9051517",
+    "Notes": null
+  },
+  {
+    "DocumentId": 22,
+    "InstructionRef": "HLX-22338-4581",
+    "DocumentType": null,
+    "FileName": "avatar_highlight_gradient.png",
+    "BlobUrl": "https://instructionfiles.blob.core.windows.net/instruction-files/22338/HLX-22338-4581/avatar_highlight_gradient.png",
+    "FileSizeBytes": null,
+    "UploadedBy": null,
+    "UploadedAt": "2025-06-20T14:29:33.2463745",
+    "Notes": null
+  },
+  {
+    "DocumentId": 23,
+    "InstructionRef": "HLX-22338-4581",
+    "DocumentType": null,
+    "FileName": "helix background blue.jpg",
+    "BlobUrl": "https://instructionfiles.blob.core.windows.net/instruction-files/22338/HLX-22338-4581/helix%20background%20blue.jpg",
+    "FileSizeBytes": null,
+    "UploadedBy": null,
+    "UploadedAt": "2025-06-20T14:29:34.189018",
+    "Notes": null
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "DealJointClientId": 30,
+    "DealId": 7,
+    "ClientEmail": "001@helix-law.com",
+    "HasSubmitted": "0",
+    "SubmissionDateTime": null
+  },
+  {
+    "DealJointClientId": 31,
+    "DealId": 7,
+    "ClientEmail": "002@helix-law.com",
+    "HasSubmitted": "0",
+    "SubmissionDateTime": null
+  }
+]
