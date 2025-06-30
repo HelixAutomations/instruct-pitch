@@ -44,6 +44,7 @@ module.exports = async function (context, req) {
         await ensureDbPassword();
         const pool = await getSqlPool();
         context.log('SQL pool acquired, executing query');
+        const schema = process.env.DB_SCHEMA || 'dbo';
 
         const result = await pool.request().query(`
       SELECT
@@ -57,9 +58,9 @@ module.exports = async function (context, req) {
         e.ProposedBy AS submittedBy,
         e.ReviewNotes AS reviewNotes,
         e.Status AS status
-      FROM DefaultSnippetEdits e
-      JOIN DefaultBlockSnippets s ON e.SnippetId = s.SnippetId
-      JOIN DefaultBlocks b ON s.BlockId = b.BlockId
+      FROM ${schema}.DefaultSnippetEdits e
+      JOIN ${schema}.DefaultBlockSnippets s ON e.SnippetId = s.SnippetId
+      JOIN ${schema}.DefaultBlocks b ON s.BlockId = b.BlockId
       WHERE e.Status = 'pending'
       ORDER BY e.EditId
     `);
