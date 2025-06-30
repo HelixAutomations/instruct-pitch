@@ -44,7 +44,9 @@ module.exports = async function (context, req) {
         await ensureDbPassword();
         const pool = await getSqlPool();
         context.log('SQL pool acquired, executing query');
-        const schema = process.env.DB_SCHEMA || 'dbo';
+        // Default to the pitchbuilder schema so local development works
+        // even if DB_SCHEMA is not provided via environment variables.
+        const schema = process.env.DB_SCHEMA || 'pitchbuilder';
 
         const result = await pool.request().query(`
       SELECT

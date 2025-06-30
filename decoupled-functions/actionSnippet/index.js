@@ -45,7 +45,10 @@ async function actionSnippetHandler(req, context) {
     context.log('Database password ensured');
     const pool = await getSqlPool();
     context.log('SQL pool acquired');
-    const schema = process.env.DB_SCHEMA || 'dbo';
+    // Use the "pitchbuilder" schema by default. This allows running
+    // locally without setting DB_SCHEMA explicitly while still
+    // working with the shared pitchbuilder database.
+    const schema = process.env.DB_SCHEMA || 'pitchbuilder';
     context.log(`Processing action: ${action}`);
 
     switch (action) {
