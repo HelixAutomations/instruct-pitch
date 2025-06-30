@@ -42,10 +42,14 @@ async function actionSnippetHandler(req, context) {
       }
 
     await ensureDbPassword();
+    context.log('Database password ensured');
     const pool = await getSqlPool();
+    context.log('SQL pool acquired');
+    context.log(`Processing action: ${action}`);
 
     switch (action) {
         case "getSimplifiedBlocks": {
+            context.log('Fetching simplified blocks');
             const blocksRes = await pool.request().query("SELECT * FROM SimplifiedBlocks ORDER BY BlockId");
             const blocks = blocksRes.recordset || [];
             for (const b of blocks) {
@@ -54,9 +58,11 @@ async function actionSnippetHandler(req, context) {
                 );
                 b.snippets = snips.recordset || [];
             }
+            context.log(`Fetched ${blocks.length} blocks`);
             return { status: 200, body: JSON.stringify(blocks), headers: { "Content-Type": "application/json" } };
         }
         case "submitSnippetEdit": {
+            context.log('Submitting snippet edit');
             const q = `INSERT INTO SnippetEdits
             (SnippetId, ProposedContent, ProposedLabel, ProposedSortOrder, ProposedBlockId, IsNew, ProposedBy)
             VALUES (@SnippetId, @Content, @Label, @SortOrder, @BlockId, @IsNew, @ProposedBy)`;
@@ -70,10 +76,12 @@ async function actionSnippetHandler(req, context) {
                 .input("IsNew", sql.Bit, payload.isNew ? 1 : 0)
                 .input("ProposedBy", sql.NVarChar(50), payload.proposedBy)
                 .query(q);
-            return { status: 200, body: JSON.stringify({ ok: true }) };    
+            context.log('Snippet edit inserted');
+            return { status: 200, body: JSON.stringify({ ok: true }) };
     }
 
         case "approveSnippetEdit": {
+            context.log(`Approving snippet edit ${payload.editId}`);
             const { editId, approvedBy, reviewNotes } = payload;
             const editRes = await pool.request().input("EditId", sql.Int, editId).query("SELECT * FROM SnippetEdits WHERE EditId=@EditId");
             const edit = editRes.recordset[0];
@@ -103,7 +111,7 @@ async function actionSnippetHandler(req, context) {
                 .input("BlockId", sql.Int, edit.ProposedBlockId)
                 .input("SnippetId", sql.Int, edit.SnippetId)
                 .input("ApprovedBy", sql.NVarChar(50), approvedBy)
-                .query(update);  
+                .query(update);
 
             await pool
                 .request()
@@ -113,14 +121,21 @@ async function actionSnippetHandler(req, context) {
                 .query(
                     "UPDATE SnippetEdits SET Status='approved', ReviewNotes=@ReviewNotes, ReviewedBy=@ApprovedBy, ReviewedAt=SYSUTCDATETIME() WHERE EditId=@EditId"
                 );
+            context.log('Snippet edit approved');
             return { status: 200, body: JSON.stringify({ ok: true }) };
         }
         default:
+            context.log(`Unknown action: ${action}`);
             return { status: 400, body: "Unknown action" };
     }
 }
 
 module.exports = async function (context, req) {
-    const result = await actionSnippetHandler(req, context);
-    context.res = result;
+    try {
+        const result = await actionSnippetHandler(req, context);
+        context.res = result;
+    } catch (err) {
+        context.log.error('actionSnippet handler error:', err);
+        context.res = { status: 500, body: 'Internal server error' };
+    }
 };

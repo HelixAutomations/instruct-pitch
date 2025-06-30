@@ -40,8 +40,10 @@ module.exports = async function (context, req) {
     }
 
     try {
+        context.log('Ensuring database password');
         await ensureDbPassword();
         const pool = await getSqlPool();
+        context.log('SQL pool acquired, executing query');
 
         const result = await pool.request().query(`
       SELECT
@@ -63,6 +65,7 @@ module.exports = async function (context, req) {
     `);
 
         const edits = result.recordset || [];
+        context.log(`Query returned ${edits.length} edits`);
         context.res = {
             status: 200,
             body: JSON.stringify(edits),
