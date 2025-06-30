@@ -106,6 +106,7 @@ async function actionSnippetHandler(req, context) {
             await pool
                 .request()
                 .input("SnippetId", sql.Int, edit.SnippetId)
+                .input("ApprovedBy", sql.NVarChar(50), approvedBy)
                 .query(`
           INSERT INTO ${schema}.DefaultBlockSnippetVersions
             (SnippetId, VersionNumber, Label, Content, SortOrder, BlockId, ApprovedBy, ApprovedAt)
