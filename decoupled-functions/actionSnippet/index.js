@@ -67,13 +67,30 @@ async function actionSnippetHandler(req, context) {
         }
         case "submitSnippetEdit": {
             context.log('Submitting snippet edit');
-            const snippetId = payload.snippetId ?? payload.SnippetId;
+            let snippetId = payload.snippetId ?? payload.SnippetId;
             const content = payload.proposedContent ?? payload.ProposedContent;
             const label = payload.proposedLabel ?? payload.ProposedLabel;
             const sortOrder = payload.proposedSortOrder ?? payload.ProposedSortOrder;
             const blockId = payload.proposedBlockId ?? payload.ProposedBlockId;
             const isNew = payload.isNew ?? payload.IsNew;
             const proposedBy = payload.proposedBy ?? payload.ProposedBy;
+
+            if (isNew && (snippetId === undefined || snippetId === null)) {
+                const insertSnippet = `INSERT INTO ${schema}.DefaultBlockSnippets
+                    (BlockId, Label, Content, SortOrder, CreatedBy)
+                    OUTPUT INSERTED.SnippetId
+                    VALUES (@BlockId, @Label, @Content, @SortOrder, @CreatedBy)`;
+                const res = await pool
+                    .request()
+                    .input("BlockId", sql.Int, blockId)
+                    .input("Label", sql.NVarChar(100), label || "")
+                    .input("Content", sql.NVarChar(sql.MAX), content)
+                    .input("SortOrder", sql.Int, sortOrder ?? 0)
+                    .input("CreatedBy", sql.NVarChar(50), proposedBy)
+                    .query(insertSnippet);
+                snippetId = res.recordset[0].SnippetId;
+                context.log(`New snippet created with id ${snippetId}`);
+            }
             const q = `INSERT INTO ${schema}.DefaultSnippetEdits
             (SnippetId, ProposedContent, ProposedLabel, ProposedSortOrder, ProposedBlockId, IsNew, ProposedBy)
             VALUES (@SnippetId, @Content, @Label, @SortOrder, @BlockId, @IsNew, @ProposedBy)`;
