@@ -48,13 +48,13 @@ async function actionSnippetHandler(req, context) {
     context.log(`Processing action: ${action}`);
 
     switch (action) {
-        case "getSimplifiedBlocks": {
-            context.log('Fetching simplified blocks');
-            const blocksRes = await pool.request().query("SELECT * FROM SimplifiedBlocks ORDER BY BlockId");
+        case "getSnippetBlocks": {
+            context.log('Fetching snippet blocks');
+            const blocksRes = await pool.request().query("SELECT * FROM DefaultBlocks ORDER BY BlockId");
             const blocks = blocksRes.recordset || [];
             for (const b of blocks) {
                 const snips = await pool.request().input("BlockId", sql.Int, b.BlockId).query(
-                    "SELECT * FROM SimplifiedBlockSnippets WHERE BlockId=@BlockId AND IsApproved=1 ORDER BY SortOrder"
+                    "SELECT * FROM DefaultBlockSnippets WHERE BlockId=@BlockId AND IsApproved=1 ORDER BY SortOrder"
                 );
                 b.snippets = snips.recordset || [];
             }
@@ -63,7 +63,7 @@ async function actionSnippetHandler(req, context) {
         }
         case "submitSnippetEdit": {
             context.log('Submitting snippet edit');
-            const q = `INSERT INTO SnippetEdits
+            const q = `INSERT INTO DefaultSnippetEdits
             (SnippetId, ProposedContent, ProposedLabel, ProposedSortOrder, ProposedBlockId, IsNew, ProposedBy)
             VALUES (@SnippetId, @Content, @Label, @SortOrder, @BlockId, @IsNew, @ProposedBy)`;
             await pool
@@ -83,17 +83,17 @@ async function actionSnippetHandler(req, context) {
         case "approveSnippetEdit": {
             context.log(`Approving snippet edit ${payload.editId}`);
             const { editId, approvedBy, reviewNotes } = payload;
-            const editRes = await pool.request().input("EditId", sql.Int, editId).query("SELECT * FROM SnippetEdits WHERE EditId=@EditId");
+            const editRes = await pool.request().input("EditId", sql.Int, editId).query("SELECT * FROM DefaultSnippetEdits WHERE EditId=@EditId");
             const edit = editRes.recordset[0];
             if (!edit) return { status: 404, body: "Edit not found" };
 
             await pool.request().input("SnippetId", sql.Int, edit.SnippetId).query(`
-          INSERT INTO SimplifiedBlockSnippetVersions
+          INSERT INTO DefaultBlockSnippetVersions
             (SnippetId, VersionNumber, Label, Content, SortOrder, BlockId, ApprovedBy, ApprovedAt)
           SELECT SnippetId, Version, Label, Content, SortOrder, BlockId, @ApprovedBy, SYSUTCDATETIME()
-          FROM SimplifiedBlockSnippets WHERE SnippetId=@SnippetId`);
+          FROM DefaultBlockSnippets WHERE SnippetId=@SnippetId`);
 
-            const update = `UPDATE SimplifiedBlockSnippets
+            const update = `UPDATE DefaultBlockSnippets
           SET Content=@Content,
               Label=COALESCE(@Label, Label),
               SortOrder=COALESCE(@SortOrder, SortOrder),
@@ -119,7 +119,7 @@ async function actionSnippetHandler(req, context) {
                 .input("ReviewNotes", sql.NVarChar(400), reviewNotes || null)
                 .input("ApprovedBy", sql.NVarChar(50), approvedBy)
                 .query(
-                    "UPDATE SnippetEdits SET Status='approved', ReviewNotes=@ReviewNotes, ReviewedBy=@ApprovedBy, ReviewedAt=SYSUTCDATETIME() WHERE EditId=@EditId"
+                    "UPDATE DefaultSnippetEdits SET Status='approved', ReviewNotes=@ReviewNotes, ReviewedBy=@ApprovedBy, ReviewedAt=SYSUTCDATETIME() WHERE EditId=@EditId"
                 );
             context.log('Snippet edit approved');
             return { status: 200, body: JSON.stringify({ ok: true }) };
