@@ -78,6 +78,11 @@ module.exports = async function (context, req) {
               .input('ref', sql.NVarChar, d.InstructionRef)
               .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
             inst.idVerifications = riskRes.recordset || [];
+
+            const riskAssessRes = await pool.request()
+              .input('ref', sql.NVarChar, d.InstructionRef)
+              .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
+            inst.riskAssessments = riskAssessRes.recordset || [];
             d.instruction = inst;
           }
         }
@@ -112,6 +117,11 @@ module.exports = async function (context, req) {
               .input('ref', sql.NVarChar, deal.InstructionRef)
               .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
             inst.idVerifications = riskRes.recordset || [];
+
+            const riskAssessRes = await pool.request()
+              .input('ref', sql.NVarChar, deal.InstructionRef)
+              .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
+            inst.riskAssessments = riskAssessRes.recordset || [];
             deal.instruction = inst;
           }
         }
@@ -138,6 +148,11 @@ module.exports = async function (context, req) {
           .input('ref', sql.NVarChar, inst.InstructionRef)
           .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
         inst.idVerifications = riskRes.recordset || [];
+
+        const riskAssessRes = await pool.request()
+          .input('ref', sql.NVarChar, inst.InstructionRef)
+          .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
+        inst.riskAssessments = riskAssessRes.recordset || [];
         allIdVerifications.push(...inst.idVerifications);
 
         const dealRes = await pool.request()
@@ -172,6 +187,11 @@ module.exports = async function (context, req) {
           .input('ref', sql.NVarChar, instructionRef)
           .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
         instruction.idVerifications = riskRes.recordset || [];
+
+        const riskAssessRes = await pool.request()
+          .input('ref', sql.NVarChar, instructionRef)
+          .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
+        instruction.riskAssessments = riskAssessRes.recordset || [];
 
         const dealRes = await pool.request()
           .input('ref', sql.NVarChar, instructionRef)

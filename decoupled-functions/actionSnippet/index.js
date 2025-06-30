@@ -67,26 +67,35 @@ async function actionSnippetHandler(req, context) {
         }
         case "submitSnippetEdit": {
             context.log('Submitting snippet edit');
+            const snippetId = payload.snippetId ?? payload.SnippetId;
+            const content = payload.proposedContent ?? payload.ProposedContent;
+            const label = payload.proposedLabel ?? payload.ProposedLabel;
+            const sortOrder = payload.proposedSortOrder ?? payload.ProposedSortOrder;
+            const blockId = payload.proposedBlockId ?? payload.ProposedBlockId;
+            const isNew = payload.isNew ?? payload.IsNew;
+            const proposedBy = payload.proposedBy ?? payload.ProposedBy;
             const q = `INSERT INTO ${schema}.DefaultSnippetEdits
             (SnippetId, ProposedContent, ProposedLabel, ProposedSortOrder, ProposedBlockId, IsNew, ProposedBy)
             VALUES (@SnippetId, @Content, @Label, @SortOrder, @BlockId, @IsNew, @ProposedBy)`;
             await pool
                 .request()
-                .input("SnippetId", sql.Int, payload.snippetId)
-                .input("Content", sql.NVarChar(sql.MAX), payload.proposedContent)
-                .input("Label", sql.NVarChar(100), payload.proposedLabel || null)
-                .input("SortOrder", sql.Int, payload.proposedSortOrder ?? null)
-                .input("BlockId", sql.Int, payload.proposedBlockId ?? null)
-                .input("IsNew", sql.Bit, payload.isNew ? 1 : 0)
-                .input("ProposedBy", sql.NVarChar(50), payload.proposedBy)
+                .input("SnippetId", sql.Int, snippetId)
+                .input("Content", sql.NVarChar(sql.MAX), content)
+                .input("Label", sql.NVarChar(100), label || null)
+                .input("SortOrder", sql.Int, sortOrder ?? null)
+                .input("BlockId", sql.Int, blockId ?? null)
+                .input("IsNew", sql.Bit, isNew ? 1 : 0)
+                .input("ProposedBy", sql.NVarChar(50), proposedBy)
                 .query(q);
             context.log('Snippet edit inserted');
             return { status: 200, body: JSON.stringify({ ok: true }) };
-    }
+        }
 
         case "approveSnippetEdit": {
-            context.log(`Approving snippet edit ${payload.editId}`);
-            const { editId, approvedBy, reviewNotes } = payload;
+            const editId = payload.editId ?? payload.EditId;
+            const approvedBy = payload.approvedBy ?? payload.ApprovedBy;
+            const reviewNotes = payload.reviewNotes ?? payload.ReviewNotes;
+            context.log(`Approving snippet edit ${editId}`);
             const editRes = await pool
                 .request()
                 .input("EditId", sql.Int, editId)
@@ -132,6 +141,17 @@ async function actionSnippetHandler(req, context) {
                     `UPDATE ${schema}.DefaultSnippetEdits SET Status='approved', ReviewNotes=@ReviewNotes, ReviewedBy=@ApprovedBy, ReviewedAt=SYSUTCDATETIME() WHERE EditId=@EditId`
                 );
             context.log('Snippet edit approved');
+            return { status: 200, body: JSON.stringify({ ok: true }) };
+        }
+
+        case "deleteSnippetEdit": {
+            const editId = payload.editId ?? payload.EditId;
+            context.log(`Deleting snippet edit ${editId}`);
+            await pool
+                .request()
+                .input("EditId", sql.Int, editId)
+                .query(`DELETE FROM ${schema}.DefaultSnippetEdits WHERE EditId=@EditId`);
+            context.log('Snippet edit deleted');
             return { status: 200, body: JSON.stringify({ ok: true }) };
         }
         default:
