@@ -51,7 +51,12 @@ module.exports = async function (context, req) {
         const result = await pool.request().query(`
       SELECT
         e.EditId AS id,
+        s.SnippetId AS snippetId,
         b.Title AS blockTitle,
+        s.Content AS currentText,
+        s.Label AS currentLabel,
+        s.SortOrder AS currentSortOrder,
+        s.BlockId AS currentBlockId,
         e.ProposedContent AS proposedText,
         e.ProposedLabel AS proposedLabel,
         e.ProposedSortOrder AS proposedSortOrder,
