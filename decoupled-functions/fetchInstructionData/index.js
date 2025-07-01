@@ -71,7 +71,7 @@ module.exports = async function (context, req) {
           if (inst) {
             const docRes = await pool.request()
               .input('ref', sql.NVarChar, d.InstructionRef)
-              .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
+              .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
             inst.documents = docRes.recordset || [];
 
             const riskRes = await pool.request()
@@ -110,7 +110,7 @@ module.exports = async function (context, req) {
           if (inst) {
             const docRes = await pool.request()
               .input('ref', sql.NVarChar, deal.InstructionRef)
-              .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
+              .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
             inst.documents = docRes.recordset || [];
 
             const riskRes = await pool.request()
@@ -141,7 +141,7 @@ module.exports = async function (context, req) {
       for (const inst of instructions) {
         const docRes = await pool.request()
           .input('ref', sql.NVarChar, inst.InstructionRef)
-          .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
+          .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
         inst.documents = docRes.recordset || [];
 
         const riskRes = await pool.request()
@@ -180,7 +180,7 @@ module.exports = async function (context, req) {
       if (instruction) {
         const docRes = await pool.request()
           .input('ref', sql.NVarChar, instructionRef)
-          .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
+          .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
         instruction.documents = docRes.recordset || [];
 
         const riskRes = await pool.request()
