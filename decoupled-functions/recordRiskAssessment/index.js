@@ -33,6 +33,15 @@ module.exports = async function (context, req) {
     }
 
     const body = req.body || {};
+    let limitation = body.Limitation || null;
+    if (body.Limitation_Value === 2 || body.Limitation_Value === 3) {
+        const datePart = body.LimitationDateTbc
+            ? 'TBC'
+            : body.LimitationDate
+                ? new Date(body.LimitationDate).toLocaleDateString('en-GB')
+                : '';
+        if (datePart) limitation = `${limitation} - ${datePart}`;
+    }
     const { InstructionRef, MatterId } = body;
     if (!InstructionRef && !MatterId) {
         context.res = { status: 400, body: 'Missing InstructionRef or MatterId' };
@@ -56,7 +65,7 @@ module.exports = async function (context, req) {
             .input('FundsType_Value', sql.Int, body.FundsType_Value || null)
             .input('HowWasClientIntroduced', sql.NVarChar(255), body.HowWasClientIntroduced || null)
             .input('HowWasClientIntroduced_Value', sql.Int, body.HowWasClientIntroduced_Value || null)
-            .input('Limitation', sql.NVarChar(255), body.Limitation || null)
+            .input('Limitation', sql.NVarChar(255), limitation)
             .input('Limitation_Value', sql.Int, body.Limitation_Value || null)
             .input('SourceOfFunds', sql.NVarChar(255), body.SourceOfFunds || null)
             .input('SourceOfFunds_Value', sql.Int, body.SourceOfFunds_Value || null)
