@@ -37,14 +37,6 @@ module.exports = async function (context, req) {
   const instructionRef = req.query.instructionRef;
   const dealId = req.query.dealId && Number(req.query.dealId);
 
-  if (!initials && prospectId == null && !instructionRef && dealId == null) {
-    context.res = {
-      status: 400,
-      body: 'Missing query parameter – provide initials, prospectId, instructionRef or dealId'
-    };
-    return;
-  }
-
   try {
     await ensureDbPassword();
     const pool = await getSqlPool();
@@ -56,35 +48,40 @@ module.exports = async function (context, req) {
         .input('initials', sql.NVarChar, initials)
         .query('SELECT * FROM Deals WHERE PitchedBy=@initials ORDER BY DealId DESC');
       deals = dealsResult.recordset || [];
+    } else {
+      const dealsResult = await pool.request()
+        .query('SELECT * FROM Deals ORDER BY DealId DESC');
+      deals = dealsResult.recordset || [];
 
-      for (const d of deals) {
-        const jointRes = await pool.request()
-          .input('dealId', sql.Int, d.DealId)
-          .query('SELECT * FROM DealJointClients WHERE DealId=@dealId ORDER BY DealJointClientId');
-        d.jointClients = jointRes.recordset || [];
+    }
 
-        if (d.InstructionRef) {
-          const instRes = await pool.request()
+    for (const d of deals) {
+      const jointRes = await pool.request()
+        .input('dealId', sql.Int, d.DealId)
+        .query('SELECT * FROM DealJointClients WHERE DealId=@dealId ORDER BY DealJointClientId');
+      d.jointClients = jointRes.recordset || [];
+
+      if (d.InstructionRef) {
+        const instRes = await pool.request()
+          .input('ref', sql.NVarChar, d.InstructionRef)
+          .query('SELECT * FROM Instructions WHERE InstructionRef=@ref');
+        const inst = instRes.recordset[0] || null;
+        if (inst) {
+          const docRes = await pool.request()
             .input('ref', sql.NVarChar, d.InstructionRef)
-            .query('SELECT * FROM Instructions WHERE InstructionRef=@ref');
-          const inst = instRes.recordset[0] || null;
-          if (inst) {
-            const docRes = await pool.request()
-              .input('ref', sql.NVarChar, d.InstructionRef)
-              .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
-            inst.documents = docRes.recordset || [];
+            .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
+          inst.documents = docRes.recordset || [];
 
-            const riskRes = await pool.request()
-              .input('ref', sql.NVarChar, d.InstructionRef)
-              .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
-            inst.idVerifications = riskRes.recordset || [];
+          const riskRes = await pool.request()
+            .input('ref', sql.NVarChar, d.InstructionRef)
+            .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
+          inst.idVerifications = riskRes.recordset || [];
 
-            const riskAssessRes = await pool.request()
-              .input('ref', sql.NVarChar, d.InstructionRef)
-              .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
-            inst.riskAssessments = riskAssessRes.recordset || [];
-            d.instruction = inst;
-          }
+          const riskAssessRes = await pool.request()
+            .input('ref', sql.NVarChar, d.InstructionRef)
+            .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
+          inst.riskAssessments = riskAssessRes.recordset || [];
+          d.instruction = inst;
         }
       }
     }
@@ -137,35 +134,40 @@ module.exports = async function (context, req) {
         .input('initials', sql.NVarChar, initials)
         .query('SELECT * FROM Instructions WHERE HelixContact=@initials ORDER BY InstructionRef DESC');
       instructions = instrResult.recordset || [];
+    } else {
+      const instrResult = await pool.request()
+        .query('SELECT * FROM Instructions ORDER BY InstructionRef DESC');
+      instructions = instrResult.recordset || [];
 
-      for (const inst of instructions) {
-        const docRes = await pool.request()
-          .input('ref', sql.NVarChar, inst.InstructionRef)
-          .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
-        inst.documents = docRes.recordset || [];
+    }
 
-        const riskRes = await pool.request()
-          .input('ref', sql.NVarChar, inst.InstructionRef)
-          .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
-        inst.idVerifications = riskRes.recordset || [];
+    for (const inst of instructions) {
+      const docRes = await pool.request()
+        .input('ref', sql.NVarChar, inst.InstructionRef)
+        .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
+      inst.documents = docRes.recordset || [];
 
-        const riskAssessRes = await pool.request()
-          .input('ref', sql.NVarChar, inst.InstructionRef)
-          .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
-        inst.riskAssessments = riskAssessRes.recordset || [];
-        allIdVerifications.push(...inst.idVerifications);
+      const riskRes = await pool.request()
+        .input('ref', sql.NVarChar, inst.InstructionRef)
+        .query('SELECT * FROM IDVerifications WHERE InstructionRef=@ref ORDER BY InternalId DESC');
+      inst.idVerifications = riskRes.recordset || [];
 
-        const dealRes = await pool.request()
-          .input('ref', sql.NVarChar, inst.InstructionRef)
-          .query('SELECT * FROM Deals WHERE InstructionRef=@ref');
-        const d = dealRes.recordset[0];
-        if (d) {
-          const jointRes = await pool.request()
-            .input('dealId', sql.Int, d.DealId)
-            .query('SELECT * FROM DealJointClients WHERE DealId=@dealId ORDER BY DealJointClientId');
-          d.jointClients = jointRes.recordset || [];
-          inst.deal = d;
-        }
+      const riskAssessRes = await pool.request()
+        .input('ref', sql.NVarChar, inst.InstructionRef)
+        .query('SELECT * FROM RiskAssessment WHERE InstructionRef=@ref ORDER BY ComplianceDate DESC');
+      inst.riskAssessments = riskAssessRes.recordset || [];
+      allIdVerifications.push(...inst.idVerifications);
+
+      const dealRes = await pool.request()
+        .input('ref', sql.NVarChar, inst.InstructionRef)
+        .query('SELECT * FROM Deals WHERE InstructionRef=@ref');
+      const d = dealRes.recordset[0];
+      if (d) {
+        const jointRes = await pool.request()
+          .input('dealId', sql.Int, d.DealId)
+          .query('SELECT * FROM DealJointClients WHERE DealId=@dealId ORDER BY DealJointClientId');
+        d.jointClients = jointRes.recordset || [];
+        inst.deal = d;
       }
     }
 
@@ -216,6 +218,10 @@ module.exports = async function (context, req) {
       idVerifications = riskRes.recordset || [];
     } else if (initials) {
       idVerifications = allIdVerifications;
+    } else {
+      const riskRes = await pool.request()
+        .query('SELECT * FROM IDVerifications ORDER BY InternalId DESC');
+      idVerifications = riskRes.recordset || [];
     }
 
 
@@ -225,6 +231,10 @@ module.exports = async function (context, req) {
       const docRes = await pool.request()
         .input('ref', sql.NVarChar, instructionRef)
         .query('SELECT * FROM Documents WHERE InstructionRef=@ref ORDER BY DocumentId');
+      documents = docRes.recordset || [];
+    } else if (!instructionRef) {
+      const docRes = await pool.request()
+        .query('SELECT * FROM Documents ORDER BY DocumentId');
       documents = docRes.recordset || [];
     }
 
