@@ -69,7 +69,7 @@ app.get('/api/generate-instruction-ref', async (req, res) => {
   try {
     const deal = await getDealByPasscode(String(passcode), Number(cid));
     if (!deal) return res.status(404).json({ error: 'Invalid combination' });
-    const ref = generateInstructionRef(String(cid));
+    const ref = generateInstructionRef(String(cid), String(passcode));
     res.json({ instructionRef: ref });
   } catch (err) {
     console.error('❌ generate-instruction-ref error:', err);

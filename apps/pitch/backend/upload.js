@@ -50,7 +50,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
     // If not provided, generate one
     if (!instructionRef) {
-      instructionRef = generateInstructionRef(clientId);
+      instructionRef = generateInstructionRef(clientId, passcode);
     }
 
     const { originalname, size } = req.file;
