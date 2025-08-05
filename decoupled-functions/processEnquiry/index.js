@@ -41,7 +41,7 @@ async function ensureDbPassword() {
 function getLondonDateTime() {
   // Create current time in London timezone
   const now = new Date();
-  const londonTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/London"}));
+  const londonTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/London" }));
   return londonTime;
 }
 
@@ -49,7 +49,7 @@ function mapEnquiryFields(data) {
   // Parse moc to determine if rep is required
   const moc = data.moc || data.methodOfContact || data.channel || null;
   const isCallBased = moc && moc.toLowerCase().includes('call');
-  
+
   return {
     // REQUIRED FIELDS
     datetime: getLondonDateTime(), // Always current London time when request is made
@@ -60,10 +60,10 @@ function mapEnquiryFields(data) {
     last: data.last || data.lastName || data.last_name || data.lname || null, // REQUIRED
     email: data.email || data.emailAddress || null, // REQUIRED
     source: 'originalForward', // Default source classification
-    
+
     // CONDITIONAL FIELDS
     rep: isCallBased ? (data.rep || data.representative || null) : null, // Required if moc contains 'call'
-    
+
     // OPTIONAL FIELDS
     claim: null, // Will be updated later
     poc: null, // Will be updated later  
@@ -95,23 +95,23 @@ function extractGclid(url) {
 
 function transformPhoneNumber(phone) {
   if (!phone) return null;
-  
+
   // Remove all non-digits
   const digitsOnly = phone.replace(/\D/g, '');
-  
+
   // UK phone number transformations
   if (digitsOnly.startsWith('07') && digitsOnly.length === 11) {
     return `+44${digitsOnly.substring(1)}`;
   } else if (digitsOnly.startsWith('447') && digitsOnly.length === 12) {
     return `+${digitsOnly}`;
   }
-  
+
   return phone; // Return original if no transformation needed
 }
 
 function transformName(name) {
   if (!name) return null;
-  
+
   // Title case transformation
   return name.toLowerCase()
     .split(' ')
@@ -146,19 +146,19 @@ function ensureDateTime(dateValue) {
 
 function validateRequiredFields(mappedData) {
   const errors = [];
-  
+
   // Required fields validation
   if (!mappedData.aow) errors.push('aow (Area of Work) is required');
   if (!mappedData.moc) errors.push('moc (Method of Contact) is required');
   if (!mappedData.first) errors.push('first (First Name) is required');
   if (!mappedData.last) errors.push('last (Last Name) is required');
   if (!mappedData.email) errors.push('email is required');
-  
+
   // Conditional validation: rep required if moc contains 'call'
   if (mappedData.moc && mappedData.moc.toLowerCase().includes('call') && !mappedData.rep) {
     errors.push('rep (Representative) is required when method of contact contains "call"');
   }
-  
+
   return errors;
 }
 
@@ -170,11 +170,11 @@ async function processActiveCampaignIntegration(mappedData, updateAC = false) {
   if (!updateAC || !mappedData.email) {
     return { processed: false, reason: updateAC ? 'No email provided' : 'AC processing disabled' };
   }
-  
+
   try {
     // Check if contact exists in ActiveCampaign
     const existingContactId = await checkActiveCampaignContact(mappedData.email);
-    
+
     if (existingContactId) {
       // Update existing contact
       await updateActiveCampaignContact(existingContactId, mappedData);
@@ -215,7 +215,7 @@ async function createActiveCampaignContact(data) {
 function mapEnquiryData(sourceData, sourceType = 'generic') {
   // Map the data to our database schema
   const mappedData = mapEnquiryFields(sourceData);
-  
+
   // Apply post-mapping transformations
   mappedData.phone = transformPhoneNumber(mappedData.phone);
   mappedData.first = transformName(mappedData.first);
@@ -223,7 +223,7 @@ function mapEnquiryData(sourceData, sourceType = 'generic') {
   mappedData.email = transformEmail(mappedData.email);
   mappedData.rank = validateRank(mappedData.rank);
   mappedData.datetime = ensureDateTime(mappedData.datetime);
-  
+
   return mappedData;
 }
 
@@ -233,7 +233,7 @@ function mapEnquiryData(sourceData, sourceType = 'generic') {
 
 module.exports = async function (context, req) {
   context.log('processEnquiry function triggered');
-  
+
   // ──────────────────────────────────────────────────────────────────────────────
   // PAYLOAD LOGGING - ALWAYS LOG FOR DEBUGGING
   // ──────────────────────────────────────────────────────────────────────────────
@@ -262,7 +262,7 @@ module.exports = async function (context, req) {
     const sourceType = req.query.source || requestBody.source || 'originalForward';
     const sourceData = requestBody.data || requestBody;
     const updateAC = req.query.updateAC === 'true' || requestBody.updateAC === true || false;
-    
+
     context.log(`Processing enquiry from source: ${sourceType}`);
     context.log(`ActiveCampaign processing: ${updateAC ? 'ENABLED' : 'DISABLED'}`);
     context.log('Source data received:', JSON.stringify(sourceData, null, 2));
@@ -275,14 +275,14 @@ module.exports = async function (context, req) {
     const validationErrors = validateRequiredFields(mappedData);
     if (validationErrors.length > 0) {
       context.log('ERROR: Validation failed -', validationErrors.join(', '));
-      context.res = { 
-        status: 400, 
-        body: { 
+      context.res = {
+        status: 400,
+        body: {
           error: 'Validation failed',
           details: validationErrors,
           receivedData: sourceData,
           mappedData: mappedData
-        } 
+        }
       };
       return;
     }
@@ -299,7 +299,7 @@ module.exports = async function (context, req) {
       context.log('Processing ActiveCampaign integration...');
       activeCampaignResult = await processActiveCampaignIntegration(mappedData, updateAC);
       context.log('ActiveCampaign result:', JSON.stringify(activeCampaignResult, null, 2));
-      
+
       // Update acid field if we got a contact ID from ActiveCampaign
       if (activeCampaignResult.processed && activeCampaignResult.contactId) {
         mappedData.acid = activeCampaignResult.contactId;
@@ -351,10 +351,10 @@ module.exports = async function (context, req) {
 
     context.log('Executing SQL insert...');
     context.log('SQL Query:', insertQuery);
-    
+
     // Execute the insert
     const result = await request.query(insertQuery);
-    
+
     context.log(`SUCCESS: Enquiry inserted from source ${sourceType}. Rows affected: ${result.rowsAffected[0]}`);
 
     // Return success response
@@ -381,7 +381,7 @@ module.exports = async function (context, req) {
     context.log.error('Error stack:', err.stack);
     context.log.error('Request source type:', req.query.source || req.body?.source || 'unknown');
     context.log.error('Request body:', JSON.stringify(req.body, null, 2));
-    
+
     // Determine if it's a validation error or system error
     const isValidationError = err.message && (
       err.message.includes('Invalid column name') ||
@@ -391,14 +391,14 @@ module.exports = async function (context, req) {
       err.message.includes('foreign key')
     );
 
-    context.res = { 
-      status: isValidationError ? 400 : 500, 
-      body: { 
-        error: isValidationError ? 'Data validation error' : 'Failed to process enquiry', 
+    context.res = {
+      status: isValidationError ? 400 : 500,
+      body: {
+        error: isValidationError ? 'Data validation error' : 'Failed to process enquiry',
         detail: err.message,
         sourceType: req.query.source || req.body?.source || 'unknown',
         timestamp: new Date().toISOString()
-      } 
+      }
     };
   }
 };

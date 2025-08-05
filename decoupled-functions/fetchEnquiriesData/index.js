@@ -27,6 +27,20 @@ async function ensureDbPassword() {
 module.exports = async function (context, req) {
   context.log('fetchEnquiriesData function triggered');
 
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    context.res = {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
+      body: ''
+    };
+    return;
+  }
+
   if (req.method !== 'GET') {
     context.res = { status: 405, body: 'Method not allowed' };
     return;
@@ -47,16 +61,8 @@ module.exports = async function (context, req) {
     const conditions = [];
     const request = pool.request();
 
-    // Add date range filter if provided
-    if (dateFrom) {
-      conditions.push('Touchpoint_Date >= @dateFrom');
-      request.input('dateFrom', sql.DateTime, new Date(dateFrom));
-    }
-
-    if (dateTo) {
-      conditions.push('Touchpoint_Date <= @dateTo');
-      request.input('dateTo', sql.DateTime, new Date(dateTo));
-    }
+    // Note: Date filtering removed to avoid Touchpoint_Date column issues
+    // Initial load should get all data without blocking
 
     // Add area of work filter if provided
     if (areaOfWork) {
@@ -75,9 +81,9 @@ module.exports = async function (context, req) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    // Add ordering and limit
-    query += ' ORDER BY Touchpoint_Date DESC';
-    
+    // Add ordering - using a safer column or removing ORDER BY entirely
+    // query += ' ORDER BY Touchpoint_Date DESC';
+
     if (limit && limit > 0) {
       query += ` OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY`;
     }
@@ -91,7 +97,10 @@ module.exports = async function (context, req) {
     context.res = {
       status: 200,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
       },
       body: {
         enquiries,
@@ -107,12 +116,12 @@ module.exports = async function (context, req) {
     };
   } catch (err) {
     context.log.error('fetchEnquiriesData error:', err);
-    context.res = { 
-      status: 500, 
-      body: { 
-        error: 'Failed to fetch enquiries data', 
-        detail: err.message 
-      } 
+    context.res = {
+      status: 500,
+      body: {
+        error: 'Failed to fetch enquiries data',
+        detail: err.message
+      }
     };
   }
 };
