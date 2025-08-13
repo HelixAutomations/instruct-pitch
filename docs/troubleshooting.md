@@ -45,3 +45,19 @@ async function markCompleted(ref) {
 ```
 
 Ensure the client calls `/api/instruction/complete` once the user has uploaded any required documents and confirms the instruction. This endpoint marks the instruction as completed **and** closes the associated deal so no further payments can be taken. Without this call the server continues to return `Stage: 'in_progress'` even if payment succeeded, so the UI will not display the completed state.
+
+## Payments temporarily disabled
+
+Symptoms
+- Payment endpoints return HTTP 503
+- Clients do not receive payment-related emails
+
+Checks
+- Ensure DISABLE_PAYMENTS or PAYMENT_DISABLED is set in the backend environment
+- Review logs for:
+  - "🛑 /pitch/get-shasign blocked: payments disabled"
+  - "🛑 /pitch/confirm-payment blocked: payments disabled"
+  - "✉️  Client emails suppressed (payments disabled)"
+
+Resolution
+- This is expected while the freeze is in place. Remove/disable the flag to restore card payments and client emails.

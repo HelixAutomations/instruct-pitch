@@ -16,6 +16,12 @@ const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDeal
 const { normalizeInstruction } = require('./utilities/normalize');
 const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
 
+// ─── Feature flag: temporary payment-disabled mode ─────────────────────────────
+// Supports either DISABLE_PAYMENTS or PAYMENT_DISABLED for ops compatibility.
+const paymentsOff = /^1|true|yes$/i.test(String(
+  process.env.DISABLE_PAYMENTS || process.env.PAYMENT_DISABLED || ''
+));
+
 function log(...args) {
   if (!DEBUG_LOG) return;
   console.log(new Date().toISOString(), ...args);
@@ -115,6 +121,10 @@ let cachedShaPhrase, cachedEpdqUser, cachedEpdqPassword, cachedFetchInstructionD
 // ─── SHASIGN generation ────────────────────────────────────────────────
 app.post('/pitch/get-shasign', (req, res) => {
   try {
+    if (paymentsOff) {
+      log('🛑 /pitch/get-shasign blocked: payments disabled');
+      return res.status(503).json({ error: 'Payments are temporarily disabled' });
+    }
     if (!cachedShaPhrase) throw new Error('SHA phrase not loaded');
     const params = req.body;
     log('Generating SHASIGN with params:', mask(params));
@@ -135,6 +145,10 @@ app.post('/pitch/get-shasign', (req, res) => {
 
 // ─── DirectLink confirm-payment ────────────────────────────────────────
 app.post('/pitch/confirm-payment', async (req, res) => {
+  if (paymentsOff) {
+    log('🛑 /pitch/confirm-payment blocked: payments disabled');
+    return res.status(503).json({ error: 'Payments are temporarily disabled' });
+  }
   const { aliasId, orderId, amount, product, threeDS = {}, acceptUrl, exceptionUrl, declineUrl, shaSign } = req.body;
   if (!aliasId || !orderId) {
     return res.status(400).json({ error: 'Missing aliasId or orderId' });
@@ -320,11 +334,17 @@ app.post('/api/instruction', async (req, res) => {
     if (!existing.InstructionRef) {
       const match = /HLX-(\d+)-/.exec(instructionRef);
       if (match) {
-        const deal = await getLatestDeal(Number(match[1]));
-        if (deal) {
-          merged.paymentAmount = merged.paymentAmount ?? deal.Amount;
-          merged.paymentProduct = merged.paymentProduct ?? deal.ServiceDescription;
-          merged.workType = merged.workType ?? deal.AreaOfWork;
+        // Prefill from latest deal for UX convenience. Official snapshot
+        // happens at POID transition (see below) to align with service-owner policy.
+        try {
+          const deal = await getLatestDeal(Number(match[1]));
+          if (deal) {
+            merged.paymentAmount = merged.paymentAmount ?? deal.Amount;
+            merged.paymentProduct = merged.paymentProduct ?? deal.ServiceDescription;
+            merged.workType = merged.workType ?? deal.AreaOfWork;
+          }
+        } catch (prefillErr) {
+          console.warn('⚠️ Failed deal prefill on first save:', prefillErr?.message || prefillErr);
         }
       }
       merged.internalStatus = merged.internalStatus || 'pitch';
@@ -338,6 +358,41 @@ app.post('/api/instruction', async (req, res) => {
 
     const existingStatus = existing.internalStatus || existing.InternalStatus;
     if (normalized.internalStatus === 'poid' && existingStatus !== 'poid') {
+      log('🔐 POID transition detected for', instructionRef);
+
+      // If payments are disabled, link instruction to deal now and snapshot key fields.
+      if (paymentsOff) {
+        try {
+          await attachInstructionRefToDeal(instructionRef);
+          log('🔗 Linked instruction to deal at POID (payments disabled)');
+        } catch (linkErr) {
+          console.error('❌ Failed to link instruction to deal at POID:', linkErr);
+        }
+
+        // Snapshot amount/service/workType and set reporting flags.
+        try {
+          const patch = { paymentDisabled: true, paymentMethod: null, paymentResult: null, poidDate: new Date().toISOString() };
+          const match = /HLX-(\d+)-/.exec(instructionRef);
+          if (match) {
+            try {
+              const deal = await getLatestDeal(Number(match[1]));
+              if (deal) {
+                if (patch.paymentAmount == null) patch.paymentAmount = deal.Amount;
+                if (patch.paymentProduct == null) patch.paymentProduct = deal.ServiceDescription;
+                if (patch.workType == null) patch.workType = deal.AreaOfWork;
+              }
+            } catch (dealSnapErr) {
+              console.warn('⚠️ Failed to fetch deal for snapshot:', dealSnapErr?.message || dealSnapErr);
+            }
+          }
+          // Safe: normalizeInstruction filters unknown keys so DB schema mismatches won't break.
+          await upsertInstruction(instructionRef, { ...normalizeInstruction(patch), stage: record.stage || 'in_progress' });
+          log('📌 Snapshot persisted at POID (payments disabled):', Object.keys(patch));
+        } catch (snapErr) {
+          console.error('❌ Failed to persist POID snapshot (payments disabled):', snapErr);
+        }
+      }
+
       try {
         const { submitVerification } = require('./utilities/tillerApi');
         const { insertIDVerification } = require('./instructionDb');
@@ -443,10 +498,16 @@ app.post('/api/instruction/send-emails', async (req, res) => {
 
       await sendFeeEarnerEmail(record);
 
-      if (record.PaymentResult === 'successful' || record.PaymentMethod === 'bank') {
-        await sendClientSuccessEmail(record);
+      // Safety net: while payments are disabled, suppress ALL client emails
+      // (success/failure/confirmation) to avoid confusing messaging.
+      if (paymentsOff) {
+        log('✉️  Client emails suppressed (payments disabled)');
       } else {
-        await sendClientFailureEmail(record);
+        if (record.PaymentResult === 'successful' || record.PaymentMethod === 'bank') {
+          await sendClientSuccessEmail(record);
+        } else {
+          await sendClientFailureEmail(record);
+        }
       }
     } catch (emailErr) {
       console.error('❌ Failed to send notification emails:', emailErr);

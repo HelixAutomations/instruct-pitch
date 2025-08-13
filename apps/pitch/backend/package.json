@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "tsc",
-    "test": "node confirmPayment.test.js && node email.test.js && node logRedaction.test.js"
+  "start": "node server.js",
+  "build": "tsc",
+  "test": "node disabledMode.test.js && node confirmPayment.test.js && node email.test.js && node logRedaction.test.js"
   },
   "engines": {
     "node": ">=18"
@@ -23,6 +23,7 @@
     "nodemailer": "^6.9.11"
   },
   "devDependencies": {
+    "nock": "^14.0.10",
     "typescript": "^5.0.0"
   }
 }

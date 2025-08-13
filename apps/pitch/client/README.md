@@ -52,3 +52,13 @@ export default tseslint.config({
   },
 })
 ```
+
+## Payment-disabled mode (optional UI)
+
+If the backend has DISABLE_PAYMENTS/PAYMENT_DISABLED enabled, payment endpoints return 503. Optionally hide the Pay step in the UI by setting:
+
+```
+VITE_PAYMENT_DISABLED=true
+```
+
+The backend already enforces the freeze; the UI flag is purely for a smoother user experience.
