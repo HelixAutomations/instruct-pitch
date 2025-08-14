@@ -357,6 +357,9 @@ const HomePage: React.FC<HomePageProps> = ({
   }, [instruction.instructionRef]);
 
   const PSPID = 'epdq1717240';
+  // Temporary toggle for the payment rework: payments are disabled for now.
+  // This hides the Pay step in the UI while we replace Barclays with Stripe.
+  const paymentsDisabled = true;
   const ACCEPT_URL = useMemo(
     () =>
       `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`,
@@ -368,7 +371,7 @@ const HomePage: React.FC<HomePageProps> = ({
     [instruction.amount, instruction.product]
   );
   const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(
-    process.env.NODE_ENV === 'development'
+    process.env.NODE_ENV === 'development' && !paymentsDisabled
       ? `${window.location.origin}${import.meta.env.BASE_URL}assets/master_creditcard.htm`
       : null
   );
@@ -377,7 +380,12 @@ const HomePage: React.FC<HomePageProps> = ({
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
   const [closingStep, setClosingStep] = useState<0 | 1 | 2 | 3>(0);
   const hasDeal = instruction.amount > 0;
-  const maxStep = hasDeal ? 3 : 1;
+  // When payments are disabled we collapse the payment step so Documents
+  // becomes step 2 instead of step 3. This keeps the UI numbering simple
+  // while avoiding rendering the payment UI at all.
+  const paymentStepNumber: number | null = paymentsDisabled ? null : 2;
+  const documentsStepNumber: number = paymentsDisabled ? 2 : 3;
+  const maxStep = hasDeal ? documentsStepNumber : 1;
   const [dealStepsVisible, setDealStepsVisible] = useState(false);
   const [documentsStepVisible, setDocumentsStepVisible] = useState(false);
   const [proofStartStep, setProofStartStep] = useState<number>(1);
@@ -626,7 +634,7 @@ const HomePage: React.FC<HomePageProps> = ({
 
   const [isIdReviewDone, setIdReviewDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
-  const [isPaymentDone, setPaymentDone] = useState(false);
+  const [isPaymentDone, setPaymentDone] = useState(paymentsDisabled ? true : false);
   const [expiryText, setExpiryText] = useState('');
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
   const [showFinalBanner, setShowFinalBanner] = useState(false);
@@ -720,18 +728,18 @@ const HomePage: React.FC<HomePageProps> = ({
     if (
       !returning &&
       (isUploadDone || isUploadSkipped) &&
-      openStep !== 3 &&
+    openStep !== documentsStepNumber &&
       !showFinalBanner
     ) {
       setShowFinalBanner(true);
     }
-  }, [isUploadDone, isUploadSkipped, showFinalBanner, openStep, returning]);
+  }, [isUploadDone, isUploadSkipped, showFinalBanner, openStep, returning, documentsStepNumber]);
 
   useEffect(() => {
-    if (openStep === 3) {
+    if (openStep === documentsStepNumber) {
       setShowFinalBanner(false);
     }
-  }, [openStep]);
+  }, [openStep, documentsStepNumber]);
 
   useEffect(() => {
     if (showFinalBanner) {
@@ -832,7 +840,7 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
 
   const initialStepScrollSkipped = useRef(false);
   useEffect(() => {
-    const refs = [step1Ref, step2Ref, step3Ref];
+    const refs = paymentsDisabled ? [step1Ref, step3Ref] : [step1Ref, step2Ref, step3Ref];
     if (openStep > 0) {
       if (
         openStep === 1 &&
@@ -844,7 +852,7 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
       }
       scrollIntoViewIfNeeded(refs[openStep - 1]?.current);
     }
-  }, [openStep]);
+  }, [openStep, paymentsDisabled]);
 
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
@@ -1151,8 +1159,10 @@ const proofSummary = (
     if (openStep === 1 && !showReview) {
       if (skipReview && summaryComplete) {
         setEditing(false);
-        const target = hasDeal ? (isPaymentDone ? 3 : 2) : 1;
-        goToStep(target as any);
+        const target = hasDeal
+          ? (isPaymentDone ? documentsStepNumber : (paymentStepNumber ?? documentsStepNumber))
+          : 1;
+        goToStep(target as 0 | 1 | 2 | 3);
       } else {
         setShowReview(true);
       }
@@ -1161,11 +1171,12 @@ const proofSummary = (
     if (openStep === 1 && showReview) {
       setEditing(false);
     }
-    if (openStep === 2 && isPaymentDone) {
-      goToStep(3);
+    // If the payment step exists and payment completes, jump to documents.
+    if (typeof paymentStepNumber === 'number' && openStep === paymentStepNumber && isPaymentDone) {
+      goToStep(documentsStepNumber as 0 | 1 | 2 | 3);
       return;
     }
-    if (openStep === 3) {
+    if (openStep === documentsStepNumber) {
       goToStep(0);
       return;
     }
@@ -1280,7 +1291,7 @@ const proofSummary = (
               </div>
             </div>
 
-            {hasDeal && (
+            {hasDeal && !paymentsDisabled && (
               <CSSTransition
                 in={dealStepsVisible}
                 timeout={300}
@@ -1330,7 +1341,8 @@ const proofSummary = (
                       </div>
                     )}
 
-                    {(prefetchPayment || openStep === 2 || closingStep === 2) && (
+                    {/* Only include Payment component when payments are enabled. */}
+                    {!paymentsDisabled && (prefetchPayment || openStep === 2 || closingStep === 2) && (
                         <Payment
                           style={{ display: openStep === 2 ? 'block' : 'none' }}
                           paymentDetails={paymentDetails}
@@ -1365,9 +1377,9 @@ const proofSummary = (
                 classNames="deal-steps-anim"
                 unmountOnExit
               >
-                <div ref={step3Ref} className={`step-section${openStep === 3 ? ' active' : ''}`}>
+                <div ref={step3Ref} className={`step-section${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}`}>
                   <StepHeader
-                    step={3}
+                    step={documentsStepNumber}
                     title={
                       isUploadDone || isUploadSkipped
                         ? 'Upload Files'
@@ -1376,14 +1388,14 @@ const proofSummary = (
                           </>
                     }
                     complete={isUploadDone || isUploadSkipped}
-                    open={openStep === 3}
-                    toggle={() => goToStep(openStep === 3 ? 0 : 3)}
+                    open={openStep === (documentsStepNumber as 0 | 1 | 2 | 3)}
+                    toggle={() => goToStep(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? 0 : (documentsStepNumber as 0 | 1 | 2 | 3))}
                     locked={false}
                     allowToggleWhenLocked
                     dimOnLock={false}
                   />
-                  <div className={`step-content${openStep === 3 ? ' active' : ''}${getPulseClass(3, isUploadDone || isUploadSkipped)}`}>
-                    {(openStep === 3 || closingStep === 3) && (
+                  <div className={`step-content${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}${getPulseClass(documentsStepNumber, isUploadDone || isUploadSkipped)}`}>
+                    {(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) || closingStep === (documentsStepNumber as 0 | 1 | 2 | 3)) && (
                       <DocumentUpload
                         uploadedFiles={uploadedFiles}
                         setUploadedFiles={setUploadedFiles}

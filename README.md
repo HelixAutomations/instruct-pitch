@@ -20,6 +20,48 @@ npm install --prefix apps/pitch/backend
 npm install --prefix apps/pitch/client
 ```
 
+## Quick start — run locally (mocked backend)
+
+The fastest way to run the app locally in a way that matches production routing
+(including server-side passcode injection) is to build the client and run the
+mock server. These steps assume PowerShell on Windows.
+
+1) Build the client:
+
+```powershell
+cd 'D:\helix projects\workspace\vsc\instructions\apps\pitch\client'
+npm install   # only if needed
+npm run build
+```
+
+2) Start the mock server (serves built assets and injects passcode/cid):
+
+```powershell
+cd 'D:\helix projects\workspace\vsc\instructions\apps\pitch\backend\scripts'
+node mock_local_server.js
+```
+
+3) Open the app in your browser:
+
+```
+http://127.0.0.1:4000/pitch/87402
+```
+
+Notes:
+- The mock server reads the built client at `apps/pitch/client/dist` and injects
+  `window.helixOriginalPasscode` and `window.helixCid` so the client flows work
+  without a real backend. See `apps/pitch/backend/scripts/MOCK_SERVER_README.md`
+  for full details and debugging tips.
+- If you prefer to run the client dev server (Vite) instead, run:
+
+```powershell
+npm run dev --prefix apps/pitch/client
+```
+
+  but note the Vite dev server does not perform server-side HTML injection.
+  To test the full injection flow use the mock server above.
+
+
 ## Running the backend
 The backend exposes a simple server in `apps/pitch/backend`:
 

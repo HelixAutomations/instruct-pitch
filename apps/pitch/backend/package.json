@@ -6,7 +6,13 @@
   "start": "node server.js",
   "build": "tsc",
   "test": "node disabledMode.test.js && node confirmPayment.test.js && node email.test.js && node logRedaction.test.js",
-  "dev:all": "node scripts/dev-all.js"
+  "dev:all": "node scripts/dev-all.js",
+  "dev:client": "npm run build --prefix ../client",
+  "dev:mock": "node scripts/mock_local_server.js",
+  "dev:decoupled": "npm --prefix ../../../decoupled-functions run start",
+  "dev:local": "npm run dev:client && concurrently -k \"npm:dev:mock\" \"npm:dev:decoupled\""
+  ,
+  "dev:hot": "concurrently -k \"npm --prefix ../client run dev\" \"node scripts/mock_local_server.js\" \"npm --prefix ../../../decoupled-functions run start\""
   },
   "engines": {
     "node": ">=18"

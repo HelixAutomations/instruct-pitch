@@ -31,13 +31,18 @@ const App: React.FC = () => {
     if (injectedPasscode && injectedCid) {
       setClientId(String(injectedCid));
       setPasscode(String(injectedPasscode));
+  // Hide the ID/passcode modal when the server has injected a passcode
+  // (we'll still attempt to auto-generate an instructionRef below).
+  setShowIdAuth(false);
       // attempt to auto-generate instructionRef
       fetch(`/api/generate-instruction-ref?cid=${encodeURIComponent(String(injectedCid))}&passcode=${encodeURIComponent(String(injectedPasscode))}`)
         .then(res => res.json())
         .then(data => {
           if (data.instructionRef) {
             setInstructionRef(data.instructionRef);
-            navigate(`/${injectedCid}`);
+            // keep the passcode visible in the URL so the app can be reloaded
+            // into the same state (use cid-passcode form)
+            navigate(`/${injectedCid}-${injectedPasscode}`);
           }
         })
         .catch(() => { /* ignore */ });
@@ -75,7 +80,9 @@ const App: React.FC = () => {
         .then(data => {
           if (data.instructionRef) {
             setInstructionRef(data.instructionRef);
-            navigate(`/${cid}`);
+            // keep passcode in the path so the user can bookmark/refresh the
+            // same entry point (cid-passcode form)
+            navigate(`/${cid}-${code}`);
           }
         })
         .catch(err => console.error('auto generate error', err));

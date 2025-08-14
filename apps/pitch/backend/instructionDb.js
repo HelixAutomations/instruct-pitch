@@ -63,6 +63,54 @@ async function getDealByPasscodeIncludingLinked(passcode, prospectId) {
   return result.recordset[0]
 }
 
+// Lookup a deal by ProspectId (useful when the route contains the ProspectId)
+async function getDealByProspectId(prospectId) {
+  const pool = await getSqlPool()
+  const result = await pool.request()
+    .input('pid', sql.Int, prospectId)
+    .query(`
+      SELECT TOP 1 DealId, ProspectId, Passcode, InstructionRef, ServiceDescription, Amount, AreaOfWork
+      FROM Deals
+      WHERE ProspectId = @pid
+        AND UPPER(Status) <> 'CLOSED'
+      ORDER BY DealId DESC
+    `)
+  return result.recordset[0]
+}
+
+// Given a passcode, return the existing InstructionRef on the matching deal
+// or create one in the format HLX-<ProspectId>-<Passcode> and persist it
+// to that specific Deal row. Returns the InstructionRef string or null
+// if no matching deal (or ProspectId) can be found.
+async function getOrCreateInstructionRefForPasscode(passcode, prospectId) {
+  const pool = await getSqlPool()
+  // Use the include-linked variant so we can read an existing InstructionRef
+  const deal = await getDealByPasscodeIncludingLinked(passcode, prospectId || null)
+  if (!deal) return null
+
+  // If an InstructionRef already exists, return it unchanged.
+  if (deal.InstructionRef && String(deal.InstructionRef).trim() !== '') {
+    return deal.InstructionRef
+  }
+
+  // Need a ProspectId to construct the HLX-<cid>-<passcode> value.
+  const pid = deal.ProspectId
+  if (!pid) return null
+
+  const newRef = `HLX-${pid}-${passcode}`
+
+  // Persist the generated InstructionRef to the specific Deal row we queried.
+  await pool.request()
+    .input('ref', sql.NVarChar, newRef)
+    .input('dealId', sql.Int, deal.DealId)
+    .query(`
+      UPDATE Deals SET InstructionRef=@ref
+      WHERE DealId = @dealId
+    `)
+
+  return newRef
+}
+
 async function upsertInstruction(ref, fields) {
   const pool = await getSqlPool()
   const allowed = new Set([
@@ -322,6 +370,7 @@ module.exports = {
   getInstruction,
   getLatestDeal,
   getDealByPasscode,
+  getDealByProspectId,
   upsertInstruction,
   markCompleted,
   updatePaymentStatus,

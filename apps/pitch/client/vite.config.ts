@@ -10,4 +10,15 @@ export default defineConfig({
     assetsDir: 'assets',
   },
   base: '/pitch/', // ✅ Required so assets resolve correctly when served under /pitch/
+  // Dev server proxy: forward any /api requests to the backend (port 3000)
+  // so the Vite dev server can serve the client while backend APIs are reachable.
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 });

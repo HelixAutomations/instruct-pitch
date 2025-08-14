@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
 
@@ -79,15 +79,19 @@ app.get('/api/generate-instruction-ref', async (req, res) => {
     // than generating a new one so we never double-generate/overwrite.
     const deal = await getDealByPasscodeIncludingLinked(String(passcode), Number(cid));
     if (!deal) return res.status(404).json({ error: 'Invalid combination' });
-    if (deal.InstructionRef) {
-      // Some DB fields may be named with different casing depending on driver
-      const existing = deal.InstructionRef || deal.instructionRef || null;
-      if (existing) {
-        return res.json({ instructionRef: existing });
-      }
+    // Some DB fields may be named with different casing depending on driver
+    const existing = deal.InstructionRef || deal.instructionRef || null;
+    if (existing) return res.json({ instructionRef: existing });
+
+    // Persist the HLX ref if possible (creates only if missing)
+    try {
+      const persisted = await getOrCreateInstructionRefForPasscode(String(passcode), Number(cid));
+      if (persisted) return res.json({ instructionRef: persisted });
+    } catch (err) {
+      console.warn('Could not persist instructionRef:', err && err.message);
     }
 
-    // No existing instructionRef — generate one but do NOT attach here.
+    // Fall back to generating the ref without persisting (should be rare)
     const ref = generateInstructionRef(String(cid), String(passcode));
     res.json({ instructionRef: ref });
   } catch (err) {
@@ -605,12 +609,27 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         // Resolve a prospect id for prefill only; do not change routing cid.
         const cid = code;
         let resolvedProspectId = null;
+        let injectedPasscode = code;
         try {
-          const deal = await getDealByPasscode(code);
-          if (deal && deal.ProspectId) resolvedProspectId = String(deal.ProspectId);
+          // Always try to resolve a passcode -> ProspectId so the client can
+          // call generate-instruction-ref with a valid cid. If the code looks
+          // like a numeric ProspectId, prefer looking up by ProspectId.
+          if (/^\d+$/.test(code)) {
+            const deal = await getDealByProspectId(Number(code));
+            if (deal) {
+              resolvedProspectId = String(deal.ProspectId || code);
+              injectedPasscode = deal.Passcode || code;
+            }
+          } else {
+            // For passcode-only URLs, resolve prospect id from the passcode
+            const deal = await getDealByPasscode(code).catch(() => null);
+            if (deal && deal.ProspectId) {
+              resolvedProspectId = String(deal.ProspectId);
+            }
+          }
         } catch (err) { /* ignore lookup failures */ }
 
-        const fetchCid = resolvedProspectId || cid;
+  const fetchCid = resolvedProspectId || cid;
         const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
         const fnCode = cachedFetchInstructionDataCode;
         const url = `${fnUrl}?cid=${encodeURIComponent(fetchCid)}&code=${fnCode}`;
@@ -622,15 +641,14 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         // Inject resolution metadata for the client to consume. Client should
         // NOT treat this as the routing cid but may use resolvedProspectId when
         // generating an instructionRef.
-        const safeResolved = JSON.stringify(resolvedProspectId);
-        html = html.replace('</head>', `<script>window.helixResolvedProspectId = ${safeResolved};</script></head>`);
+    const safeResolved = JSON.stringify(resolvedProspectId);
+    html = html.replace('</head>', `<script>window.helixResolvedProspectId = ${safeResolved};</script></head>`);
       }
     }
-  // Always expose the original passcode and a cid for client-side
-  // validation. Do NOT map passcode into cid; use the resolved prospect id
-  // when available, otherwise use the '00000' placeholder so client
-  // can still call generate-instruction-ref safely.
-  const safeOriginal = JSON.stringify(code);
+  // Always expose the original passcode (or injectedPasscode when ProspectId provided)
+  // and a cid for client-side validation. Use the resolved prospect id when available,
+  // otherwise use the '00000' placeholder so client can still call generate-instruction-ref safely.
+  const safeOriginal = JSON.stringify(typeof injectedPasscode !== 'undefined' ? injectedPasscode : code);
   const safeCid = JSON.stringify(resolvedProspectId || '00000');
   html = html.replace('</head>', `<script>window.helixOriginalPasscode = ${safeOriginal}; window.helixCid = ${safeCid};</script></head>`);
 
