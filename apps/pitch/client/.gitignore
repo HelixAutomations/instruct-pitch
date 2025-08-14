@@ -26,3 +26,10 @@ dist-ssr
 # Environment variables
 .env
 node_modules/
+
+# Vite and build caches
+.vite/
+dist/
+build/
+.env.local
+.env.*

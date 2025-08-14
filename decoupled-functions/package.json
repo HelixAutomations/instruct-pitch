@@ -10,7 +10,8 @@
     "@azure/functions": "^4.7.2",
     "@azure/identity": "^4.10.0",
     "@azure/keyvault-secrets": "^4.9.0",
-    "mssql": "^11.0.1"
+  "mssql": "^11.0.1",
+  "axios": "^1.6.7"
   },
   "devDependencies": {
     "azure-functions-core-tools": "^4.x"

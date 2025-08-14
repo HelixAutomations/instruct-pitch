@@ -25,6 +25,24 @@ const App: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // If server injected a passcode/cid (for /pitch/<passcode>), use that first
+    const injectedPasscode = (window as any).helixOriginalPasscode;
+    const injectedCid = (window as any).helixCid;
+    if (injectedPasscode && injectedCid) {
+      setClientId(String(injectedCid));
+      setPasscode(String(injectedPasscode));
+      // attempt to auto-generate instructionRef
+      fetch(`/api/generate-instruction-ref?cid=${encodeURIComponent(String(injectedCid))}&passcode=${encodeURIComponent(String(injectedPasscode))}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.instructionRef) {
+            setInstructionRef(data.instructionRef);
+            navigate(`/${injectedCid}`);
+          }
+        })
+        .catch(() => { /* ignore */ });
+      return;
+    }
     if (!cidParam) return;
     const parts = cidParam.split('-');
     let cid = parts[0];

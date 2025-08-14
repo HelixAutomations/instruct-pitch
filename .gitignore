@@ -12,3 +12,26 @@ push-package.zip
 
 structure.txt
 apps/pitch/backend/instructions.json
+
+# Ignore local Azure emulator and Azurite artifacts (generated DB, blob/queue storage and logs)
+azurite/
+azurite/debug.log
+azurite/__blobstorage__/
+azurite/__queuestorage__/
+azurite/__azurite_db*.json
+**/__azurite_db_*.json
+
+# Ignore local function settings and env files
+**/local.settings.json
+**/.env
+**/.env.*
+**/.secrets.json
+
+# Vite / frontend cache
+start/.vite/
+.vite/
+
+# General build artifacts and logs
+dist/
+*.log
+debug.log

@@ -16,8 +16,8 @@ let passwordPromise;
 async function ensureDbPassword() {
   if (process.env.DB_PASSWORD) return process.env.DB_PASSWORD;
   if (!passwordPromise) {
-const dbPasswordSecret = process.env.DB_PASSWORD_SECRET || 'instructionsadmin-password';
-passwordPromise = secretClient.getSecret(dbPasswordSecret).then(s => {
+    const dbPasswordSecret = process.env.DB_PASSWORD_SECRET || 'instructionsadmin-password';
+    passwordPromise = secretClient.getSecret(dbPasswordSecret).then(s => {
       process.env.DB_PASSWORD = s.value;
       return s.value;
     });
@@ -56,8 +56,9 @@ module.exports = async function (context, req) {
     const now = new Date();
     const pitchValidUntil = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
+    const instructionRef = body.instructionRef || null;
     const dealResult = await pool.request()
-      .input('InstructionRef', sql.NVarChar(50), null)
+      .input('InstructionRef', sql.NVarChar(50), instructionRef)
       .input('ProspectId', sql.Int, prospectId || null)
       .input('ServiceDescription', sql.NVarChar(255), serviceDescription)
       .input('Amount', sql.Money, amount)

@@ -1,0 +1,19 @@
+# Backend local ignore
+.env
+.local
+/uploads/
+push-package.zip
+node_modules/
+logs/
+*.log
+
+# Ignore script-local node_modules and common script artifacts
+scripts/node_modules/
+scripts/**/node_modules/
+scripts/*.log
+scripts/npm-debug.log
+scripts/*.env
+scripts/dist/
+scripts/build/
+scripts/tmp*
+scripts/*.tmp

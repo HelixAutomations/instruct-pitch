@@ -36,6 +36,29 @@ async function getDealByPasscode(passcode, prospectId) {
       FROM Deals
       WHERE Passcode = @code ${wherePid}
         AND (InstructionRef IS NULL OR InstructionRef = '')
+        AND UPPER(Status) <> 'CLOSED'
+    ORDER BY DealId DESC
+  `)
+  return result.recordset[0]
+}
+
+// Similar to getDealByPasscode but do NOT filter out deals that already
+// have an InstructionRef. Useful for read-only checks like generating
+// an instructionRef for an existing deal.
+async function getDealByPasscodeIncludingLinked(passcode, prospectId) {
+  const pool = await getSqlPool()
+  const request = pool.request()
+    .input('code', sql.NVarChar, passcode)
+  if (prospectId != null) {
+    request.input('pid', sql.Int, prospectId)
+  }
+  const wherePid = prospectId != null ? 'AND ProspectId = @pid' : ''
+  const result = await request.query(`
+      SELECT TOP 1 DealId, ProspectId, InstructionRef, ServiceDescription, Amount, AreaOfWork
+      FROM Deals
+      WHERE Passcode = @code ${wherePid}
+        AND UPPER(Status) <> 'CLOSED'
+      ORDER BY DealId DESC
     `)
   return result.recordset[0]
 }

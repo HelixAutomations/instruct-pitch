@@ -1,0 +1,3 @@
+[submodule "apps/tab-app"]
+	path = apps/tab-app
+	url = git@github.com:HelixAutomations/tab-app.git
