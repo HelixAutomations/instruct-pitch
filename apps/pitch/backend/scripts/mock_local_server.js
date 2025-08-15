@@ -227,23 +227,14 @@ app.get('/api/generate-instruction-ref', (req, res) => {
   res.json({ instructionRef: ref });
 });
 
-// Minimal mock of SHASIGN generation so the client can compute signatures
-// during local testing. Uses a fixed phrase so tests are deterministic.
-app.post('/pitch/get-shasign', (req, res) => {
+// ─── Stripe Payment Mock - TODO ────────────────────────────────────────
+// TODO: Add Stripe payment intent mock endpoints
+app.post('/pitch/create-payment-intent', (req, res) => {
   try {
-    const params = req.body || {};
-    // Simple deterministic mock: uppercase keys, sort, concat k=v+PHRASE
-    const PHRASE = 'MOCK_SHA_PHRASE';
-    const toHash = Object.keys(params)
-      .map(k => k.toUpperCase())
-      .sort()
-      .map(k => `${k}=${params[k]}${PHRASE}`)
-      .join('');
-    const crypto = require('crypto');
-    const shasign = crypto.createHash('sha256').update(toHash).digest('hex').toUpperCase();
-    return res.json({ shasign });
+    // Mock Stripe PaymentIntent creation for development
+    res.status(501).json({ error: 'Stripe mock not yet implemented' });
   } catch (err) {
-    console.error('[mock] /pitch/get-shasign error', err && err.message);
+    console.error('[mock] Payment intent creation error', err && err.message);
     return res.status(500).json({ error: 'mock error' });
   }
 });

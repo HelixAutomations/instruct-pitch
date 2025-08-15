@@ -1,6 +1,6 @@
 # Instruct Pitch
 
-This repository contains a small React client and an Express backend used to demonstrate a payment flow with Barclays ePDQ.
+This repository contains a React client and Express backend for legal instruction management and client onboarding. **The payment system is currently being migrated from Barclays ePDQ to Stripe** - see [barclays-to-stripe-migration.md](docs/barclays-to-stripe-migration.md) for details.
 
 Clients load the app using their **Client ID** in the URL (e.g. `/pitch/12345`). On first visit they must also supply a unique **passcode** from their invitation email. The passcode validates the deal and is required to generate an instruction reference and upload documents.
 

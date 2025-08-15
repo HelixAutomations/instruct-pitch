@@ -18,11 +18,10 @@ interface PaymentProps {
   onError: (errorCode: string) => void;
   onBack: () => void;
   onNext: () => void;
-  pspid: string;
+  // TODO: Add Stripe-specific props here when implementing Stripe
   orderId: string;
   acceptUrl: string;
   exceptionUrl: string;
-  preloadFlexUrl: string | null;
   amount: number;
   product: string;
   workType: string;
@@ -43,11 +42,9 @@ const Payment: React.FC<PaymentProps> = ({
   setIsComplete,
   onError,
   onBack,
-  pspid,
   orderId,
   acceptUrl,
   exceptionUrl,
-  preloadFlexUrl,
   amount,
   product,
   contactFirstName,
@@ -58,7 +55,7 @@ const Payment: React.FC<PaymentProps> = ({
   style,
   hideSummary = false,
 }) => {
-  const [flexUrl, setFlexUrl] = useState<string | null>(preloadFlexUrl ?? null);
+  const [flexUrl, setFlexUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [iframeHeight, setIframeHeight] = useState<number>(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -204,54 +201,15 @@ const Payment: React.FC<PaymentProps> = ({
     return () => window.removeEventListener('message', handler);
   }, [acceptUrl, exceptionUrl, onError]);
 
-  /* Build the FlexCheckout URL (unless it’s preloaded) */
+  /* Payment system is temporarily disabled during Barclays -> Stripe migration */
   useEffect(() => {
-    if (preloadFlexUrl) {
-      setFlexUrl(preloadFlexUrl);
-      return;   // don’t regenerate
-    }
-    if (!pspid || !orderId || !acceptUrl || !exceptionUrl) return;
-
-    const generateShasignUrl = async () => {
-
-      const params: Record<string, string> = {
-        'ACCOUNT.PSPID':           pspid,
-        'ALIAS.ORDERID':           orderId,
-        'PARAMETERS.ACCEPTURL':    acceptUrl,
-        'PARAMETERS.EXCEPTIONURL': exceptionUrl,
-        /* Let the gateway show *all* card brands */
-        'CARD.PAYMENTMETHOD':      'CreditCard',
-        'LAYOUT.TEMPLATENAME':     'master.htm',
-        'LAYOUT.LANGUAGE':         'en_GB',
-        'ALIAS.STOREPERMANENTLY':  'Y',
-      };
-
-      try {
-        const res   = await fetch('/pitch/get-shasign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(params),
-        });
-        const json  = await res.json();
-        if (!res.ok || !json.shasign) {
-          throw new Error(`SHA-sign service returned ${res.status}`);
-        }
-        const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
-        setFlexUrl(
-          `https://payments.epdq.co.uk/Tokenization/HostedPage?${query}`
-        );
-        if (onPaymentData) onPaymentData({ orderId, shaSign: json.shasign, paymentMethod: 'card' });
-        sessionStorage.setItem('paymentMethod', 'card');
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load payment form. Please try again.');
-        onError('FLEX_URL_FAILED');
-      }
-    };
-
-    
-    generateShasignUrl();
-  }, [pspid, orderId, acceptUrl, exceptionUrl, preloadFlexUrl, onError]);
+    // During the migration we intentionally do not generate the old ePDQ FlexCheckout URL.
+    // Show a friendly message and clear any existing Flex URL.
+    setError(
+      'Payment system is being updated to provide a better experience. Please contact us directly to complete your payment.'
+    );
+    setFlexUrl(null);
+  }, [orderId, acceptUrl, exceptionUrl, onError]);
 
   if (!content && instructionReady) {
     let paymentDetailsContent;

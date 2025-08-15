@@ -130,19 +130,13 @@ const keyVaultUri  = `https://${keyVaultName}.vault.azure.net`;
 const credential   = new DefaultAzureCredential();
 const secretClient = new SecretClient(keyVaultUri, credential);
 
-let cachedShaPhrase, cachedEpdqUser, cachedEpdqPassword, cachedFetchInstructionDataCode, cachedDbPassword;
+let cachedFetchInstructionDataCode, cachedDbPassword;
 (async () => {
   try {
-    const [sha, user, pass, fetchCode, dbPass] = await Promise.all([
-      secretClient.getSecret('epdq-shaphrase'),
-      secretClient.getSecret('epdq-userid'),
-      secretClient.getSecret('epdq-password'),
+    const [fetchCode, dbPass] = await Promise.all([
       secretClient.getSecret('fetchInstructionData-code'),
       secretClient.getSecret(process.env.DB_PASSWORD_SECRET),
     ]);
-    cachedShaPhrase               = sha.value;
-    cachedEpdqUser                = user.value;
-    cachedEpdqPassword            = pass.value;
     cachedFetchInstructionDataCode = fetchCode.value;
     cachedDbPassword              = dbPass.value;
     process.env.DB_PASSWORD = cachedDbPassword;
@@ -155,171 +149,38 @@ let cachedShaPhrase, cachedEpdqUser, cachedEpdqPassword, cachedFetchInstructionD
   }
 })();
 
-// ─── SHASIGN generation ────────────────────────────────────────────────
-app.post('/pitch/get-shasign', (req, res) => {
+// ─── Payment Integration - Prepared for Stripe ────────────────────────
+// TODO: Add Stripe payment endpoints here
+// - POST /pitch/create-payment-intent
+// - POST /pitch/confirm-payment-intent
+// - POST /pitch/webhook/stripe
+
+// ─── Stripe Payment Preparation ────────────────────────────────────────
+app.post('/pitch/create-payment-intent', async (req, res) => {
   try {
     if (paymentsOff) {
-      log('🛑 /pitch/get-shasign blocked: payments disabled');
+      log('🛑 Payment creation blocked: payments disabled');
       return res.status(503).json({ error: 'Payments are temporarily disabled' });
     }
-    if (!cachedShaPhrase) throw new Error('SHA phrase not loaded');
-    const params = req.body;
-    log('Generating SHASIGN with params:', mask(params));
-    const toHash = Object.keys(params)
-      .map(k => k.toUpperCase()) // 👈 this line is essential
-      .sort()
-      .map(k => `${k}=${params[k]}${cachedShaPhrase}`)
-      .join('');
-    log('SHA input string length:', toHash.length);
-    const shasign = crypto.createHash('sha256').update(toHash).digest('hex').toUpperCase();
-    log('SHASIGN:', shasign);
-    res.json({ shasign });
+    // TODO: Implement Stripe PaymentIntent creation
+    res.status(501).json({ error: 'Stripe integration not yet implemented' });
   } catch (err) {
-    console.error('❌ /pitch/get-shasign error:', err);
+    console.error('❌ Payment intent creation error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── DirectLink confirm-payment ────────────────────────────────────────
-app.post('/pitch/confirm-payment', async (req, res) => {
-  if (paymentsOff) {
-    log('🛑 /pitch/confirm-payment blocked: payments disabled');
-    return res.status(503).json({ error: 'Payments are temporarily disabled' });
-  }
-  const { aliasId, orderId, amount, product, threeDS = {}, acceptUrl, exceptionUrl, declineUrl, shaSign } = req.body;
-  if (!aliasId || !orderId) {
-    return res.status(400).json({ error: 'Missing aliasId or orderId' });
-  }
+// ─── Stripe Payment Confirmation - TODO ────────────────────────────────
+app.post('/pitch/confirm-payment-intent', async (req, res) => {
   try {
-    log('Starting confirm-payment for order', orderId);
-    const instruction = await getInstruction(orderId).catch(() => ({}));
-    const params = {
-      PSPID:     'epdq1717240',
-      USERID:    cachedEpdqUser,
-      PSWD:      cachedEpdqPassword,
-      ORDERID:   orderId,
-      ALIAS:     aliasId,
-      CURRENCY:  'GBP',
-      OPERATION: 'SAL',
-      ALIASUSAGE: 'One-off Helix payment',
-      FLAG3D:    'Y',
-      ALIASOPERATION: 'BYPSP',
-    };
-    if (amount != null) {
-      params.AMOUNT = String(Math.round(Number(amount) * 100));
+    if (paymentsOff) {
+      log('🛑 Payment confirmation blocked: payments disabled');
+      return res.status(503).json({ error: 'Payments are temporarily disabled' });
     }
-    if (instruction) {
-      const name = [instruction.FirstName, instruction.LastName].filter(Boolean).join(' ');
-      if (name) params.CN = name;
-      if (instruction.Email) params.EMAIL = instruction.Email;
-    }
-    if (acceptUrl)    params.ACCEPTURL    = acceptUrl;
-    if (exceptionUrl) params.EXCEPTIONURL = exceptionUrl;
-    if (declineUrl)   params.DECLINEURL   = declineUrl;
-    params.LANGUAGE = 'en_GB';
-    params.browserAcceptHeader = req.headers['accept'] || '*/*';
-    params.browserUserAgent = req.headers['user-agent'] || '';
-    params.REMOTE_ADDR =
-      (req.headers['x-forwarded-for'] ?? '').split(',')[0] ||
-      req.socket.remoteAddress;
-    Object.assign(params, threeDS);
-    log('Payment params before upper-case:', mask(params));
-
-    // ePDQ requires all parameter names to be upper-case when computing the
-    // SHA signature. The 3DS fields arrive in camelCase from the client so we
-    // normalise them here before signing and sending the request.
-    const upper = Object.fromEntries(
-      Object.entries(params).map(([k, v]) => [k.toUpperCase(), v])
-    );
-
-    log('Upper-case params:', mask(upper));
-
-    const shaInput = Object.keys(upper)
-      .sort()
-      .map(k => `${k}=${upper[k]}${cachedShaPhrase}`)
-      .join('');
-    log('SHA input length:', shaInput.length);
-    const shasign = crypto
-      .createHash('sha256')
-      .update(shaInput)
-      .digest('hex')
-      .toUpperCase();
-
-    log('Computed SHASIGN:', shasign);
-
-    const payload = new URLSearchParams({ ...upper, SHASIGN: shasign }).toString();
-
-    log('Payload sent to ePDQ:', payload.replace(/PSWD=[^&]*/i, 'PSWD=[REDACTED]'));
-    const result = await axios.post(
-      'https://payments.epdq.co.uk/ncol/prod/orderdirect.asp',
-      payload,
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    const rawBody = typeof result.data === 'string' ? result.data.trim() : '';
-    log('Raw response from ePDQ:', rawBody);
-    let parsed = {};
-    if (rawBody.startsWith('<')) {
-      console.warn('⚠️  XML response from ePDQ:', rawBody.slice(0, 80));
-      const attr = rawBody.match(/<ncresponse([^>]*)>/i);
-      if (attr) {
-        const re = /(\w+)="([^"]*)"/g;
-        let m;
-        while ((m = re.exec(attr[1])) !== null) {
-          parsed[m[1]] = m[2];
-        }
-      }
-      const htmlMatch = rawBody.match(/<HTML_ANSWER>([\s\S]*?)<\/HTML_ANSWER>/i);
-      if (htmlMatch) parsed.HTML_ANSWER = htmlMatch[1];
-    } else {
-      rawBody
-        .split(/\r?\n|&/)
-        .forEach(p => {
-          if (!p) return;
-          const idx = p.indexOf('=');
-          if (idx === -1) {
-            parsed[p] = '';
-          } else {
-            const key = p.slice(0, idx);
-            const val = p.slice(idx + 1);
-            parsed[key] = val;
-          }
-        });
-    }
-    const status = parsed.STATUS || '';
-    const ncError = parsed.NCERROR || '';
-    // STATUS 5 and 9 are direct success codes. NCERROR 50001113 indicates the
-    // order has already been processed (typically after a 3-D Secure flow).
-    const success = status === '5' || status === '9' || ncError === '50001113';
-    const alreadyProcessed =
-      success && ncError === '50001113' && instruction.PaymentResult === 'successful';
-    log('Parsed response:', parsed);
-    log('Payment success:', success);
-
-    if (status === '46' && parsed.HTML_ANSWER) {
-      return res.json({ challenge: parsed.HTML_ANSWER, details: parsed });
-    }
-
-    if (success && !alreadyProcessed) {
-      await updatePaymentStatus(
-        orderId,
-        'card',
-        success,
-        amount != null ? Number(amount) : null,
-        product || null,
-        aliasId,
-        orderId,
-        shaSign || shasign
-      );
-      try {
-        await attachInstructionRefToDeal(orderId);
-      } catch (err) {
-        console.error('❌ Failed to link instruction to deal:', err);
-      }
-    }
-
-    res.json({ success, alreadyProcessed, details: parsed });
+    // TODO: Implement Stripe PaymentIntent confirmation
+    res.status(501).json({ error: 'Stripe integration not yet implemented' });
   } catch (err) {
-    console.error('❌ /pitch/confirm-payment error:', err);
+    console.error('❌ Payment confirmation error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -567,13 +428,17 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'Missing cid or passcode' });
   }
 
-  // If we have a potential passcode, try to look up the actual client ID
+  // If we have a potential passcode in the cid parameter, try to look up the actual client ID
   if (cid && /^\d+$/.test(cid)) {
     try {
-      const deal = await getDealByPasscodeIncludingLinked(String(cid));
+      // First try treating cid as a passcode
+      let deal = await getDealByPasscodeIncludingLinked(String(cid));
       if (deal && deal.ProspectId) {
         console.log(`🔍 Passcode lookup: ${cid} → Client ID ${deal.ProspectId}`);
         cid = String(deal.ProspectId);
+      } else {
+        // If no deal found by passcode, treat cid as ProspectId (no change needed)
+        console.log(`🔍 Using ${cid} as Client ID directly`);
       }
     } catch (lookupErr) {
       console.warn('⚠️ Passcode lookup failed, treating as client ID:', lookupErr.message);
@@ -610,7 +475,12 @@ app.get('/payment-error',   (_req, res) => res.send('❌ Payment error callback'
 app.get('/', (_req, res) => res.redirect('/pitch'));
 
 // ─── Static & SPA routing ───────────────────────────────────────────────
-const distPath = path.join(__dirname, '../client/dist');
+// Handle both local dev and production paths
+let distPath = path.join(__dirname, '../client/dist');
+// In production (Azure), files are in wwwroot, so client/dist is in same dir as server.js
+if (!fs.existsSync(distPath)) {
+  distPath = path.join(__dirname, 'client/dist');
+}
 
 // 1) serve all static files
 app.use(express.static(distPath, { index: false }));
@@ -676,19 +546,20 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         injectedPasscode = code;
         try {
           // Always try to resolve a passcode -> ProspectId so the client can
-          // call generate-instruction-ref with a valid cid. If the code looks
-          // like a numeric ProspectId, prefer looking up by ProspectId.
-          if (/^\d+$/.test(code)) {
-            const deal = await getDealByProspectId(Number(code));
+          // call generate-instruction-ref with a valid cid. First try treating
+          // the code as a passcode, then fall back to treating it as a ProspectId.
+          
+          // First: try as passcode (most common case)
+          let deal = await getDealByPasscode(code).catch(() => null);
+          if (deal && deal.ProspectId) {
+            resolvedProspectId = String(deal.ProspectId);
+            injectedPasscode = code;
+          } else if (/^\d+$/.test(code)) {
+            // Fallback: if no deal found by passcode and code is numeric, try as ProspectId
+            deal = await getDealByProspectId(Number(code));
             if (deal) {
               resolvedProspectId = String(deal.ProspectId || code);
               injectedPasscode = deal.Passcode || code;
-            }
-          } else {
-            // For passcode-only URLs, resolve prospect id from the passcode
-            const deal = await getDealByPasscode(code).catch(() => null);
-            if (deal && deal.ProspectId) {
-              resolvedProspectId = String(deal.ProspectId);
             }
           }
         } catch (err) { /* ignore lookup failures */ }

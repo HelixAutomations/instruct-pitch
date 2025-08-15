@@ -356,9 +356,7 @@ const HomePage: React.FC<HomePageProps> = ({
       });
   }, [instruction.instructionRef]);
 
-  const PSPID = 'epdq1717240';
-  // Temporary toggle for the payment rework: payments are disabled for now.
-  // This hides the Pay step in the UI while we replace Barclays with Stripe.
+  // Payment system migration: Payments are disabled during Barclays->Stripe transition
   const paymentsDisabled = true;
   const ACCEPT_URL = useMemo(
     () =>
@@ -370,11 +368,7 @@ const HomePage: React.FC<HomePageProps> = ({
       `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`,
     [instruction.amount, instruction.product]
   );
-  const [preloadedFlexUrl, setPreloadedFlexUrl] = useState<string | null>(
-    process.env.NODE_ENV === 'development' && !paymentsDisabled
-      ? `${window.location.origin}${import.meta.env.BASE_URL}assets/master_creditcard.htm`
-      : null
-  );
+  // Payment preloading removed during Barclays->Stripe migration
   const [prefetchPayment, setPrefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
@@ -560,65 +554,9 @@ const HomePage: React.FC<HomePageProps> = ({
     }
   }, [clientId]);
 
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') return;
-    
-    const params: Record<string,string> = {
-      'ACCOUNT.PSPID':           PSPID,
-      'ALIAS.ORDERID':           instruction.instructionRef,
-      'PARAMETERS.ACCEPTURL':    ACCEPT_URL,
-      'PARAMETERS.EXCEPTIONURL': EXCEPTION_URL,
-      'CARD.PAYMENTMETHOD':      'CreditCard',
-      'LAYOUT.TEMPLATENAME':     'master.htm',
-      'LAYOUT.LANGUAGE':         'en_GB',
-      'ALIAS.STOREPERMANENTLY':  'Y',
-    };
-
-      const preload = async () => {
-        try {
-          const res = await fetch('/pitch/get-shasign', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(params)
-          });
-          const json = await res.json();
-          if (res.ok && json.shasign) {
-            const query = new URLSearchParams({ ...params, SHASIGN: json.shasign }).toString();
-            setPreloadedFlexUrl(
-              `https://payments.epdq.co.uk/Tokenization/HostedPage?${query}`
-            );
-          }
-        } catch (err) {
-          console.error('Failed to preload payment form:', err);
-        }
-      };
-
-      preload();
-    }, [ACCEPT_URL, EXCEPTION_URL, instruction.instructionRef]);
-
-  useEffect(() => {
-    if (!preloadedFlexUrl) return;
-
-    const iframe = document.createElement('iframe');
-    iframe.src = preloadedFlexUrl;
-    iframe.style.display = 'none';
-
-    const trigger = () => {
-      document.body.appendChild(iframe);
-      setPrefetchPayment(true);
-    };
-    const idle = (window as any).requestIdleCallback
-      ? requestIdleCallback(trigger)
-      : setTimeout(trigger, 1000);
-    return () => {
-      iframe.remove();
-      if ((window as any).cancelIdleCallback) {
-        cancelIdleCallback(idle as any);
-      } else {
-        clearTimeout(idle as any);
-      }
-    };
-  }, [preloadedFlexUrl]);
+  // TODO: Add Stripe payment preloading here when implementing Stripe integration
+  
+  // TODO: Add Stripe payment preloading here when implementing Stripe integration
 
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -1347,7 +1285,6 @@ const proofSummary = (
                           onBack={back}
                           onNext={next}
                           onError={(code) => console.error('Payment error', code)}
-                          pspid={PSPID}
                           orderId={instruction.instructionRef}
                           amount={instruction.amount}
                           product={instruction.product}
@@ -1356,7 +1293,7 @@ const proofSummary = (
                           pitchedAt={instruction.pitchedAt}
                           acceptUrl={ACCEPT_URL}
                           exceptionUrl={EXCEPTION_URL}
-                          preloadFlexUrl={preloadedFlexUrl}
+                          
                           instructionReady={instructionReady}
                           onPaymentData={updatePaymentData}
                           hideSummary
