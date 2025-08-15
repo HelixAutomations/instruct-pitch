@@ -55,6 +55,19 @@ app.use((req, _res, next) => {
 });
 app.use('/api', uploadRouter);
 
+// ─── Debug endpoint to test if requests reach Node ─────────────────────
+app.post('/api/debug-upload', (req, res) => {
+  console.log('🔍 Debug upload endpoint reached');
+  console.log('Headers:', Object.keys(req.headers));
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Content-Length:', req.headers['content-length']);
+  res.json({ 
+    message: 'Debug endpoint reached', 
+    contentType: req.headers['content-type'],
+    timestamp: new Date().toISOString()
+  });
+});
+
 // ─── Block direct access to server files ───────────────────────────────
 app.all('/server.js', (_req, res) => {
   res.status(404).send('Not found');
