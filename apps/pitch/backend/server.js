@@ -549,8 +549,9 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
           // call generate-instruction-ref with a valid cid. First try treating
           // the code as a passcode, then fall back to treating it as a ProspectId.
           
-          // First: try as passcode (most common case)
-          let deal = await getDealByPasscode(code).catch(() => null);
+          // First: try as passcode (most common case) - use IncludingLinked to find
+          // deals even if they already have an InstructionRef
+          let deal = await getDealByPasscodeIncludingLinked(code).catch(() => null);
           if (deal && deal.ProspectId) {
             resolvedProspectId = String(deal.ProspectId);
             injectedPasscode = code;
