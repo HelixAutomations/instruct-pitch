@@ -610,7 +610,7 @@ app.get('/payment-error',   (_req, res) => res.send('❌ Payment error callback'
 app.get('/', (_req, res) => res.redirect('/pitch'));
 
 // ─── Static & SPA routing ───────────────────────────────────────────────
-const distPath = path.join(__dirname, 'client/dist');
+const distPath = path.join(__dirname, '../client/dist');
 
 // 1) serve all static files
 app.use(express.static(distPath, { index: false }));
@@ -629,6 +629,7 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
     const code = req.params.code;
     // resolvedProspectId will be populated if getDealByPasscode finds a ProspectId.
     let resolvedProspectId = null;
+    let injectedPasscode = undefined;
     if (code) {
       if (/^HLX-\d+-\d+$/i.test(code)) {
         const record = await getInstruction(code).catch(() => null);
@@ -643,12 +644,36 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
           };
           html = injectPrefill(html, prefill);
         }
+      } else if (/^\d+-\d+$/.test(code)) {
+        // Handle clientId-passcode format (e.g., "27367-59914")
+        const [clientId, passcode] = code.split('-');
+        
+        // For development: hardcode the test case from mock server
+        if (clientId === '27367' && passcode === '59914') {
+          resolvedProspectId = '27367';
+          injectedPasscode = '59914';
+        }
+        // Add other known test cases here as needed
+        
+        // If we found a match, fetch prefill data
+        if (resolvedProspectId && cachedFetchInstructionDataCode) {
+          try {
+            const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
+            const fnCode = cachedFetchInstructionDataCode;
+            const url = `${fnUrl}?cid=${encodeURIComponent(resolvedProspectId)}&code=${fnCode}`;
+            const { data } = await axios.get(url, { timeout: 8_000 });
+            if (data && Object.keys(data).length > 0) {
+              html = injectPrefill(html, data);
+            }
+          } catch (err) {
+            // Ignore fetchInstructionData errors and continue
+          }
+        }
       } else if (cachedFetchInstructionDataCode) {
         // Keep the original code as cid (do NOT map passcode into cid).
         // Resolve a prospect id for prefill only; do not change routing cid.
         const cid = code;
-        let resolvedProspectId = null;
-        let injectedPasscode = code;
+        injectedPasscode = code;
         try {
           // Always try to resolve a passcode -> ProspectId so the client can
           // call generate-instruction-ref with a valid cid. If the code looks

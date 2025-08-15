@@ -168,6 +168,20 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], (req, res, next) => {
         };
         html = injectPrefill(html, prefill);
       }
+    } else if (/^\d+-\d+$/.test(code)) {
+      // Handle clientId-passcode format (e.g., "27367-59914")
+      const [clientId, passcode] = code.split('-');
+      const deal = mockDeals.find(d => 
+        String(d.ProspectId) === clientId && 
+        d.Passcode === passcode && 
+        String(d.Status).toUpperCase() !== 'CLOSED'
+      );
+      if (deal) {
+        resolvedProspectId = String(deal.ProspectId);
+        originalPasscode = passcode;
+        const simulated = { First_Name: 'Prefilled', Last_Name: 'FromDeal', Email: 'deal@example.com' };
+        html = injectPrefill(html, simulated);
+      }
     } else {
       // First, treat the code as a ProspectId (client id) and resolve its deal
       const byProspect = mockDeals.find(d => d.ProspectId === String(code) && String(d.Status).toUpperCase() !== 'CLOSED');
@@ -302,6 +316,22 @@ app.post('/api/instruction/:ref/documents', (req, res) => {
   mockDocuments[ref] = mockDocuments[ref] || [];
   mockDocuments[ref].push({ FileName: fileName, BlobUrl: blobUrl });
   return res.json({ ok: true, documents: mockDocuments[ref] });
+});
+
+// Mock upload endpoint to simulate file uploads without actual Azure Blob Storage
+app.post('/api/upload', express.raw({ type: 'multipart/form-data', limit: '50mb' }), (req, res) => {
+  try {
+    // For mock purposes, just return a fake blob URL
+    const mockBlobUrl = `https://mockblob.blob.core.windows.net/uploads/mock-${Date.now()}.pdf`;
+    console.log('[mock] simulated file upload to:', mockBlobUrl);
+    return res.json({ 
+      blobName: `mock-${Date.now()}.pdf`,
+      url: mockBlobUrl 
+    });
+  } catch (err) {
+    console.error('[mock] upload error:', err);
+    return res.status(500).json({ error: 'Mock upload failed' });
+  }
 });
 
 const PORT = process.env.PORT || 4000;

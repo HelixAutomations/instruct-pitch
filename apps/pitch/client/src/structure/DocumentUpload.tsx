@@ -236,7 +236,19 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
+      
+      // Check if response is JSON before parsing
+      const contentType = res.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        // Non-JSON response (likely HTML error page)
+        await res.text(); // Consume the response body
+        throw new Error(`Server error (${res.status}): ${res.statusText}`);
+      }
+      
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       setUploadedFiles(prev =>
         prev.map(u => (u.file === doc.file ? { ...u, uploaded: true } : u))

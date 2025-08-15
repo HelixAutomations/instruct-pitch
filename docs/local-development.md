@@ -1,6 +1,6 @@
 ## Local development quickstart (Windows / PowerShell)
 
-This file explains a pragmatic, low-friction way to run the Tab app and the decoupled functions locally so you can iterate fast and test end-to-end deal capture flows.
+This file explains a pragmatic, low-friction way to run the Tab app, Pitch app, and the decoupled functions locally so you can iterate fast and test end-to-end deal capture flows.
 
 Keep this short and actionable — use it as a checklist and reference.
 
@@ -8,7 +8,7 @@ Assumptions
 - You have Node.js (>=18) and npm installed.
 - You have Azure Functions Core Tools installed when running Azure Functions locally (`func`).
 - You will use PowerShell for the commands below.
-- The repo root is the workspace root that contains `apps/tab-app` and `decoupled-functions`.
+- The repo root is the workspace root that contains `apps/tab-app`, `apps/pitch`, and `decoupled-functions`.
 
 Checklist (first-pass)
 - [x] Add the `apps/tab-app` submodule (already done)
@@ -21,18 +21,62 @@ Environment variables (key ones)
 - USE_LOCAL_SECRETS=true  # Tab app reads local .env instead of Key Vault
 - DEAL_CAPTURE_BASE_URL=http://localhost:7071/api/dealCapture
 - DEAL_CAPTURE_CODE=local-test-key
-- KEY_VAULT_NAME=... (not needed when USE_LOCAL_SECRETS=true)
-- DB_PASSWORD=... (or set DB_PASSWORD_SECRET in Key Vault for production)
+- KEY_VAULT_NAME=local-placeholder  # Set in decoupled-functions/local.settings.json to avoid startup errors
+- DB_PASSWORD=localdev  # Direct password for local dev, bypasses Key Vault lookup
 - Any other secrets referenced in `apps/tab-app/api` or `decoupled-functions` should be mirrored in local env when USE_LOCAL_SECRETS=true
+
+## Pitch App Setup
+
+### Quick Start (Combined Dev Environment)
+```powershell
+# Start all pitch app services at once
+cd "D:\helix projects\workspace\vsc\instructions\apps\pitch\backend"
+npm run dev:hot
+```
+
+This starts:
+- Vite client dev server (port 5173) - for hot reloading
+- Mock server (port 4000) - for production-like testing  
+- Azure Functions (port 7071) - decoupled functions
+
+### URLs for Testing
+- **Production-like**: http://localhost:4000/pitch/59914 (recommended)
+- **Vite dev**: http://localhost:5173/59914-pitch (alternative format)
+
+### Individual Services
+```powershell
+# Client only (Vite)
+cd "D:\helix projects\workspace\vsc\instructions\apps\pitch\client"
+npm run dev
+
+# Mock server only
+cd "D:\helix projects\workspace\vsc\instructions\apps\pitch\backend"
+npm run dev:mock
+
+# Backend server only
+cd "D:\helix projects\workspace\vsc\instructions\apps\pitch\backend"
+npm start
+```
+
+## Tab App Setup
 
 PowerShell commands — install deps
 
+# Pitch app dependencies
+cd "D:\helix projects\workspace\vsc\instructions\apps\pitch\backend"
+npm install
+
+cd "D:\helix projects\workspace\vsc\instructions\apps\pitch\client"
+npm install
+
+# Tab app dependencies  
 cd "D:\helix projects\workspace\vsc\instructions\apps\tab-app\server"
 npm install
 
 cd "D:\helix projects\workspace\vsc\instructions\apps\tab-app\api"
 npm install
 
+# Decoupled functions
 cd "D:\helix projects\workspace\vsc\instructions\decoupled-functions"
 npm install
 
@@ -80,6 +124,8 @@ How Tab app handles secrets locally
 Quick troubleshooting
 - If the API call to the decoupled `dealCapture` fails with 401/403, ensure `DEAL_CAPTURE_CODE` matches the function key expected by the decoupled host, or disable function auth locally for testing.
 - If Key Vault lookups still fail, set `USE_LOCAL_SECRETS=true` and populate `.env` values.
+- **If Azure Functions fail to start with "Key Vault not specified" errors**: Ensure `decoupled-functions/local.settings.json` contains `KEY_VAULT_NAME` and `DB_PASSWORD` placeholders.
+- **If Documents step doesn't appear in Pitch app**: Use the mock server at port 4000 instead of Vite at port 5173, or use the URL format `/<passcode>-<clientId>` with Vite.
 
 Finding where the frontend triggers the API
 - The API handler is `apps/tab-app/api/src/functions/insertDeal.ts` (it normalizes and forwards to `dealCapture`). To find the frontend caller search the UI tree for `/api/insertDeal` or `insertDeal`:

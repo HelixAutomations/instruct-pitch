@@ -18,7 +18,24 @@ Install backend and client dependencies:
 ```bash
 npm install --prefix apps/pitch/backend
 npm install --prefix apps/pitch/client
+npm install --prefix decoupled-functions
 ```
+
+## Development Quick Start
+
+**Combined dev environment** (recommended):
+```powershell
+cd apps/pitch/backend
+npm run dev:hot
+```
+Then open: http://localhost:4000/pitch/59914
+
+**Individual services**:
+- Vite client: `npm run dev --prefix apps/pitch/client` → http://localhost:5173/59914-pitch
+- Mock server: `npm run dev:mock --prefix apps/pitch/backend` → http://localhost:4000/pitch/59914
+- Functions: `func start` (from `decoupled-functions/`)
+
+> **Note**: For troubleshooting development setup, see [docs/development-fixes-2025-08-15.md](docs/development-fixes-2025-08-15.md)
 
 ## Quick start — run locally (mocked backend)
 

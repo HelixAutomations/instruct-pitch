@@ -61,3 +61,13 @@ Checks
 
 Resolution
 - This is expected while the freeze is in place. Remove/disable the flag to restore card payments and client emails.
+
+## Development Environment Issues
+
+For comprehensive troubleshooting of local development setup, Key Vault configuration, and git safety issues, see:
+- [Development Fixes - August 15, 2025](./development-fixes-2025-08-15.md)
+
+Common development issues:
+- **Azure Functions "Key Vault not specified" errors**: Check `decoupled-functions/local.settings.json` for placeholder values
+- **Documents step not visible**: Ensure using mock server (port 4000) or correct URL format with Vite
+- **Git safety**: Review .gitignore updates to prevent committing sensitive files
