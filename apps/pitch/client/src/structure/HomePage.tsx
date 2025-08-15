@@ -1304,51 +1304,49 @@ const proofSummary = (
               </CSSTransition>
             )}
 
-            {hasDeal && (
-              <CSSTransition
-                in={documentsStepVisible}
-                timeout={300}
-                classNames="deal-steps-anim"
-                unmountOnExit
-              >
-                <div ref={step3Ref} className={`step-section${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}`}>
-                  <StepHeader
-                    step={documentsStepNumber}
-                    title={
-                      isUploadDone || isUploadSkipped
-                        ? 'Upload Files'
-                        : <>
-                            Upload Files <span className="optional">(optional)</span>
-                          </>
-                    }
-                    complete={isUploadDone || isUploadSkipped}
-                    open={openStep === (documentsStepNumber as 0 | 1 | 2 | 3)}
-                    toggle={() => goToStep(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? 0 : (documentsStepNumber as 0 | 1 | 2 | 3))}
-                    locked={false}
-                    allowToggleWhenLocked
-                    dimOnLock={false}
-                  />
-                  <div className={`step-content${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}${getPulseClass(documentsStepNumber, isUploadDone || isUploadSkipped)}`}>
-                    {(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) || closingStep === (documentsStepNumber as 0 | 1 | 2 | 3)) && (
-                      <DocumentUpload
-                        uploadedFiles={uploadedFiles}
-                        setUploadedFiles={setUploadedFiles}
-                        setIsComplete={setUploadDone}
-                        onBack={back}
-                        onNext={next}
-                        setUploadSkipped={setUploadSkipped}
-                        isUploadSkipped={isUploadSkipped}
-                        clientId={clientId}
-                        passcode={passcode}
-                        instructionRef={instruction.instructionRef}
-                        instructionReady={instructionReady}
-                        instructionError={instructionError}
-                      />
-                    )}
-                  </div>
+            <CSSTransition
+              in={documentsStepVisible}
+              timeout={300}
+              classNames="deal-steps-anim"
+              unmountOnExit
+            >
+              <div ref={step3Ref} className={`step-section${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}`}>
+                <StepHeader
+                  step={documentsStepNumber}
+                  title={
+                    isUploadDone || isUploadSkipped
+                      ? 'Upload Files'
+                      : <>
+                          Upload Files <span className="optional">(optional)</span>
+                        </>
+                  }
+                  complete={isUploadDone || isUploadSkipped}
+                  open={openStep === (documentsStepNumber as 0 | 1 | 2 | 3)}
+                  toggle={() => goToStep(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? 0 : (documentsStepNumber as 0 | 1 | 2 | 3))}
+                  locked={false}
+                  allowToggleWhenLocked
+                  dimOnLock={false}
+                />
+                <div className={`step-content${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}${getPulseClass(documentsStepNumber, isUploadDone || isUploadSkipped)}`}>
+                  {(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) || closingStep === (documentsStepNumber as 0 | 1 | 2 | 3)) && (
+                    <DocumentUpload
+                      uploadedFiles={uploadedFiles}
+                      setUploadedFiles={setUploadedFiles}
+                      setIsComplete={setUploadDone}
+                      onBack={back}
+                      onNext={next}
+                      setUploadSkipped={setUploadSkipped}
+                      isUploadSkipped={isUploadSkipped}
+                      clientId={clientId}
+                      passcode={passcode}
+                      instructionRef={instruction.instructionRef}
+                      instructionReady={instructionReady}
+                      instructionError={instructionError}
+                    />
+                  )}
                 </div>
-              </CSSTransition>
-            )}
+              </div>
+            </CSSTransition>
 
             {showFinalBanner && (
               <div className="completed-banner">
