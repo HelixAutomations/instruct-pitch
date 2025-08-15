@@ -1,4 +1,8 @@
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch (err) {
+  console.warn('⚠️  dotenv not found; skipping config');
+}
 // console.log('AZURE_STORAGE_ACCOUNT:', process.env.AZURE_STORAGE_ACCOUNT);
 // console.log('UPLOAD_CONTAINER:', process.env.UPLOAD_CONTAINER);
 const express = require('express');
