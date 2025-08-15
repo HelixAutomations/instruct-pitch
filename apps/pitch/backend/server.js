@@ -55,19 +55,6 @@ app.use((req, _res, next) => {
 });
 app.use('/api', uploadRouter);
 
-// ─── Debug endpoint to test if requests reach Node ─────────────────────
-app.post('/api/debug-upload', (req, res) => {
-  console.log('🔍 Debug upload endpoint reached');
-  console.log('Headers:', Object.keys(req.headers));
-  console.log('Content-Type:', req.headers['content-type']);
-  console.log('Content-Length:', req.headers['content-length']);
-  res.json({ 
-    message: 'Debug endpoint reached', 
-    contentType: req.headers['content-type'],
-    timestamp: new Date().toISOString()
-  });
-});
-
 // ─── Block direct access to server files ───────────────────────────────
 app.all('/server.js', (_req, res) => {
   res.status(404).send('Not found');
@@ -144,21 +131,34 @@ const credential   = new DefaultAzureCredential();
 const secretClient = new SecretClient(keyVaultUri, credential);
 
 let cachedFetchInstructionDataCode, cachedDbPassword;
+
+function startServer() {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));
+}
+
 (async () => {
   try {
+    if (!keyVaultName || !process.env.DB_PASSWORD_SECRET) {
+      console.warn('⚠️ KEY_VAULT_NAME or DB_PASSWORD_SECRET not set — skipping Key Vault fetch and starting server');
+      // Leave cached values undefined; server may rely on existing env vars.
+      startServer();
+      return;
+    }
+
     const [fetchCode, dbPass] = await Promise.all([
       secretClient.getSecret('fetchInstructionData-code'),
       secretClient.getSecret(process.env.DB_PASSWORD_SECRET),
     ]);
-    cachedFetchInstructionDataCode = fetchCode.value;
-    cachedDbPassword              = dbPass.value;
-    process.env.DB_PASSWORD = cachedDbPassword;
+    cachedFetchInstructionDataCode = fetchCode?.value;
+    cachedDbPassword              = dbPass?.value;
+    if (cachedDbPassword) process.env.DB_PASSWORD = cachedDbPassword;
     console.log('✅ All secrets loaded from Key Vault');
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));
+    startServer();
   } catch (err) {
-    console.error('❌ Failed to load secrets:', err);
-    process.exit(1);
+    console.error('❌ Failed to load secrets from Key Vault — starting server without them:', err && err.message);
+    // Do not crash the process; start the server and allow runtime paths to handle missing secrets.
+    startServer();
   }
 })();
 
