@@ -40,7 +40,9 @@ app.use((req, res, next) => {
 // In-memory mock deals (imitates Deals table). Status not 'CLOSED' are valid.
 const mockDeals = [
   { ProspectId: '12345', Passcode: '87402', Status: 'OPEN', Amount: 1200, ServiceDescription: 'Advice' },
-  { ProspectId: '54321', Passcode: '99999', Status: 'CLOSED', Amount: 800, ServiceDescription: 'Litigation' }
+  { ProspectId: '54321', Passcode: '99999', Status: 'CLOSED', Amount: 800, ServiceDescription: 'Litigation' },
+  // Added mapping for passcode 59914 → ProspectId 27367 (zero amount to exercise documents step logic)
+  { ProspectId: '27367', Passcode: '59914', Status: 'OPEN', Amount: 0, ServiceDescription: 'Consultation' }
 ];
 
 // Mock instructions (for HLX-... prefill)
@@ -250,6 +252,39 @@ app.post('/api/instruction', (req, res) => {
   // Merge and store for subsequent GETs
   mockInstructions[ref] = { ...(mockInstructions[ref] || {}), ...body };
   return res.json(mockInstructions[ref]);
+});
+
+// ---------------------------------------------------------------------------
+// Added mock implementation of /api/getDealByPasscodeIncludingLinked to
+// support passcode-only URLs (e.g. /pitch/59914) in dev when using the mock
+// server instead of the full backend. Mirrors the real endpoint shape enough
+// for the client logic in App.tsx.
+app.get('/api/getDealByPasscodeIncludingLinked', (req, res) => {
+  const { passcode } = req.query;
+  if (!passcode) return res.status(400).json({ error: 'Passcode is required' });
+  const deal = mockDeals.find(d => String(d.Passcode) === String(passcode) && String(d.Status).toUpperCase() !== 'CLOSED');
+  if (!deal) return res.status(404).json({ error: 'Deal not found' });
+  // Provide minimal fields the frontend expects; spread to allow future additions.
+  return res.json({ ...deal });
+});
+
+// Mock of internal fetch-instruction-data used by HomePage prefill hook.
+// The real backend calls an Azure Function with a code; here we simply
+// return deterministic sample data keyed by cid.
+app.get('/api/internal/fetch-instruction-data', (req, res) => {
+  const { cid } = req.query;
+  if (!cid) return res.status(400).json({ ok: false, error: 'Missing cid' });
+  // Attempt to resolve using mockDeals so the names vary per test client.
+  const deal = mockDeals.find(d => String(d.ProspectId) === String(cid));
+  const seed = deal ? deal.ProspectId : '00000';
+  const sample = {
+    First_Name: deal ? 'Client' : 'Sample',
+    Last_Name: deal ? `#${seed}` : 'User',
+    Email: `client${seed}@example.com`,
+    Phone_Number: '07123456789',
+    Point_of_Contact: 'Helix Team'
+  };
+  return res.json(sample);
 });
 
 // Documents endpoints for local testing

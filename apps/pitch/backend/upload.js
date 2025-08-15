@@ -6,6 +6,7 @@ const { BlobServiceClient } = require('@azure/storage-blob');
 const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { getDealByPasscode } = require('./instructionDb');
+const { sendEmail } = require('./email');
 
 const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
@@ -21,7 +22,12 @@ const container = process.env.UPLOAD_CONTAINER;
 if (!account || !container) {
   console.warn('⚠️  AZURE_STORAGE_ACCOUNT or UPLOAD_CONTAINER not set');
 }
-const credential = new DefaultAzureCredential();
+
+const storageKey = process.env.AZURE_STORAGE_KEY;
+const { StorageSharedKeyCredential } = require('@azure/storage-blob');
+const credential = storageKey 
+  ? new StorageSharedKeyCredential(account, storageKey)
+  : new DefaultAzureCredential();
 const serviceClient = new BlobServiceClient(
   `https://${account}.blob.core.windows.net`,
   credential
@@ -70,12 +76,37 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
     console.log(`✅ Uploaded ${blobName}`);
 
+    // Generate explicit DocumentId since the database column is not an identity column
+    const { randomUUID } = require('crypto');
+    const documentId = randomUUID();
+
     const pool = await getSqlPool();
     await pool.request()
+        .input('DocumentId', sql.UniqueIdentifier, documentId)
         .input('InstructionRef', sql.NVarChar, instructionRef)
         .input('FileName', sql.NVarChar, req.file.originalname)
         .input('BlobUrl', sql.NVarChar, blockBlob.url)
-        .query('INSERT INTO Documents (InstructionRef, FileName, BlobUrl) VALUES (@InstructionRef, @FileName, @BlobUrl)');
+        .query('INSERT INTO Documents (DocumentId, InstructionRef, FileName, BlobUrl) VALUES (@DocumentId, @InstructionRef, @FileName, @BlobUrl)');
+
+    // Send monitoring email to admin
+    try {
+      await sendEmail({
+        to: 'lz@helix.law',
+        subject: `Document uploaded: ${req.file.originalname}`,
+        html: `
+          <p>A document has been uploaded:</p>
+          <ul>
+            <li><strong>File:</strong> ${req.file.originalname}</li>
+            <li><strong>Client ID:</strong> ${clientId}</li>
+            <li><strong>Instruction Ref:</strong> ${instructionRef}</li>
+            <li><strong>Size:</strong> ${(size / 1024).toFixed(1)} KB</li>
+            <li><strong>Blob URL:</strong> <a href="${blockBlob.url}">${blockBlob.url}</a></li>
+          </ul>
+        `
+      });
+    } catch (emailErr) {
+      console.warn('⚠️  Failed to send monitoring email:', emailErr.message);
+    }
 
     res.json({ blobName, url: blockBlob.url });
   } catch (err) {

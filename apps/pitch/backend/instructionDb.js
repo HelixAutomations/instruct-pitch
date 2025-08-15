@@ -44,7 +44,8 @@ async function getDealByPasscode(passcode, prospectId) {
 
 // Similar to getDealByPasscode but do NOT filter out deals that already
 // have an InstructionRef. Useful for read-only checks like generating
-// an instructionRef for an existing deal.
+// an instructionRef for an existing deal. Also allows access to closed deals
+// when they have an InstructionRef (for viewing completed instructions).
 async function getDealByPasscodeIncludingLinked(passcode, prospectId) {
   const pool = await getSqlPool()
   const request = pool.request()
@@ -57,7 +58,7 @@ async function getDealByPasscodeIncludingLinked(passcode, prospectId) {
       SELECT TOP 1 DealId, ProspectId, InstructionRef, ServiceDescription, Amount, AreaOfWork
       FROM Deals
       WHERE Passcode = @code ${wherePid}
-        AND UPPER(Status) <> 'CLOSED'
+        AND (UPPER(Status) <> 'CLOSED' OR InstructionRef IS NOT NULL)
       ORDER BY DealId DESC
     `)
   return result.recordset[0]
@@ -370,7 +371,9 @@ module.exports = {
   getInstruction,
   getLatestDeal,
   getDealByPasscode,
+  getDealByPasscodeIncludingLinked,
   getDealByProspectId,
+  getOrCreateInstructionRefForPasscode,
   upsertInstruction,
   markCompleted,
   updatePaymentStatus,

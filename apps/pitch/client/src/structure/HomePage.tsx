@@ -385,7 +385,7 @@ const HomePage: React.FC<HomePageProps> = ({
   // while avoiding rendering the payment UI at all.
   const paymentStepNumber: number | null = paymentsDisabled ? null : 2;
   const documentsStepNumber: number = paymentsDisabled ? 2 : 3;
-  const maxStep = hasDeal ? documentsStepNumber : 1;
+  const maxStep = documentsStepNumber; // Always show documents step regardless of deal amount
   const [dealStepsVisible, setDealStepsVisible] = useState(false);
   const [documentsStepVisible, setDocumentsStepVisible] = useState(false);
   const [proofStartStep, setProofStartStep] = useState<number>(1);
@@ -404,15 +404,11 @@ const HomePage: React.FC<HomePageProps> = ({
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (hasDeal) {
-      setDealStepsVisible(true);
-      const t = setTimeout(() => setDocumentsStepVisible(true), 200);
-      return () => clearTimeout(t);
-    } else {
-      setDealStepsVisible(false);
-      setDocumentsStepVisible(false);
-    }
-  }, [hasDeal]);
+    // Always show deal steps and documents step
+    setDealStepsVisible(true);
+    const t = setTimeout(() => setDocumentsStepVisible(true), 200);
+    return () => clearTimeout(t);
+  }, []); // Remove hasDeal dependency to always show steps
 
   const goToStep = (target: 0 | 1 | 2 | 3) => {
     if (openStep !== target) {
@@ -704,6 +700,8 @@ const HomePage: React.FC<HomePageProps> = ({
   useEffect(() => {
     if (!isIdReviewDone && isIdInfoComplete()) {
       setIdReviewDone(true);
+      // Auto-save proof of ID completion when Step 1 is complete
+      saveInstruction('proof-of-id-complete');
     }
   }, [proofData, isIdReviewDone]);
 
@@ -780,14 +778,13 @@ const HomePage: React.FC<HomePageProps> = ({
   useEffect(() => {
     if (instructionCompleted) {
       setIdReviewDone(true);
-      if (hasDeal) {
-        setPaymentDone(true);
-        setUploadDone(true);
-      }
+      // Always set payment and upload done for completed instructions
+      setPaymentDone(true);
+      setUploadDone(true);
       setSummaryComplete(true);
       setDetailsConfirmed(true);
     }
-  }, [instructionCompleted, hasDeal, setSummaryComplete]);
+  }, [instructionCompleted, setSummaryComplete]);
 
 
   // Watch for changes during an edit session

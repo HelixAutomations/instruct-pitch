@@ -12,7 +12,7 @@ const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
+const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
 const { normalizeInstruction } = require('./utilities/normalize');
 const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
 
@@ -99,6 +99,26 @@ app.get('/api/generate-instruction-ref', async (req, res) => {
     res.status(500).json({ error: 'Failed to generate reference' });
   }
 
+});
+
+// API endpoint for passcode lookup
+app.get('/api/getDealByPasscodeIncludingLinked', async (req, res) => {
+  try {
+    const { passcode } = req.query;
+    if (!passcode) {
+      return res.status(400).json({ error: 'Passcode is required' });
+    }
+    
+    const deal = await getDealByPasscodeIncludingLinked(String(passcode));
+    if (deal) {
+      res.json(deal);
+    } else {
+      res.status(404).json({ error: 'Deal not found' });
+    }
+  } catch (err) {
+    console.error('❌ passcode lookup error:', err);
+    res.status(500).json({ error: 'Lookup failed' });
+  }
 });
 
 // ─── Key Vault setup ──────────────────────────────────────────────────
@@ -540,8 +560,27 @@ app.post('/api/instruction/send-emails', async (req, res) => {
 
 // ─── Internal fetchInstructionData (server-only) ───────────────────────
 app.get('/api/internal/fetch-instruction-data', async (req, res) => {
-  const cid = req.query.cid;
-  if (!cid) return res.status(400).json({ ok: false, error: 'Missing cid' });
+  let cid = req.query.cid;
+  const passcode = req.query.passcode;
+  
+  if (!cid && !passcode) {
+    return res.status(400).json({ ok: false, error: 'Missing cid or passcode' });
+  }
+
+  // If we have a potential passcode, try to look up the actual client ID
+  if (cid && /^\d+$/.test(cid)) {
+    try {
+      const deal = await getDealByPasscodeIncludingLinked(String(cid));
+      if (deal && deal.ProspectId) {
+        console.log(`🔍 Passcode lookup: ${cid} → Client ID ${deal.ProspectId}`);
+        cid = String(deal.ProspectId);
+      }
+    } catch (lookupErr) {
+      console.warn('⚠️ Passcode lookup failed, treating as client ID:', lookupErr.message);
+    }
+  }
+
+  if (!cid) return res.status(400).json({ ok: false, error: 'Could not determine client ID' });
 
   const fnUrl  = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
   const fnCode = cachedFetchInstructionDataCode;

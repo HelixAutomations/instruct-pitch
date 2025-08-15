@@ -9,13 +9,13 @@ import PaymentResult from './structure/PaymentResult';
 import './styles/App.css';
 
 const App: React.FC = () => {
-  const match = useMatch('/:cid/*');
-  const cidParam = match?.params.cid;
+  const match = useMatch('/:param/*');
+  const cidParam = match?.params.param;
   const navigate = useNavigate();
 
   const [clientId, setClientId] = useState('');
   const [passcode, setPasscode] = useState('');
-  const [showIdAuth, setShowIdAuth] = useState(false);
+  const [showIdAuth, setShowIdAuth] = useState(true);
   const [instructionRef, setInstructionRef] = useState('');
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
@@ -49,6 +49,52 @@ const App: React.FC = () => {
       return;
     }
     if (!cidParam) return;
+    
+    // Check if this might be a passcode that needs lookup
+    if (/^\d+$/.test(cidParam)) {
+      console.log('Detected passcode in URL:', cidParam);
+      // It's just a number, could be a passcode - try lookup
+      fetch(`/api/getDealByPasscodeIncludingLinked?passcode=${encodeURIComponent(cidParam)}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log('Passcode lookup result:', data);
+          if (data.ProspectId) {
+            // Found a match! Use the ProspectId as clientId and the original as passcode
+            console.log('Setting clientId:', data.ProspectId, 'passcode:', cidParam);
+            setClientId(String(data.ProspectId));
+            setPasscode(cidParam);
+            setShowIdAuth(false);
+            console.log('Hiding ID auth form');
+            // Generate instruction ref with the mapped client ID using the ProspectId from response
+            return fetch(`/api/generate-instruction-ref?cid=${encodeURIComponent(String(data.ProspectId))}&passcode=${encodeURIComponent(cidParam)}`);
+          } else {
+            // No match found, treat as regular client ID
+            console.log('No match found, treating as client ID');
+            setClientId(cidParam);
+            setShowIdAuth(true);
+          }
+        })
+        .then(res => {
+          if (res) {
+            return res.json();
+          }
+        })
+        .then(data => {
+          if (data && data.instructionRef) {
+            console.log('Setting instruction ref:', data.instructionRef);
+            setInstructionRef(data.instructionRef);
+            // Don't navigate - stay on the current URL to avoid loops
+            console.log('Successfully set up instruction, staying on current URL');
+          }
+        })
+        .catch(() => {
+          // If lookup fails, treat as regular client ID
+          setClientId(cidParam);
+          setShowIdAuth(true);
+        });
+      return;
+    }
+    
     const parts = cidParam.split('-');
     let cid = parts[0];
     setReturning(false);
@@ -72,7 +118,7 @@ const App: React.FC = () => {
     }
 
     const code = parts[1];
-    if (code) {
+    if (code && cid) {  // Add cid check to prevent empty calls
       setPasscode(code);
       setShowIdAuth(false);
       fetch(`/api/generate-instruction-ref?cid=${cid}&passcode=${code}`)
@@ -86,7 +132,7 @@ const App: React.FC = () => {
           }
         })
         .catch(err => console.error('auto generate error', err));
-    } else {
+    } else if (!code) {
       setShowIdAuth(passcode === '');
     }
   }, [cidParam, navigate]);
@@ -145,10 +191,10 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/:cid/*"
+            path="/:param/*"
             element={
               <>
-                {showIdAuth && (
+                {showIdAuth && !instructionRef && (
                   <IDAuth
                     clientId={clientId}
                     setClientId={setClientId}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUser } from 'react-icons/fa';
 import InfoPopover from '../components/InfoPopover';
 import '../styles/IDAuth.css';
@@ -51,6 +51,11 @@ const IDAuth: React.FC<IDAuthProps> = ({
 
   const handleSubmit = async () => {
     if (!validateInputs()) return;
+    // Prevent API calls with empty clientId
+    if (!clientId || !passcode) {
+      console.warn('Skipping API call with empty clientId or passcode:', { clientId, passcode });
+      return;
+    }
     try {
       const resp = await fetch(`/api/generate-instruction-ref?cid=${clientId}&passcode=${passcode}`);
       const data = await resp.json();
@@ -69,6 +74,16 @@ const IDAuth: React.FC<IDAuthProps> = ({
       }
     }
   };
+
+  // Auto-submit when both clientId and passcode are pre-filled
+  useEffect(() => {
+    const shouldAutoSubmit = (!showClientId || (clientId && clientId.trim())) && 
+                             (passcode && passcode.trim());
+    if (shouldAutoSubmit) {
+      console.log('Auto-submitting with pre-filled values:', { clientId, passcode });
+      handleSubmit();
+    }
+  }, [clientId, passcode, showClientId]);
 
   const isButtonDisabled =
     (showClientId && !clientId.trim()) || !passcode.trim();

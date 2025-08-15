@@ -20,12 +20,24 @@ azurite/__blobstorage__/
 azurite/__queuestorage__/
 azurite/__azurite_db*.json
 **/__azurite_db_*.json
+**/__azurite_db_*_extent__.json
+**/AzuriteConfig
+**/__blobstorage__/
+**/__queuestorage__/
+**/__tablestorage__/
 
 # Ignore local function settings and env files
 **/local.settings.json
 **/.env
 **/.env.*
 **/.secrets.json
+
+# Ignore deployment artifacts and temporary files
+last-deploy.zip
+*.diff
+patch.diff
+tmp_*.js
+test-*.js
 
 # Vite / frontend cache
 start/.vite/
@@ -35,3 +47,17 @@ start/.vite/
 dist/
 *.log
 debug.log
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# VS Code settings (optional - comment out if you want to share)
+.vscode/settings.json
+.vscode/launch.json
+
+# Exclude tab-app submodule/separate repository
+apps/tab-app/

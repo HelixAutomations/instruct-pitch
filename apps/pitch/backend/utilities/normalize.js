@@ -122,6 +122,11 @@ function normalizeInstruction(data) {
   // Remove compliance-only flag
   delete out.idStatus;
 
+  // Convert stage to internalStatus if provided
+  if (data.stage === 'proof-of-id-complete') {
+    out.internalStatus = 'poid';
+  }
+
   // Include consent and internalStatus if provided
   if (data.consentGiven != null)   out.consentGiven    = Boolean(data.consentGiven);
   if (data.internalStatus != null) out.internalStatus  = data.internalStatus;
