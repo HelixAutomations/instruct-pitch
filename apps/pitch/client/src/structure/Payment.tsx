@@ -18,7 +18,6 @@ interface PaymentProps {
   onError: (errorCode: string) => void;
   onBack: () => void;
   onNext: () => void;
-  // TODO: Add Stripe-specific props here when implementing Stripe
   orderId: string;
   acceptUrl: string;
   exceptionUrl: string;
@@ -203,8 +202,6 @@ const Payment: React.FC<PaymentProps> = ({
 
   /* Payment system is temporarily disabled during Barclays -> Stripe migration */
   useEffect(() => {
-    // During the migration we intentionally do not generate the old ePDQ FlexCheckout URL.
-    // Show a friendly message and clear any existing Flex URL.
     setError(
       'Payment system is being updated to provide a better experience. Please contact us directly to complete your payment.'
     );

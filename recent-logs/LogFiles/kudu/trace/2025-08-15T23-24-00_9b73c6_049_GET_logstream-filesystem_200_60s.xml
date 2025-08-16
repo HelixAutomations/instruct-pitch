@@ -1,0 +1,6 @@
+<step title="Incoming Request" date="2025-08-15T23:24:00.917" instance="9b73c6" url="/logstream/filesystem" method="GET" type="request" pid="7076,2,32" Accept-Encoding="identity" Authorization="Bea..." Host="instruct-helixlaw-pitch.scm.azurewebsites.net" User-Agent="AZURECLI/2.74.0 (MSI)" x-ms-client-request-id="ea4be640-7a2e-11f0-89dd-2cf05dd1557a" X-ARR-LOG-ID="ea4be640-7a2e-11f0-89dd-2cf05dd1557a" CLIENT-IP="89.238.24.75:51235" X-SITE-DEPLOYMENT-ID="instruct-helixlaw-pitch" WAS-DEFAULT-HOSTNAME="instruct-helixlaw-pitch.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream/filesystem" >
+  <step title="Cleanup Xml Logs" date="2025-08-15T23:24:00.932" /><!-- duration: 0ms -->
+  <step title="LogStreamHandler.BeginProcessRequest" date="2025-08-15T23:24:00.948" /><!-- duration: 47ms -->
+  <step title="LogStreamHandler.EndProcessRequest" date="2025-08-15T23:25:01.017" /><!-- duration: 0ms -->
+  <step title="Outgoing response" date="2025-08-15T23:25:01.017" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" Cache-Control="private" X-AspNet-Version="4.0.30319" Content-Type="text/plain; charset=utf-8" /><!-- duration: 0ms -->
+</step><!-- duration: 60116ms -->

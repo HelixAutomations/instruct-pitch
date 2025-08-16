@@ -1,0 +1,139 @@
+<step title="BackgroundTrace" date="2025-08-16T00:06:58.996" instance="14b7dc" url="/api/zipdeploy" method="POST" >
+  <step title="Cleanup Xml Logs" date="2025-08-16T00:06:59.012" /><!-- duration: 0ms -->
+  <step title="Updating shutdown sentinel last write time" date="2025-08-16T00:06:59.028" SemaphoreCount="7" /><!-- duration: 0ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-08-16T00:06:59.028" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2025-08-16T00:06:59.043" /><!-- duration: 31ms -->
+  <step title="Performing fetch based deployment" date="2025-08-16T00:06:59.090" >
+    <step title="Fetching changes." date="2025-08-16T00:06:59.168" /><!-- duration: 0ms -->
+    <step title="Starting LocalZipHandler" date="2025-08-16T00:06:59.184" /><!-- duration: 0ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\0hkjy3ev.zip (28.84 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-08-16T00:06:59.215" /><!-- duration: 16ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\0hkjy3ev.zip (28.84 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-08-16T00:06:59.231" >
+      <step title="Renaming extractTargetDirectory(C:\local\Temp\zipdeploy\extracted) to tempDirectory(C:\local\Temp\zipdeploy\pkvvqbnj.v4r)" date="2025-08-16T00:06:59.231" /><!-- duration: 31ms -->
+      <step title="Extracting 21789 entries to C:\local\Temp\zipdeploy\extracted directory" date="2025-08-16T00:06:59.496" >
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\client\dist\favicon.svg ..." date="2025-08-16T00:06:59.528" /><!-- duration: 156ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\client\dist\index.html ..." date="2025-08-16T00:06:59.684" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\client\dist\assets\flex-resize.js ..." date="2025-08-16T00:06:59.700" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\client\dist\assets\flex-submit.js ..." date="2025-08-16T00:06:59.715" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\client\dist\assets\helixlaw.css ..." date="2025-08-16T00:06:59.715" /><!-- duration: 0ms -->
+        <step title="Omitting extracting file traces ..." date="2025-08-16T00:06:59.731" /><!-- duration: 0ms -->
+      </step><!-- duration: 21923ms -->
+    </step><!-- duration: 22204ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-08-16T00:07:21.450" /><!-- duration: 0ms -->
+    <step title="DeploymentManager.Deploy(id:cf49884aa19b4989b0f7b72c87d2c90c)" date="2025-08-16T00:07:21.466" >
+      <step title="Collecting changeset information" date="2025-08-16T00:07:21.482" /><!-- duration: 313ms -->
+      <step title="Updating submodules" date="2025-08-16T00:07:21.888" >
+        <step title="Updating submodules." date="2025-08-16T00:07:22.185" /><!-- duration: 0ms -->
+      </step><!-- duration: 313ms -->
+      <step title="Preparing deployment for commit id &apos;cf49884aa1&apos;." date="2025-08-16T00:07:22.341" /><!-- duration: 16ms -->
+      <step title="Determining deployment builder" date="2025-08-16T00:07:22.497" >
+        <step title="UseMSBuild16: True" date="2025-08-16T00:07:22.513" /><!-- duration: 0ms -->
+        <step title="Builder is NodeSiteBuilder" date="2025-08-16T00:07:23.044" /><!-- duration: 16ms -->
+      </step><!-- duration: 578ms -->
+      <step title="Copying SSH keys" date="2025-08-16T00:07:23.091" /><!-- duration: 0ms -->
+      <step title="Building" date="2025-08-16T00:07:23.107" >
+        <step title="Generating deployment script." date="2025-08-16T00:07:23.154" /><!-- duration: 0ms -->
+        <step title="Generating deployment script" date="2025-08-16T00:07:23.154" >
+          <step title="Using cached version of the deployment script for command: -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --node --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" date="2025-08-16T00:07:23.185" /><!-- duration: 0ms -->
+          <step title="Using cached version of deployment script (command: &apos;azure -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --node --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;&apos;)." date="2025-08-16T00:07:23.185" /><!-- duration: 16ms -->
+        </step><!-- duration: 47ms -->
+        <step title="Running deployment command..." date="2025-08-16T00:07:23.294" /><!-- duration: 0ms -->
+        <step title="Command: &quot;C:\home\site\deployments\tools\deploy.cmd&quot;" date="2025-08-16T00:07:23.310" /><!-- duration: 16ms -->
+        <step title="Executing external process" date="2025-08-16T00:07:23.341" type="process" path="starter.cmd" arguments="&quot;C:\home\site\deployments\tools\deploy.cmd&quot;" >
+          <step title="Handling node.js deployment." date="2025-08-16T00:07:23.497" /><!-- duration: 0ms -->
+          <step title="Creating app_offline.htm" date="2025-08-16T00:07:23.922" /><!-- duration: 0ms -->
+          <step title="KuduSync.NET from: &apos;C:\local\Temp\zipdeploy\extracted&apos; to: &apos;C:\home\site\wwwroot&apos;" date="2025-08-16T00:07:23.938" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;package.json&apos;" date="2025-08-16T00:07:23.953" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;client\dist\index.html&apos;" date="2025-08-16T00:07:23.969" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;client\dist\assets\helixwhite-gcpopyFJ.svg&apos;" date="2025-08-16T00:07:23.969" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;client\dist\assets\index-DFsqt3py.css&apos;" date="2025-08-16T00:07:24.000" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;client\dist\assets\index-DUxxm-mm.js&apos;" date="2025-08-16T00:07:24.000" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;dist\generateInstructionRef.js&apos;" date="2025-08-16T00:07:24.016" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.package-lock.json&apos;" date="2025-08-16T00:07:24.031" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\conc&apos;" date="2025-08-16T00:07:24.047" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\conc.cmd&apos;" date="2025-08-16T00:07:24.063" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\conc.ps1&apos;" date="2025-08-16T00:07:24.078" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\concurrently&apos;" date="2025-08-16T00:07:24.078" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\concurrently.cmd&apos;" date="2025-08-16T00:07:24.109" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\concurrently.ps1&apos;" date="2025-08-16T00:07:24.125" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\fxparser&apos;" date="2025-08-16T00:07:24.141" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\fxparser.cmd&apos;" date="2025-08-16T00:07:24.156" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\fxparser.ps1&apos;" date="2025-08-16T00:07:24.172" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\is-docker&apos;" date="2025-08-16T00:07:24.172" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\is-docker.cmd&apos;" date="2025-08-16T00:07:24.188" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\is-docker.ps1&apos;" date="2025-08-16T00:07:24.219" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\is-inside-container&apos;" date="2025-08-16T00:07:24.237" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\is-inside-container.cmd&apos;" date="2025-08-16T00:07:24.252" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\is-inside-container.ps1&apos;" date="2025-08-16T00:07:24.268" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mime&apos;" date="2025-08-16T00:07:24.283" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mime.cmd&apos;" date="2025-08-16T00:07:24.299" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mime.ps1&apos;" date="2025-08-16T00:07:24.315" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mkdirp&apos;" date="2025-08-16T00:07:24.330" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mkdirp.cmd&apos;" date="2025-08-16T00:07:24.346" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mkdirp.ps1&apos;" date="2025-08-16T00:07:24.362" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mssql&apos;" date="2025-08-16T00:07:24.377" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mssql.cmd&apos;" date="2025-08-16T00:07:24.393" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mssql.ps1&apos;" date="2025-08-16T00:07:24.408" /><!-- duration: 62ms -->
+          <step title="Copying file: &apos;node_modules\.bin\nanoid&apos;" date="2025-08-16T00:07:24.487" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\nanoid.cmd&apos;" date="2025-08-16T00:07:24.502" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\nanoid.ps1&apos;" date="2025-08-16T00:07:24.518" /><!-- duration: 18ms -->
+          <step title="Copying file: &apos;node_modules\.bin\semver&apos;" date="2025-08-16T00:07:24.549" /><!-- duration: 47ms -->
+          <step title="Copying file: &apos;node_modules\.bin\semver.cmd&apos;" date="2025-08-16T00:07:24.612" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\semver.ps1&apos;" date="2025-08-16T00:07:24.627" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tree-kill&apos;" date="2025-08-16T00:07:24.643" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tree-kill.cmd&apos;" date="2025-08-16T00:07:24.658" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tree-kill.ps1&apos;" date="2025-08-16T00:07:24.674" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tsc&apos;" date="2025-08-16T00:07:24.705" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tsc.cmd&apos;" date="2025-08-16T00:07:24.721" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tsc.ps1&apos;" date="2025-08-16T00:07:24.737" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tsserver&apos;" date="2025-08-16T00:07:24.752" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tsserver.cmd&apos;" date="2025-08-16T00:07:24.768" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\tsserver.ps1&apos;" date="2025-08-16T00:07:24.784" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\uuid&apos;" date="2025-08-16T00:07:24.800" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\uuid.cmd&apos;" date="2025-08-16T00:07:24.816" /><!-- duration: 16ms -->
+          <step title="Omitting next output lines..." date="2025-08-16T00:07:24.832" /><!-- duration: 16ms -->
+          <step title="Processed 2297 files..." date="2025-08-16T00:07:44.203" /><!-- duration: 0ms -->
+          <step title="Processed 4614 files..." date="2025-08-16T00:08:04.213" /><!-- duration: 16ms -->
+          <step title="Processed 6809 files..." date="2025-08-16T00:08:24.242" /><!-- duration: 0ms -->
+          <step title="Processed 8398 files..." date="2025-08-16T00:08:44.266" /><!-- duration: 0ms -->
+          <step title="Processed 9646 files..." date="2025-08-16T00:09:04.256" /><!-- duration: 16ms -->
+          <step title="Processed 10991 files..." date="2025-08-16T00:09:24.264" /><!-- duration: 0ms -->
+          <step title="Processed 12269 files..." date="2025-08-16T00:09:44.280" /><!-- duration: 16ms -->
+          <step title="Processed 13955 files..." date="2025-08-16T00:10:04.287" /><!-- duration: 16ms -->
+          <step title="Processed 15750 files..." date="2025-08-16T00:10:24.298" /><!-- duration: 0ms -->
+          <step title="Processed 17548 files..." date="2025-08-16T00:10:44.307" /><!-- duration: 0ms -->
+          <step title="Processed 19457 files..." date="2025-08-16T00:11:04.320" /><!-- duration: 0ms -->
+          <step title="Processed 21040 files..." date="2025-08-16T00:11:24.329" /><!-- duration: 16ms -->
+          <step title="Using start-up script server.js from package.json." date="2025-08-16T00:11:30.670" /><!-- duration: 0ms -->
+          <step title="Node.js versions available on the platform are: 0.6.20, 0.8.2, 0.8.19, 0.8.26, 0.8.27, 0.8.28, 0.10.5, 0.10.18, 0.10.21, 0.10.24, 0.10.26, 0.10.28, 0.10.29, 0.10.31, 0.10.32, 0.10.40, 0.12.6, 4.0.0, 4.1.0, 4.1.2, 4.2.1, 4.2.2, 4.2.3, 4.2.4, 4.3.0, 4.3.2, 4.4.0, 4.4.1, 4.4.6, 4.4.7, 4.5.0, 4.6.0, 4.6.1, 4.8.4, 4.9.1, 5.0.0, 5.1.1, 5.3.0, 5.4.0, 5.5.0, 5.6.0, 5.7.0, 5.7.1, 5.8.0, 5.9.1, 6.0.0, 6.1.0, 6.2.2, 6.3.0, 6.5.0, 6.6.0, 6.7.0, 6.9.0, 6.9.1, 6.9.2, 6.9.4, 6.9.5, 6.10.0, 6.10.3, 6.11.1, 6.11.2, 6.11.5, 6.12.2, 6.12.3, 6.17.1, 8.0.0, 8.1.4, 8.4.0, 8.5.0, 8.7.0, 8.8.0, 8.8.1, 8.9.0, 8.9.3, 8.9.4, 8.10.0, 8.11.1, 8.17.0, 10.0.0, 10.6.0, 10.14.1, 10.15.2, 10.16.3, 10.19.0, 10.24.1, 12.13.0, 12.15.0, 12.18.0, 12.21.0, 12.22.12, 14.10.1, 14.15.0, 14.15.1, 14.16.0, 14.18.1, 14.20.0, 16.9.1, 16.13.0, 16.16.0, 18.3.0, 18.12.1, 18.19.1, 18.20.4, 18.20.7, 20.9.0, 20.18.3, 22.5.1, 22.14.0." date="2025-08-16T00:11:30.717" /><!-- duration: 0ms -->
+          <step title="Selected node.js version 22.14.0. Use package.json file to choose a different version." date="2025-08-16T00:11:30.732" /><!-- duration: 0ms -->
+          <step title="Selected npm version 10.9.2" date="2025-08-16T00:11:30.748" /><!-- duration: 0ms -->
+          <step title="Updating iisnode.yml at C:\home\site\wwwroot\iisnode.yml" date="2025-08-16T00:11:30.748" /><!-- duration: 0ms -->
+          <step title="AppInsightsAgent: Successfully loaded ETW" date="2025-08-16T00:11:31.092" /><!-- duration: 0ms -->
+          <step title="AppInsightsAgent ETWLogger Application Insights was started succesfully." date="2025-08-16T00:11:31.670" /><!-- duration: 0ms -->
+          <step title="npm warn config production Use `--omit=dev` instead." date="2025-08-16T00:11:31.951" /><!-- duration: 0ms -->
+          <step title="up to date, audited 205 packages in 56s" date="2025-08-16T00:12:28.111" /><!-- duration: 16ms -->
+          <step title="35 packages are looking for funding" date="2025-08-16T00:12:28.142" /><!-- duration: 0ms -->
+          <step title="  run `npm fund` for details" date="2025-08-16T00:12:28.158" /><!-- duration: 16ms -->
+          <step title="2 vulnerabilities (1 moderate, 1 critical)" date="2025-08-16T00:12:28.189" /><!-- duration: 0ms -->
+          <step title="To address issues that do not require attention, run:" date="2025-08-16T00:12:28.205" /><!-- duration: 0ms -->
+          <step title="  npm audit fix" date="2025-08-16T00:12:28.220" /><!-- duration: 0ms -->
+          <step title="To address all issues (including breaking changes), run:" date="2025-08-16T00:12:28.236" /><!-- duration: 0ms -->
+          <step title="  npm audit fix --force" date="2025-08-16T00:12:28.252" /><!-- duration: 0ms -->
+          <step title="Run `npm audit` for details." date="2025-08-16T00:12:28.267" /><!-- duration: 0ms -->
+          <step title="Finished successfully." date="2025-08-16T00:12:28.283" /><!-- duration: 0ms -->
+        </step><!-- duration: 304957ms -->
+        <step title="Running post deployment command(s)..." date="2025-08-16T00:12:28.345" /><!-- duration: 16ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-08-16T00:12:28.408" /><!-- duration: 0ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-08-16T00:12:28.408" /><!-- duration: 0ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = ZipDeploy. Extract zip. Remote build. , deployer = ZipDeploy, os = windows, sku = Premium0V3, siteName = instruct-helixlaw-pitch, siteHostName = instruct-helixlaw-pitch.azurewebsites.net, deploymentStatus = Success" date="2025-08-16T00:12:28.486" /><!-- duration: 0ms -->
+        <step title="Purge deployment items" date="2025-08-16T00:12:28.595" >
+          <step title="Remove 2dc0c04e3, Success, received at 8/15/2025 5:44:15 PM" date="2025-08-16T00:12:28.642" /><!-- duration: 0ms -->
+        </step><!-- duration: 63ms -->
+      </step><!-- duration: 305567ms -->
+    </step><!-- duration: 307223ms -->
+    <step title="Cleaning up temp files" date="2025-08-16T00:12:28.689" /><!-- duration: 0ms -->
+    <step title="Skip function trigger and logicapp sync because function is not enabled." date="2025-08-16T00:12:28.705" /><!-- duration: 0ms -->
+  </step><!-- duration: 329646ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-08-16T00:12:28.736" /><!-- duration: 0ms -->
+  <step title="Deleting shutdown sentinel file" date="2025-08-16T00:12:28.752" SemaphoreCount="8" /><!-- duration: 0ms -->
+</step><!-- duration: 329755ms -->

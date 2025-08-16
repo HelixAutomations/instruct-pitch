@@ -1,0 +1,16 @@
+{
+"AppType":"aspnet",
+"MachineName":"WN1XSDWK00003N",
+"PID":"6596",
+"AppDomainId":"2",
+"AppDomainName":"/LM/W3SVC/825338185/ROOT-1-133996827392334579",
+"InstrumentationEngineLoaded":false,
+"InstrumentationEngineExtensionLoaded":false,
+"SiteName":"instruct-helixlaw-pitch",
+"RedfieldIISModuleLoaded":true,
+"IKeyExists":true,
+"IKey":"",
+"ConnectionString":"InstrumentationKey=c11f99eb-2fb1-49e8-b112-af811f97a59c;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/;ApplicationId=3bb3cdcc-0f59-41f9-89bb-7947be1c94f9",
+"RedfieldLightupLoaded":true,
+"AutoInstrumentationStatus":true
+}

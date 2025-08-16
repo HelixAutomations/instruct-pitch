@@ -1,0 +1,30 @@
+<step title="Incoming Request" date="2025-08-15T22:54:21.567" instance="14b7dc" url="/dump" method="GET" type="request" pid="7592,2,13" Accept-Encoding="identity" Authorization="Bea..." Host="instruct-helixlaw-pitch.scm.azurewebsites.net" User-Agent="AZURECLI/2.74.0 (MSI)" x-ms-client-request-id="c60f8e7d-7a2a-11f0-a4a0-2cf05dd1557a" X-ARR-LOG-ID="c60f8e7d-7a2a-11f0-a4a0-2cf05dd1557a" CLIENT-IP="89.238.24.75:49945" X-SITE-DEPLOYMENT-ID="instruct-helixlaw-pitch" WAS-DEFAULT-HOSTNAME="instruct-helixlaw-pitch.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/dump" >
+  <step title="Cleanup Xml Logs" date="2025-08-15T22:54:21.567" /><!-- duration: 16ms -->
+  <step title="ZipStreamContent.OnZip" date="2025-08-15T22:54:21.692" >
+    <step title="Error occurred" date="2025-08-15T22:54:21.989" type="error" text="C:\home\LogFiles\ApplicationInsights\status\status_wn0xsdwk0000E4_6128_2.json, System.IO.IOException: The process cannot access the file &apos;C:\home\LogFiles\ApplicationInsights\status\status_wn0xsdwk0000E4_6128_2.json&apos; because it is being used by another process.
+   at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, Boolean useAsync)
+   at System.IO.FileInfo.OpenRead()
+   at System.IO.Abstractions.FileInfoWrapper.OpenRead()
+   at Kudu.Core.Infrastructure.ZipArchiveExtensions.AddFile(ZipArchive zipArchive, FileInfoBase file, ITracer tracer, String directoryNameInArchive)" /><!-- duration: 0ms -->
+    <step title="Error occurred" date="2025-08-15T22:54:22.020" type="error" text="C:\home\LogFiles\ApplicationInsights\status\status_WN1XSDWK000090_9112_2.json, System.IO.IOException: The process cannot access the file &apos;C:\home\LogFiles\ApplicationInsights\status\status_WN1XSDWK000090_9112_2.json&apos; because it is being used by another process.
+   at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, Boolean useAsync)
+   at System.IO.FileInfo.OpenRead()
+   at System.IO.Abstractions.FileInfoWrapper.OpenRead()
+   at Kudu.Core.Infrastructure.ZipArchiveExtensions.AddFile(ZipArchive zipArchive, FileInfoBase file, ITracer tracer, String directoryNameInArchive)" /><!-- duration: 0ms -->
+    <step title="Error occurred" date="2025-08-15T22:54:22.036" type="error" text="C:\home\LogFiles\ApplicationInsights\status\status_wn1xsdwk0000CR_1408_2.json, System.IO.IOException: The process cannot access the file &apos;C:\home\LogFiles\ApplicationInsights\status\status_wn1xsdwk0000CR_1408_2.json&apos; because it is being used by another process.
+   at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, Boolean useAsync)
+   at System.IO.FileInfo.OpenRead()
+   at System.IO.Abstractions.FileInfoWrapper.OpenRead()
+   at Kudu.Core.Infrastructure.ZipArchiveExtensions.AddFile(ZipArchive zipArchive, FileInfoBase file, ITracer tracer, String directoryNameInArchive)" /><!-- duration: 16ms -->
+  </step><!-- duration: 1549ms -->
+  <step title="Outgoing response" date="2025-08-15T22:54:23.256" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" x-ms-request-id="c60f8e7d-7a2a-11f0-a4a0-2cf05dd1557a" Content-Disposition="attachment; filename=dump-08-15-22-54-21.zip" Cache-Control="no-cache" X-AspNet-Version="4.0.30319" Content-Type="application/zip" Pragma="no-cache" Expires="-1" /><!-- duration: 0ms -->
+</step><!-- duration: 1690ms -->

@@ -1,0 +1,5 @@
+2025-08-15T20:38:11  PID[3928] Verbose     SnapshotHelper::TakeSnapshotTimerCallback
+2025-08-15T20:38:11  PID[3928] Verbose     SnapshotHelper::TakeSnapshotInternal - no new files in CodeGen
+2025-08-15T20:58:11  PID[3928] Verbose     SnapshotHelper::TakeSnapshotTimerCallback
+2025-08-15T20:58:11  PID[3928] Verbose     SnapshotHelper::TakeSnapshotInternal - no new files in CodeGen
+2025-08-15T20:58:11  PID[3928] Verbose     SnapshotHelper::TakeSnapshot time since last: 00:20:00.0988813

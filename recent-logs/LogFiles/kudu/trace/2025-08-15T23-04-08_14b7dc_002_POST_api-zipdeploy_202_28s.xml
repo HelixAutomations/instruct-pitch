@@ -1,0 +1,19 @@
+<step title="Incoming Request" date="2025-08-15T23:04:08.468" instance="14b7dc" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="7952,2,11" Cache-Control="no-cache" Content-Length="30239114" Content-Type="application/octet-stream" Accept="*/*" Accept-Encoding="gzip, deflate" Authorization="Bea..." Host="instruct-helixlaw-pitch.scm.azurewebsites.net" User-Agent="AZURECLI/2.74.0 (MSI)" x-ms-client-request-id="23c63c4c-7a2c-11f0-b434-2cf05dd1557a" X-ARR-LOG-ID="23c63c4c-7a2c-11f0-b434-2cf05dd1557a" CLIENT-IP="89.238.24.75:50397" X-SITE-DEPLOYMENT-ID="instruct-helixlaw-pitch" WAS-DEFAULT-HOSTNAME="instruct-helixlaw-pitch.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" >
+  <step title="Cleanup Xml Logs" date="2025-08-15T23:04:08.483" /><!-- duration: 0ms -->
+  <step title="ZipPushDeploy" date="2025-08-15T23:04:09.077" >
+    <step title="ZipDeploy. Extract zip. Remote build. " date="2025-08-15T23:04:09.093" /><!-- duration: 16ms -->
+    <step title="Starting PushDeployAsync" date="2025-08-15T23:04:09.124" /><!-- duration: 0ms -->
+    <step title="Updating shutdown sentinel last write time" date="2025-08-15T23:04:09.249" SemaphoreCount="7" /><!-- duration: 16ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-08-15T23:04:09.265" /><!-- duration: 0ms -->
+    <step title="Saving request content to C:\local\Temp\zipdeploy\edq3i2dv.zip" date="2025-08-15T23:04:09.280" >
+      <step title="Total 30,239,114 bytes written to C:\local\Temp\zipdeploy\edq3i2dv.zip" date="2025-08-15T23:04:32.181" /><!-- duration: 16ms -->
+    </step><!-- duration: 22917ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-08-15T23:04:32.213" /><!-- duration: 0ms -->
+    <step title="Deleting shutdown sentinel file" date="2025-08-15T23:04:32.213" SemaphoreCount="8" /><!-- duration: 16ms -->
+    <step title="Starting FetchDeploy" date="2025-08-15T23:04:32.228" /><!-- duration: 16ms -->
+    <step title="Start deployment in the background" date="2025-08-15T23:04:32.244" >
+      <step title="Starting LocalZipFetch" date="2025-08-15T23:04:32.510" /><!-- duration: 0ms -->
+    </step><!-- duration: 688ms -->
+  </step><!-- duration: 23854ms -->
+  <step title="Outgoing response" date="2025-08-15T23:04:35.994" type="response" statusCode="202" statusText="Accepted" Server="Microsoft-IIS/10.0" x-ms-request-id="23c63c4c-7a2c-11f0-b434-2cf05dd1557a" Retry-After="30" Cache-Control="private" X-AspNet-Version="4.0.30319" Location="https://instruct-helixlaw-pitch.scm.azurewebsites.net/api/deployments/latest?deployer=ZipDeploy&amp;time=2025-08-15_23-04-32Z" /><!-- duration: 0ms -->
+</step><!-- duration: 27526ms -->

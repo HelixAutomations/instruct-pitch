@@ -1,0 +1,9 @@
+<step title="Incoming Request" date="2025-08-15T21:02:02.375" instance="9b73c6" url="/logstream" method="GET" type="request" pid="1208,2,8" Accept-Encoding="identity" Authorization="Bea..." Host="instruct-helixlaw-pitch.scm.azurewebsites.net" User-Agent="AZURECLI/2.74.0 (MSI)" x-ms-client-request-id="152db03d-7a1b-11f0-bb37-2cf05dd1557a" X-ARR-LOG-ID="152db03d-7a1b-11f0-bb37-2cf05dd1557a" CLIENT-IP="89.238.24.75:61736" X-SITE-DEPLOYMENT-ID="instruct-helixlaw-pitch" WAS-DEFAULT-HOSTNAME="instruct-helixlaw-pitch.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream" >
+  <step title="Cleanup Xml Logs" date="2025-08-15T21:02:02.375" /><!-- duration: 0ms -->
+  <step title="LogStreamHandler.BeginProcessRequest" date="2025-08-15T21:02:02.391" >
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; acquired" date="2025-08-15T21:02:02.485" /><!-- duration: 0ms -->
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; released" date="2025-08-15T21:02:02.547" /><!-- duration: 0ms -->
+  </step><!-- duration: 172ms -->
+  <step title="LogStreamHandler.EndProcessRequest" date="2025-08-15T21:02:36.107" /><!-- duration: 0ms -->
+  <step title="Outgoing response" date="2025-08-15T21:02:36.107" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" Cache-Control="private" X-AspNet-Version="4.0.30319" Content-Type="text/plain; charset=utf-8" /><!-- duration: 16ms -->
+</step><!-- duration: 33748ms -->
