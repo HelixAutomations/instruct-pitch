@@ -126,9 +126,12 @@ app.get('/api/getDealByPasscodeIncludingLinked', async (req, res) => {
 });
 
 // ─── Key Vault setup ──────────────────────────────────────────────────
-const keyVaultName = process.env.KEY_VAULT_NAME;
-if (!keyVaultName) {
-  console.warn('⚠️  KEY_VAULT_NAME not set');
+// Prefer explicit environment variable, but fall back to the known
+// production vault name so the app can run inside a restricted VNet
+// where app settings may not be propagated during initial debugging.
+const keyVaultName = process.env.KEY_VAULT_NAME && process.env.KEY_VAULT_NAME.trim();
+if (!process.env.KEY_VAULT_NAME) {
+  console.warn('⚠️  KEY_VAULT_NAME not set in env — defaulting to', keyVaultName);
 }
 const keyVaultUri  = `https://${keyVaultName}.vault.azure.net`;
 const credential   = new DefaultAzureCredential();
@@ -138,7 +141,11 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
 
 function startServer() {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));
+  if (!process.env.IISNODE_VERSION) {
+    app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));
+  } else {
+    console.log(`🚀 Backend ready for IISNode hosting`);
+  }
 }
 
 (async () => {
@@ -165,6 +172,11 @@ function startServer() {
     startServer();
   }
 })();
+
+// Export the Express app when hosted in IISNode
+if (process.env.IISNODE_VERSION) {
+  module.exports = app;
+}
 
 // ─── Payment Integration - Prepared for Stripe ────────────────────────
 // TODO: Add Stripe payment endpoints here
