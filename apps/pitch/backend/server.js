@@ -1,22 +1,37 @@
+// CRITICAL: Add immediate startup logging for iisnode diagnostics
+console.log('🔧 SERVER STARTUP INITIATED:', new Date().toISOString());
+console.log('🔧 Process PID:', process.pid);
+console.log('🔧 Node version:', process.version);
+console.log('🔧 IISNode version:', process.env.IISNODE_VERSION || 'not detected');
+console.log('🔧 Working directory:', process.cwd());
+console.log('🔧 __dirname:', __dirname);
+
 try {
   require('dotenv').config();
+  console.log('🔧 dotenv loaded successfully');
 } catch (err) {
   console.warn('⚠️  dotenv not found; skipping config');
 }
 // console.log('AZURE_STORAGE_ACCOUNT:', process.env.AZURE_STORAGE_ACCOUNT);
 // console.log('UPLOAD_CONTAINER:', process.env.UPLOAD_CONTAINER);
+
+console.log('🔧 Loading express...');
 const express = require('express');
+console.log('🔧 Loading remaining modules...');
 const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
+
+console.log('🔧 All basic modules loaded successfully');
 // Startup diagnostics: print key paths and check required build artifacts so
 // iisnode logs contain a clear reason for startup failure instead of a vague
 // 500.1001. This helps detect missing compiled/backend files after packaging.
+console.log('🔧 Starting artifact check...');
 try {
-  console.log('Server startup:', { __dirname, cwd: process.cwd() });
+  console.log('🔧 Server startup paths:', { __dirname, cwd: process.cwd() });
 } catch (e) {
-  // noop
+  console.error('🔧 ERROR checking startup paths:', e);
 }
 
 const requiredArtifacts = [
@@ -27,9 +42,13 @@ const requiredArtifacts = [
 ];
 requiredArtifacts.forEach((p) => {
   try {
-    console.log(`${p} exists:`, fs.existsSync(p));
+    const exists = fs.existsSync(p);
+    console.log(`🔧 ${p} exists:`, exists);
+    if (!exists) {
+      console.error(`❌ MISSING REQUIRED FILE: ${p}`);
+    }
   } catch (e) {
-    console.warn('Error checking file', p, e && e.message);
+    console.error('🔧 Error checking file', p, e && e.message);
   }
 });
 
@@ -52,22 +71,31 @@ if (!fs.existsSync(path.join(__dirname, 'dist', 'generateInstructionRef.js'))) {
   }
 }
 
+console.log('🔧 Loading Azure and database modules...');
 let uploadRouter, sql, getSqlPool, DefaultAzureCredential, SecretClient;
 let getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction;
 let normalizeInstruction;
 
 try {
+  console.log('🔧 Loading upload module...');
   uploadRouter = require('./upload');
+  console.log('🔧 Loading SQL modules...');
   sql = require('mssql');
   ({ getSqlPool } = require('./sqlClient'));
+  console.log('🔧 Loading Azure identity modules...');
   ({ DefaultAzureCredential } = require('@azure/identity'));
   ({ SecretClient } = require('@azure/keyvault-secrets'));
+  console.log('🔧 Loading instruction database modules...');
   ({ getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb'));
+  console.log('🔧 Loading utilities...');
   ({ normalizeInstruction } = require('./utilities/normalize'));
+  console.log('🔧 All required modules loaded successfully');
 } catch (err) {
+  console.error('❌ CRITICAL: Failed to load required modules:', err.message);
+  console.error('❌ Stack trace:', err.stack);
   if (!startupError) {
     startupError = `Failed to load required modules: ${err.message}`;
-    console.error(startupError);
+    console.error('❌ Setting startup error:', startupError);
   }
 }
 const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
@@ -97,18 +125,33 @@ function injectPrefill(html, data) {
   return html.replace('</head>', `${script}\n</head>`);
 }
 
-
+console.log('🔧 Creating Express app...');
 const app = express();
 app.set('trust proxy', true);
 app.use(express.json());
+console.log('🔧 Express app created and configured');
+
+// IMMEDIATE HEALTH CHECK: Add this route before any startup error checks
+app.get('/startup-check', (req, res) => {
+  res.json({ 
+    status: 'server-running',
+    startupError: startupError || null,
+    timestamp: new Date().toISOString(),
+    pid: process.pid,
+    iisnode: !!process.env.IISNODE_VERSION
+  });
+});
 
 // Add a simple test route at the very beginning to test if routes work at all
 app.get('/simple-test', (req, res) => {
   res.json({ message: 'Simple test route working!', method: req.method, url: req.originalUrl });
 });
 
+console.log('🔧 Basic routes configured');
+
 // If startupError is set, short-circuit dynamic routes with a friendly 503
 if (startupError) {
+  console.error('❌ STARTUP ERROR DETECTED - configuring error middleware:', startupError);
   app.use((req, res, next) => {
     // Block all dynamic routes but allow static assets to be served if present
     if (!req.path.startsWith('/client') && !req.path.startsWith('/assets')) {
@@ -126,15 +169,18 @@ app.use((req, res, next) => {
   next();
 });
 
+console.log('🔧 Setting up global error handlers...');
+
 // Global error handlers (do NOT exit while diagnosing 500.1001)
 process.on('uncaughtException', (err) => {
   console.error('💥 UNCAUGHT EXCEPTION (suppressed exit for diagnostics):', err && err.stack || err);
+  console.error('💥 Process will NOT exit to allow log inspection');
   // Intentionally not exiting so we can inspect via log stream
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('💥 UNHANDLED REJECTION at:', promise, 'reason:', reason);
-  console.error('Stack:', reason?.stack);
+  console.error('💥 Stack:', reason?.stack);
 });
 
 app.use((req, _res, next) => {
@@ -256,20 +302,33 @@ app.get('/api/getDealByPasscodeIncludingLinked', async (req, res) => {
 // Prefer explicit environment variable, but fall back to the known
 // production vault name so the app can run inside a restricted VNet
 // where app settings may not be propagated during initial debugging.
+console.log('🔧 Setting up Key Vault configuration...');
 const keyVaultName = process.env.KEY_VAULT_NAME && process.env.KEY_VAULT_NAME.trim() || 'helixlaw-instructions';
 if (!process.env.KEY_VAULT_NAME) {
   console.warn('⚠️  KEY_VAULT_NAME not set in env — defaulting to', keyVaultName);
 }
 const keyVaultUri  = `https://${keyVaultName}.vault.azure.net`;
-const credential   = new DefaultAzureCredential();
-const secretClient = new SecretClient(keyVaultUri, credential);
+console.log('🔧 Key Vault URI:', keyVaultUri);
+
+let credential, secretClient;
+try {
+  console.log('🔧 Creating Azure credential...');
+  credential = new DefaultAzureCredential();
+  console.log('🔧 Creating secret client...');
+  secretClient = new SecretClient(keyVaultUri, credential);
+  console.log('🔧 Key Vault client created successfully');
+} catch (err) {
+  console.error('❌ Failed to create Key Vault client:', err.message);
+}
 
 let cachedFetchInstructionDataCode, cachedDbPassword;
 
 function startServer() {
   const PORT = process.env.PORT || 3000;
+  console.log('🔧 Starting server...');
   if (process.env.IISNODE_VERSION) {
     console.log(`🚀 Backend ready for IISNode (app exported as module)`);
+    console.log('🚀 IISNode will handle the server lifecycle');
     // In IISNode, don't call app.listen() - the app is exported as module.exports
   } else {
     app.listen(PORT, () => {
@@ -278,6 +337,7 @@ function startServer() {
   }
 }
 
+console.log('🔧 Starting async initialization...');
 (async () => {
   try {
     if (!keyVaultName || !process.env.DB_PASSWORD_SECRET) {
@@ -287,25 +347,42 @@ function startServer() {
       return;
     }
 
-    const [fetchCode, dbPass] = await Promise.all([
-      secretClient.getSecret('fetchInstructionData-code'),
+    console.log('🔧 Fetching secrets from Key Vault...');
+    // Try both the standard and legacy secret names for fetchInstructionData-code
+    const secretPromises = [
+      secretClient.getSecret('fetchInstructionData-code').catch(() => null),
+      secretClient.getSecret('fetchInstructionDataLegacy-code').catch(() => null),
       secretClient.getSecret(process.env.DB_PASSWORD_SECRET),
-    ]);
-    cachedFetchInstructionDataCode = fetchCode?.value;
+    ];
+    
+    const [fetchCode, fetchCodeLegacy, dbPass] = await Promise.all(secretPromises);
+    
+    // Use the legacy code if the standard one isn't available, or vice versa
+    const fetchCodeValue = fetchCode?.value || fetchCodeLegacy?.value;
+    console.log('🔧 fetchInstructionData-code available:', !!fetchCode?.value);
+    console.log('🔧 fetchInstructionDataLegacy-code available:', !!fetchCodeLegacy?.value);
+    console.log('🔧 Using fetch code:', fetchCodeValue ? 'YES' : 'NO');
+    cachedFetchInstructionDataCode = fetchCodeValue;
     cachedDbPassword              = dbPass?.value;
     if (cachedDbPassword) process.env.DB_PASSWORD = cachedDbPassword;
     console.log('✅ All secrets loaded from Key Vault');
+    console.log('✅ fetchInstructionData secret status:', cachedFetchInstructionDataCode ? 'AVAILABLE' : 'MISSING');
     startServer();
   } catch (err) {
     console.error('❌ Failed to load secrets from Key Vault — starting server without them:', err && err.message);
+    console.error('❌ Key Vault error stack:', err.stack);
     // Do not crash the process; start the server and allow runtime paths to handle missing secrets.
     startServer();
   }
 })();
 
+console.log('🔧 Setting up IISNode export...');
 // Export the Express app when hosted in IISNode
 if (process.env.IISNODE_VERSION) {
+  console.log('🔧 Exporting app for IISNode');
   module.exports = app;
+} else {
+  console.log('🔧 Running in standalone mode (not IISNode)');
 }
 
 // ─── Payment Integration - Prepared for Stripe ────────────────────────
@@ -608,8 +685,12 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
 
   const fnUrl  = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
   const fnCode = cachedFetchInstructionDataCode;
-  if (!fnCode) return res.status(500).json({ ok: false, error: 'Server not ready' });
+  if (!fnCode) {
+    console.warn('⚠️ No fetchInstructionData code available - legacy fetch disabled');
+    return res.status(500).json({ ok: false, error: 'Server not ready - fetch code not available' });
+  }
 
+  console.log('🔧 Making legacy fetch request to:', fnUrl);
   try {
     const { data } = await axios.get(
       `${fnUrl}?cid=${encodeURIComponent(cid)}&code=${fnCode}`,
@@ -618,11 +699,12 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
       }
     );
     // Confirm successful fetch without logging the full payload
-    console.log('Fetched instruction data');
+    console.log('✅ Legacy fetch successful for cid:', cid);
     res.json(data);
   } catch (err) {
-    console.error('❌ fetchInstructionData error:', err);
-    res.status(500).json({ ok: false });
+    console.error('❌ Legacy fetchInstructionData error for cid', cid, ':', err.message);
+    console.error('❌ URL attempted:', `${fnUrl}?cid=${encodeURIComponent(cid)}&code=[REDACTED]`);
+    res.status(500).json({ ok: false, error: 'Failed to fetch instruction data' });
   }
 });
 
@@ -693,16 +775,23 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         // If we found a match, fetch prefill data
         if (resolvedProspectId && cachedFetchInstructionDataCode) {
           try {
+            console.log('🔧 Attempting legacy prefill fetch for ProspectId:', resolvedProspectId);
             const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
             const fnCode = cachedFetchInstructionDataCode;
             const url = `${fnUrl}?cid=${encodeURIComponent(resolvedProspectId)}&code=${fnCode}`;
             const { data } = await axios.get(url, { timeout: 8_000 });
             if (data && Object.keys(data).length > 0) {
               html = injectPrefill(html, data);
+              console.log('✅ Legacy prefill injection successful');
+            } else {
+              console.log('⚠️ Legacy fetch returned empty data');
             }
           } catch (err) {
+            console.warn('⚠️ Legacy prefill fetch failed (continuing without prefill):', err.message);
             // Ignore fetchInstructionData errors and continue
           }
+        } else if (!cachedFetchInstructionDataCode) {
+          console.log('⚠️ No fetch code available - skipping legacy prefill');
         }
       } else if (cachedFetchInstructionDataCode) {
         // Keep the original code as cid (do NOT map passcode into cid).
@@ -731,17 +820,25 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         } catch (err) { /* ignore lookup failures */ }
 
         // Fetch additional data from legacy function if numeric code and secret available
-        try {
-          const fetchCid = resolvedProspectId || cid;
-          const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
-          const fnCode = cachedFetchInstructionDataCode;
-          const url = `${fnUrl}?cid=${encodeURIComponent(fetchCid)}&code=${fnCode}`;
-          const { data } = await axios.get(url, { timeout: 8_000 });
-          if (data && Object.keys(data).length > 0) {
-            html = injectPrefill(html, data);
+        if (cachedFetchInstructionDataCode) {
+          try {
+            const fetchCid = resolvedProspectId || cid;
+            console.log('🔧 Attempting legacy fetch for fetchCid:', fetchCid);
+            const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
+            const fnCode = cachedFetchInstructionDataCode;
+            const url = `${fnUrl}?cid=${encodeURIComponent(fetchCid)}&code=${fnCode}`;
+            const { data } = await axios.get(url, { timeout: 8_000 });
+            if (data && Object.keys(data).length > 0) {
+              html = injectPrefill(html, data);
+              console.log('✅ Legacy fetch and injection successful for cid:', fetchCid);
+            } else {
+              console.log('⚠️ Legacy fetch returned empty data for cid:', fetchCid);
+            }
+          } catch (legacyFetchErr) {
+            console.warn('⚠️ Legacy fetch failed (continuing without prefill) for cid:', resolvedProspectId || cid, 'error:', legacyFetchErr.message);
           }
-        } catch (legacyFetchErr) {
-          console.warn('⚠️ Legacy fetch failed (continuing without prefill):', legacyFetchErr.message);
+        } else {
+          console.log('⚠️ No legacy fetch code available - skipping fetch for cid:', resolvedProspectId || cid);
         }
 
         // Inject resolution metadata for the client to consume. Client should
