@@ -1,0 +1,35 @@
+export interface ProofData {
+  idStatus: string;
+  isCompanyClient: boolean | null;
+  idType: string | null;
+  companyName: string;
+  companyNumber: string;
+  companyHouseNumber: string;
+  companyStreet: string;
+  companyCity: string;
+  companyCounty: string;
+  companyPostcode: string;
+  companyCountry: string;
+  companyCountryCode?: string;
+  title: string;
+  titleId?: number;
+  firstName: string;
+  lastName: string;
+  nationality: string;
+  nationalityCode?: string;
+  houseNumber: string;
+  street: string;
+  city: string;
+  county: string;
+  postcode: string;
+  country: string;
+  countryCode?: string;
+  dob: string;
+  gender: string;
+  genderId?: number;
+  phone: string;
+  email: string;
+  idNumber: string;
+  helixContact: string;
+  agreement?: boolean;
+}

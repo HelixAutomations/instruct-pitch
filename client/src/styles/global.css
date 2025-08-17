@@ -1,0 +1,280 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&display=swap');
+
+/* ----------------------------------
+   CSS Variables & Base Typography
+   ---------------------------------- */
+:root {
+  --website-blue: rgb(0, 3, 25);
+  --helix-dark-blue: rgb(6, 23, 51);
+  --helix-blue: rgb(13, 47, 96);
+  --helix-highlight: rgb(54, 144, 206);
+  --helix-cta: rgb(214, 85, 65);
+  --helix-grey: rgb(244, 244, 246);
+}
+
+/* Reset & base font */
+*,
+*::before,
+*::after {
+  margin: 0;
+  box-sizing: border-box;
+  font-family: 'Raleway', sans-serif;
+}
+
+/* Full-height flex container */
+html,
+body {
+  height: 100%;
+  background-color: var(--helix-grey);
+  color: var(--helix-dark-blue);
+  line-height: 1.6;
+}
+
+/* Links */
+a {
+  font-weight: 500;
+  color: var(--helix-highlight);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Headings */
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+}
+
+/* Generic Button Reset */
+button {
+  border-radius: 0px; /* No rounding */
+  border: 1px solid transparent;
+  font-size: 0.98rem;
+  font-weight: 500;
+  background-color: var(--helix-blue);
+  color: #fff;
+  cursor: pointer;
+  padding: 0.45rem 1.1rem;
+  min-width: 90px;
+  min-height: 36px;
+  box-shadow: none;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.09s;
+}
+button:hover {
+  background-color: var(--helix-highlight);
+}
+button:focus,
+button:focus-visible {
+  outline: 1px solid var(--helix-highlight);
+}
+
+/* Button Utility Class */
+.btn {
+  padding: 0.45rem 1.1rem;
+  border: none;
+  border-radius: 0px !important; /* No rounding */
+  font-size: 0.98rem;
+  font-weight: 500; /* MATCH global */
+  line-height: 1;   /* FORCE uniform height */
+  background: var(--helix-blue);
+  color: #fff;
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-block;
+  min-width: 90px;
+  min-height: 36px;
+  transition: background 0.18s, box-shadow 0.12s, transform 0.09s;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:focus {
+  outline: 2px solid var(--helix-highlight);
+  outline-offset: 2px;
+}
+
+/* Primary Action */
+.btn.primary {
+  background: var(--helix-cta) !important;
+  color: #fff !important;
+}
+
+/* Secondary Action */
+.btn.secondary {
+  background: #f5f5f7;
+  color: var(--helix-dark-blue);
+  border: 1px solid #e6e6e6;
+  box-shadow: none;
+}
+
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dark/light-mode support */
+@media (prefers-color-scheme: light) {
+  :root {
+    color: var(--helix-dark-blue);
+    background-color: #fff;
+  }
+  button,
+  .btn {
+    background-color: var(--helix-grey);
+    color: var(--helix-dark-blue);
+  }
+  .btn.primary {
+    background: var(--helix-cta) !important;
+    color: #fff !important;
+  }
+}
+
+/* Chevron Button Styles */
+.btn.chevron {
+  padding: 0.45rem 0.7rem;
+  min-width: 40px;
+  min-height: 36px;
+  border-radius: 0px !important;
+  background: var(--helix-blue);
+  color: #fff;
+  font-size: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  box-shadow: none;
+  border: none;
+  transition: background 0.18s, transform 0.09s;
+}
+.btn.chevron.primary {
+  background: var(--helix-cta);
+  color: #fff;
+}
+.btn.chevron.secondary {
+  background: #f5f5f7;
+  color: var(--helix-dark-blue);
+  border: 1px solid #e6e6e6;
+}
+.btn.chevron:active {
+  transform: scale(0.97);
+}
+.btn.chevron:focus {
+  outline: 2px solid var(--helix-highlight);
+  outline-offset: 2px;
+}
+
+/* Optional: for icon-only chevron buttons, you may want even less padding */
+.btn.chevron.icon-only {
+  padding: 0.45rem 0.55rem;
+  min-width: 36px;
+}
+
+/* SVG icon styling for chevrons */
+.btn.chevron svg {
+  width: 1.15em;
+  height: 1.15em;
+  display: inline-block;
+  vertical-align: middle;
+  pointer-events: none;
+  transition: fill 0.18s;
+}
+.btn.chevron.secondary svg {
+  fill: var(--helix-dark-blue);
+}
+.btn.chevron.primary svg,
+.btn.chevron svg {
+  fill: #fff;
+}
+
+/* Example for left/right spacing if you have a label */
+.btn.chevron .label {
+  margin-left: 0.5em;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+.btn.chevron.left .label {
+  margin-left: 0;
+  margin-right: 0.5em;
+}
+
+.form-checkbox.declaration-checkbox {
+  margin: 2rem 0 1.5rem 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.declaration-checkbox label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.5;
+}
+
+.declaration-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #3690ce; /* Use your brand blue */
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.declaration-text {
+  display: block;
+  padding-top: 2px;
+}
+
+/* Make checkbox taller (2 lines high) and center label text */
+.summary-confirmation label {
+  align-items: center; /* Vertically center */
+  min-height: 2.2em;   /* At least two lines tall */
+  gap: 0.8rem;
+}
+
+.summary-confirmation input[type="checkbox"] {
+  width: 1.1em;
+  height: 2.2em;           /* Make checkbox 2 lines tall */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  accent-color: var(--helix-highlight);
+  margin: 0;
+  margin-right: 0.7em;
+}
+
+.summary-confirmation label span {
+  display: flex;
+  align-items: center;
+  min-height: 2.2em;
+}
+
+/* ----------------------------------
+   Tick pop animation shared globally
+   ---------------------------------- */
+@keyframes tickPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Ensure CTA buttons remain red on small screens */
+@media (max-width: 600px) {
+  .btn.primary {
+    background: var(--helix-cta);
+  }
+}

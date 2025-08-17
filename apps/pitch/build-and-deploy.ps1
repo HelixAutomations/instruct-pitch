@@ -1,6 +1,9 @@
 # Navigate to the pitch app root
 Push-Location $PSScriptRoot
 
+# Define package root path
+$packageRoot = Resolve-Path "..\..\" | Select-Object -ExpandProperty Path
+
 # Clean up old files
 Remove-Item -Recurse -Force ..\..\client -ErrorAction SilentlyContinue
 Remove-Item -Force ..\..\push-package.zip -ErrorAction SilentlyContinue
@@ -16,15 +19,15 @@ Pop-Location
 
 # Compile backend utilities (if any)
 if (Test-Path .\backend\utilities) {
-    npx --prefix .\client tsc -p .\backend
     # Ensure utilities directory exists at root
-    New-Item -ItemType Directory -Path ..\..\utilities -Force | Out-Null
-    Copy-Item -Recurse -Force .\backend\utilities\* ..\..\utilities\
+    New-Item -ItemType Directory -Path (Join-Path $packageRoot 'utilities') -Force | Out-Null
+    Copy-Item -Recurse -Force .\backend\utilities\* (Join-Path $packageRoot 'utilities')
 }
 
 # Copy built frontend to root-level client/dist
-New-Item -ItemType Directory -Path ..\..\client\dist -Force | Out-Null
-Copy-Item -Recurse -Force .\client\dist\* ..\..\client\dist\
+Write-Host "Ensuring client/dist exists at package root"
+New-Item -ItemType Directory -Path (Join-Path $packageRoot 'client\dist') -Force | Out-Null
+Copy-Item -Recurse -Force .\client\dist\* (Join-Path $packageRoot 'client\dist')
 
 # Remove client dev dependencies
 Remove-Item -Recurse -Force .\client\node_modules -ErrorAction SilentlyContinue
@@ -35,17 +38,27 @@ npm run build
 Pop-Location
 
 # Copy backend files to root
-Copy-Item .\backend\server.js ..\..\ -Force
-Copy-Item .\backend\email.js ..\..\ -Force
-Copy-Item .\backend\upload.js ..\..\ -Force
-Copy-Item .\backend\sqlClient.js ..\..\ -Force
-Copy-Item .\backend\instructionDb.js ..\..\ -Force
-Copy-Item .\backend\package.json ..\..\ -Force
-Copy-Item .\backend\web.config ..\..\ -Force
-Copy-Item .\backend\.env ..\..\ -Force -ErrorAction SilentlyContinue
+Copy-Item .\backend\app.js $packageRoot -Force
+Copy-Item .\backend\server.js $packageRoot -Force
+Copy-Item .\backend\email.js $packageRoot -Force
+Copy-Item .\backend\upload.js $packageRoot -Force
+Copy-Item .\backend\sqlClient.js $packageRoot -Force
+Copy-Item .\backend\instructionDb.js $packageRoot -Force
+Copy-Item .\backend\package.json $packageRoot -Force
+Copy-Item .\backend\web.config $packageRoot -Force
+Copy-Item .\backend\.env $packageRoot -Force -ErrorAction SilentlyContinue
 
 # Copy backend dist (compiled TypeScript output) to root-level dist
-Copy-Item -Recurse -Force .\backend\dist ..\..\dist
+Write-Host "Copying backend compiled artifacts to package root dist"
+New-Item -ItemType Directory -Path (Join-Path $packageRoot 'dist') -Force | Out-Null
+Copy-Item -Recurse -Force .\backend\dist\* (Join-Path $packageRoot 'dist')
+
+# Copy utilities directory (required for normalize module)
+Write-Host "Copying backend utilities to package root"
+if (Test-Path .\backend\utilities) {
+    New-Item -ItemType Directory -Path (Join-Path $packageRoot 'utilities') -Force | Out-Null
+    Copy-Item -Recurse -Force .\backend\utilities\* (Join-Path $packageRoot 'utilities')
+}
 
 # Install only production server deps
 Push-Location ..\..\
@@ -53,11 +66,23 @@ npm install --omit=dev
 npm install @azure/identity @azure/keyvault-secrets
 
 # Ensure dist exists before zipping
-if (!(Test-Path .\dist)) {
-  throw "dist folder missing - did backend compile? (Check tsconfig and build step)"
+# Verify critical files exist before creating the deployment archive
+$expectedFiles = @(
+  (Join-Path $packageRoot 'app.js'),
+  (Join-Path $packageRoot 'server.js'),
+  (Join-Path $packageRoot 'client\dist\index.html'),
+  (Join-Path $packageRoot 'dist\generateInstructionRef.js')
+)
+foreach ($f in $expectedFiles) {
+  if (!(Test-Path $f)) {
+    throw "Deployment missing required file: $f"
+  } else {
+    Write-Host "Found: $f"
+  }
 }
 
-# Create deployment archive
+# Create deployment archive from package root
+Push-Location $packageRoot
 Compress-Archive -Path `
   .\client, `
   .\dist, `
@@ -72,17 +97,18 @@ Compress-Archive -Path `
   .\utilities, `
   .\node_modules `
   -DestinationPath push-package.zip -Force
+Pop-Location
 
 # Deploy to Azure
 az webapp deployment source config-zip `
   --resource-group Instructions `
   --name instruct-helixlaw-pitch `
-  --src push-package.zip
+  --src (Join-Path $packageRoot 'push-package.zip')
 
 # Optional cleanup
 $shouldClean = $true
 if ($shouldClean) {
-  Remove-Item .\server.js, .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
+  Remove-Item .\app.js, .\server.js, .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue

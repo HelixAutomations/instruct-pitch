@@ -1,0 +1,289 @@
+/* === payments.css === */
+
+/* Container */
+.payment-section {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Group header (used for both sections) */
+.group-header {
+  font-size: 1.04rem;
+  font-weight: 600;
+  color: var(--helix-highlight, #3690CE);
+  margin-bottom: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Header icon */
+.header-icon {
+  font-size: 1.16rem;
+  color: var(--helix-highlight, #3690CE);
+  vertical-align: middle;
+  margin-right: 0.22em;
+}
+
+/* Service summary in question-style box */
+.service-summary-box {
+  background: var(--helix-grey, #F4F4F6);
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #ffffff;
+  font-size: 0.95rem;
+  margin: 1.5rem;
+}
+
+.service-summary-box .question-banner {
+  background: linear-gradient(to right, #ffffff, var(--helix-grey, #F4F4F6));
+  padding: 0.35rem 0.75rem;
+  font-weight: normal;
+  font-size: 0.95rem;
+  color: #1f2937;
+  border-left: 3px solid var(--helix-cta);
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+/* Shared question styles */
+.question-banner {
+  background: linear-gradient(to right, #ffffff, var(--helix-grey, #F4F4F6));
+  padding: 0.35rem 0.75rem;
+  font-weight: 400;
+  font-size: 0.95rem;
+  color: #1f2937;
+  border-left: 3px solid var(--helix-cta);
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.question-container {
+  background: var(--helix-grey, #F4F4F6);
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.question-container .question-banner {
+  margin-bottom: 1rem;
+}
+/* Summary Section */
+.combined-section {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.2rem 1.2rem 1.2rem;
+  position: relative;
+}
+
+/* Summary Grid */
+
+.service-summary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 1rem 1rem;
+}
+
+.summary-item {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 1rem;
+}
+
+.summary-item:first-child {
+  padding-left: 0;
+}
+
+.summary-item + .summary-item {
+  border-left: 1px solid var(--helix-grey, #e3e8ef);
+}
+
+.summary-label {
+  font-size: 0.97rem;
+  color: #6c7685;
+  font-weight: 700;
+  text-align: left;
+  padding-right: 0.5em;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.summary-value {
+  font-size: 1.01rem;
+  color: var(--helix-highlight, #3690CE);
+  font-weight: 700;
+  padding-left: 0.1em;
+  word-break: break-word;
+}
+
+.summary-note {
+  font-size: 0.92rem;
+  color: #6b7280;
+  margin-left: 0.4rem;
+}
+
+/* Bank details copy box */
+.copy-box {
+  background: #ffffff;
+  border: 1px solid var(--helix-grey, #e3e8ef);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+
+/* Promotional description shown below the summary grid */
+.pitch-description {
+  margin-top: 0.8rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--helix-dark-blue, #061733);
+  padding: .25rem 1rem;
+}
+
+/* Subtle note shown below the promotional text */
+.quotation-note {
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  color: #6b7280;
+}
+
+/* Horizontal line */
+.separator {
+  height: 1px;
+  width: 100%;
+  background: var(--helix-grey, #e3e8ef);
+  margin: 0.8rem 0 1.2rem 0;
+  border: none;
+}
+
+/* Payment subsection */
+.payment-details {
+  margin-top: 1rem;
+}
+
+.iframe-wrapper {
+  height: 100%;        /* Allow parent to define height */
+  min-height: 300px;   /* Fallback if JS fails */
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+}
+
+.iframe-wrapper iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Loading overlay for payment iframe */
+.payment-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.payment-loading .spin {
+  animation: spin 0.7s linear infinite;
+  font-size: 1.5rem;
+  color: var(--helix-highlight, #3690CE);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Button container */
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+/* Reduce inner padding for payment forms */
+.payment-pane .payment-details {
+  padding: 0.5rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .payment-section {
+    max-width: 98vw;
+    padding: 0;
+  }
+
+  .combined-section {
+    padding: 0.7rem 0.6rem 1rem 0.6rem;
+  }
+
+  .group-header {
+    font-size: 0.98rem;
+  }
+
+  .service-summary-grid {
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  .service-summary-box {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .summary-item {
+    flex: 1 1 100%;
+    padding: 0;
+  }
+
+  .summary-item + .summary-item {
+    border-left: none;
+    padding-left: 0;
+    margin-left: 0;
+    border-top: 1px solid var(--helix-grey, #e3e8ef);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .iframe-wrapper {
+    height: 100%;
+    border-radius: 6px;
+    box-shadow: none;
+  }
+
+    .pitch-description {
+      font-size: 0.98rem;
+      padding: 0.25rem 0.5rem;
+    }
+
+  .quotation-note {
+    font-size: 0.88rem;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .payment-pane .payment-details {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

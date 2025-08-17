@@ -1,0 +1,26 @@
+.summary-complete-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(160,160,160,0.92);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  border-radius: 12px;
+}
+.summary-complete-tick {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.summary-complete-tick svg {
+  width: 32px;
+  height: 32px;
+  color: #7DBB7D;
+}

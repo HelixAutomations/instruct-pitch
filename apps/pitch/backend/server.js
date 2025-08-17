@@ -10,14 +10,66 @@ const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
-const { generateInstructionRef } = require('./dist/generateInstructionRef');
-const uploadRouter = require('./upload');
-const sql = require('mssql');
-const { getSqlPool } = require('./sqlClient');
-const { DefaultAzureCredential } = require('@azure/identity');
-const { SecretClient } = require('@azure/keyvault-secrets');
-const { getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb');
-const { normalizeInstruction } = require('./utilities/normalize');
+// Startup diagnostics: print key paths and check required build artifacts so
+// iisnode logs contain a clear reason for startup failure instead of a vague
+// 500.1001. This helps detect missing compiled/backend files after packaging.
+try {
+  console.log('Server startup:', { __dirname, cwd: process.cwd() });
+} catch (e) {
+  // noop
+}
+
+const requiredArtifacts = [
+  path.join(__dirname, 'dist', 'generateInstructionRef.js'),
+  path.join(__dirname, 'upload.js'),
+  path.join(__dirname, 'sqlClient.js'),
+  path.join(__dirname, 'instructionDb.js'),
+];
+requiredArtifacts.forEach((p) => {
+  try {
+    console.log(`${p} exists:`, fs.existsSync(p));
+  } catch (e) {
+    console.warn('Error checking file', p, e && e.message);
+  }
+});
+
+// If critical artifact is missing, set a startup error so requests can return
+// a friendly 503 explaining the deployment problem rather than crashing the
+// process (which produces an opaque iisnode 500.1001). We still log loudly
+// so deployment diagnostics appear in logs.
+let startupError = null;
+let generateInstructionRef = null;
+
+if (!fs.existsSync(path.join(__dirname, 'dist', 'generateInstructionRef.js'))) {
+  startupError = 'Critical startup file missing: dist/generateInstructionRef.js - deployment likely incomplete.';
+  console.error(startupError);
+} else {
+  try {
+    ({ generateInstructionRef } = require('./dist/generateInstructionRef'));
+  } catch (err) {
+    startupError = `Failed to load generateInstructionRef: ${err.message}`;
+    console.error(startupError);
+  }
+}
+
+let uploadRouter, sql, getSqlPool, DefaultAzureCredential, SecretClient;
+let getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction;
+let normalizeInstruction;
+
+try {
+  uploadRouter = require('./upload');
+  sql = require('mssql');
+  ({ getSqlPool } = require('./sqlClient'));
+  ({ DefaultAzureCredential } = require('@azure/identity'));
+  ({ SecretClient } = require('@azure/keyvault-secrets'));
+  ({ getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb'));
+  ({ normalizeInstruction } = require('./utilities/normalize'));
+} catch (err) {
+  if (!startupError) {
+    startupError = `Failed to load required modules: ${err.message}`;
+    console.error(startupError);
+  }
+}
 const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_LOG);
 
 // ─── Feature flag: temporary payment-disabled mode ─────────────────────────────
@@ -49,6 +101,35 @@ function injectPrefill(html, data) {
 const app = express();
 app.set('trust proxy', true);
 app.use(express.json());
+
+// Add a simple test route at the very beginning to test if routes work at all
+app.get('/simple-test', (req, res) => {
+  res.json({ message: 'Simple test route working!', method: req.method, url: req.originalUrl });
+});
+
+// If startupError is set, short-circuit dynamic routes with a friendly 503
+if (startupError) {
+  app.use((req, res, next) => {
+    // Block all dynamic routes but allow static assets to be served if present
+    if (!req.path.startsWith('/client') && !req.path.startsWith('/assets')) {
+      return res.status(503).send(`<h1>Service temporarily unavailable</h1><p>${startupError}</p>`);
+    }
+    next();
+  });
+}
+
+// Global error handlers to prevent process crashes
+process.on('uncaughtException', (err) => {
+  console.error('💥 UNCAUGHT EXCEPTION - Server crashing:', err);
+  console.error('Stack:', err.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 UNHANDLED REJECTION at:', promise, 'reason:', reason);
+  console.error('Stack:', reason?.stack);
+});
+
 app.use((req, _res, next) => {
   log('>>', req.method, req.originalUrl);
   if (Object.keys(req.query || {}).length)
@@ -57,7 +138,20 @@ app.use((req, _res, next) => {
     log('Body keys:', Object.keys(req.body));
   next();
 });
+
+// Add error handling middleware to catch route errors
+app.use((err, req, res, next) => {
+  console.error('💥 EXPRESS ERROR HANDLER:', err);
+  console.error('Request:', req.method, req.originalUrl);
+  console.error('Stack:', err.stack);
+  res.status(500).json({ error: 'Internal server error', message: err.message });
+});
 app.use('/api', uploadRouter);
+
+// ─── Test route for debugging ──────────────────────────────────────────
+app.get('/test', (req, res) => {
+  res.json({ message: 'Test route working', timestamp: new Date().toISOString() });
+});
 
 // ─── Block direct access to server files ───────────────────────────────
 app.all('/server.js', (_req, res) => {
@@ -70,6 +164,10 @@ app.all('/favicon.ico', (_req, res) => {
 
 // ─── Health probe support ───────────────────────────────────────────────
 app.head('/pitch/', (_req, res) => res.sendStatus(200));
+app.get('/health', (_req, res) => {
+  log('💚 Health check OK');
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 app.get('/api/generate-instruction-ref', async (req, res) => {
   const cid = req.query.cid;
   const passcode = req.query.passcode;
@@ -96,6 +194,9 @@ app.get('/api/generate-instruction-ref', async (req, res) => {
     }
 
     // Fall back to generating the ref without persisting (should be rare)
+    if (!generateInstructionRef) {
+      return res.status(500).json({ error: 'Instruction reference generator not available - server startup incomplete' });
+    }
     const ref = generateInstructionRef(String(cid), String(passcode));
     res.json({ instructionRef: ref });
   } catch (err) {
@@ -524,14 +625,20 @@ app.get('/payment/result', (_req, res) => {
 // 4) catch-all for /pitch SSR + prefill injection
 app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
   try {
+    log('📄 SSR request for:', req.originalUrl, 'params:', req.params);
     let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
     const code = req.params.code;
     // resolvedProspectId will be populated if getDealByPasscode finds a ProspectId.
     let resolvedProspectId = null;
     let injectedPasscode = undefined;
     if (code) {
+      log('🔍 Processing code:', code);
       if (/^HLX-\d+-\d+$/i.test(code)) {
-        const record = await getInstruction(code).catch(() => null);
+        log('📋 Instruction code detected');
+        const record = await getInstruction(code).catch((err) => {
+          log('⚠️ getInstruction failed:', err.message);
+          return null;
+        });
         if (record) {
           const prefill = {
             First_Name: record.FirstName || '',
@@ -620,7 +727,13 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
   res.send(html);
   } catch (err) {
     console.error('❌ SSR /pitch catch-all error:', err);
-    res.status(500).send('Could not load page');
+    console.error('❌ Request details:', {
+      url: req.originalUrl,
+      params: req.params,
+      query: req.query
+    });
+    console.error('❌ Stack trace:', err.stack);
+    res.status(500).send(`<h1>Server Error</h1><p>Could not load page: ${err.message}</p>`);
   }
 });
 // Note: client routing will still see the original URL (/pitch/<code>).
