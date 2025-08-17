@@ -276,26 +276,11 @@ const secretClient = new SecretClient(keyVaultUri, credential);
 
 let cachedFetchInstructionDataCode, cachedDbPassword;
 
-function startServer() {
-  const PORT = process.env.PORT || 3000;
-  if (process.env.IISNODE_VERSION) {
-    console.log(`🚀 Backend ready for IISNode (app exported as module)`);
-    // In IISNode, don't call app.listen() - the app is exported as module.exports
-    // Make sure the app is exported immediately for IISNode
-    module.exports = app;
-  } else {
-    app.listen(PORT, () => {
-      console.log(`🚀 Backend listening on ${PORT}`);
-    });
-  }
-}
-
 (async () => {
   try {
     if (!keyVaultName || !process.env.DB_PASSWORD_SECRET) {
       console.warn('⚠️ KEY_VAULT_NAME or DB_PASSWORD_SECRET not set — skipping Key Vault fetch and starting server');
       // Leave cached values undefined; server may rely on existing env vars.
-      startServer();
       return;
     }
 
@@ -334,18 +319,11 @@ function startServer() {
     }
 
     console.log('✅ Key Vault secret retrieval complete');
-    startServer();
   } catch (err) {
     console.error('❌ Failed to load secrets from Key Vault — starting server without them:', err && err.message);
     // Do not crash the process; start the server and allow runtime paths to handle missing secrets.
-    startServer();
   }
 })();
-
-// Export the Express app when hosted in IISNode
-if (process.env.IISNODE_VERSION) {
-  module.exports = app;
-}
 
 // ─── Payment Integration - Prepared for Stripe ────────────────────────
 // TODO: Add Stripe payment endpoints here
@@ -820,4 +798,8 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
 // `window.helixResolvedProspectId` to determine if the server found an
 // associated ProspectId for prefill/validation purposes.
 
-// Express app export is handled in startServer() function above
+// Note: iisnode provides a named pipe in process.env.PORT. Do not hardcode 80.
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('🚀 Backend listening on', PORT);
+});
