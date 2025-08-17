@@ -287,14 +287,41 @@ function startServer() {
       return;
     }
 
-    const [fetchCode, dbPass] = await Promise.all([
-      secretClient.getSecret('fetchInstructionData-code'),
-      secretClient.getSecret(process.env.DB_PASSWORD_SECRET),
-    ]);
-    cachedFetchInstructionDataCode = fetchCode?.value;
-    cachedDbPassword              = dbPass?.value;
-    if (cachedDbPassword) process.env.DB_PASSWORD = cachedDbPassword;
-    console.log('✅ All secrets loaded from Key Vault');
+    // Attempt to load the legacy prefill function code. Historically this secret
+    // has had two different names, so check both and log which one (if any) was
+    // found. This makes it clear in the log stream whether prefill was enabled
+    // or intentionally skipped.
+    const fetchSecretNames = [
+      'fetchInstructionData-code',
+      'fetchInstructionDataLegacy-code',
+    ];
+    for (const name of fetchSecretNames) {
+      try {
+        const secret = await secretClient.getSecret(name);
+        if (secret && secret.value) {
+          cachedFetchInstructionDataCode = secret.value;
+          console.log(`✅ Loaded ${name} from Key Vault`);
+          break;
+        }
+      } catch (e) {
+        console.warn(`⚠️  Missing Key Vault secret ${name}:`, e.message);
+      }
+    }
+
+    if (!cachedFetchInstructionDataCode) {
+      console.warn('⚠️  No fetchInstructionData code available – legacy prefill disabled');
+    }
+
+    // Load the database password if available
+    try {
+      const dbPass = await secretClient.getSecret(process.env.DB_PASSWORD_SECRET);
+      cachedDbPassword = dbPass && dbPass.value;
+      if (cachedDbPassword) process.env.DB_PASSWORD = cachedDbPassword;
+    } catch (dbErr) {
+      console.warn('⚠️  Unable to load DB password from Key Vault:', dbErr.message);
+    }
+
+    console.log('✅ Key Vault secret retrieval complete');
     startServer();
   } catch (err) {
     console.error('❌ Failed to load secrets from Key Vault — starting server without them:', err && err.message);
@@ -693,6 +720,7 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         // If we found a match, fetch prefill data
         if (resolvedProspectId && cachedFetchInstructionDataCode) {
           try {
+            log('📞 Calling legacy fetchInstructionData', { cid: resolvedProspectId });
             const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
             const fnCode = cachedFetchInstructionDataCode;
             const url = `${fnUrl}?cid=${encodeURIComponent(resolvedProspectId)}&code=${fnCode}`;
@@ -701,8 +729,10 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
               html = injectPrefill(html, data);
             }
           } catch (err) {
-            // Ignore fetchInstructionData errors and continue
+            console.warn('⚠️ Legacy fetch failed:', err.message);
           }
+        } else {
+          log('ℹ️ Skipping legacy fetchInstructionData – no cid or secret');
         }
       } else if (cachedFetchInstructionDataCode) {
         // Keep the original code as cid (do NOT map passcode into cid).
@@ -733,6 +763,7 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         // Fetch additional data from legacy function if numeric code and secret available
         try {
           const fetchCid = resolvedProspectId || cid;
+          log('📞 Calling legacy fetchInstructionData', { cid: fetchCid });
           const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
           const fnCode = cachedFetchInstructionDataCode;
           const url = `${fnUrl}?cid=${encodeURIComponent(fetchCid)}&code=${fnCode}`;
@@ -749,6 +780,8 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
         // generating an instructionRef.
     const safeResolved = JSON.stringify(resolvedProspectId);
     html = html.replace('</head>', `<script>window.helixResolvedProspectId = ${safeResolved};</script></head>`);
+      } else {
+        log('ℹ️ Skipping legacy fetchInstructionData – secret missing');
       }
     }
   // Always expose the original passcode (or injectedPasscode when ProspectId provided)

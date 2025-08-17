@@ -71,3 +71,17 @@ Common development issues:
 - **Azure Functions "Key Vault not specified" errors**: Check `decoupled-functions/local.settings.json` for placeholder values
 - **Documents step not visible**: Ensure using mock server (port 4000) or correct URL format with Vite
 - **Git safety**: Review .gitignore updates to prevent committing sensitive files
+
+## Legacy prefill failures
+
+Symptoms
+- Instruction page loads but no prefill data appears
+- Logs show `Legacy prefill skipped: no fetchInstructionData secret`
+
+Checks
+- Confirm the Key Vault contains a secret named `fetchInstructionDataLegacy-code` (or set `FETCH_INSTRUCTION_DATA_SECRET` to a different name).
+- Ensure the backend has permission to access the Key Vault specified by `KEY_VAULT_NAME`.
+- Verify the legacy function URL `https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData` is reachable from the web app.
+
+Resolution
+- Create/update the secret in Key Vault or point `FETCH_INSTRUCTION_DATA_SECRET` to the correct secret name. Deploy again so the backend loads the secret on startup.
