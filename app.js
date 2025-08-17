@@ -1,11 +1,11 @@
 // Entry point for IISNode - simply require and export the main server
-console.log('💫 app.js loaded, requiring server.js...');
+console.log('💫 app.js loaded, requiring apps/pitch/backend/server.js...');
 try {
-  const server = require('./server.js');
+  const server = require('./apps/pitch/backend/server.js');
   console.log('💫 server.js loaded successfully, type:', typeof server);
   console.log('💫 server object keys:', Object.keys(server || {}));
   module.exports = server;
 } catch (err) {
-  console.error('💥 Failed to load server.js:', err);
+  console.error('💥 Failed to load apps/pitch/backend/server.js:', err);
   throw err;
 }
