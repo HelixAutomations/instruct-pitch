@@ -268,13 +268,14 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
 
 function startServer() {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    if (process.env.IISNODE_VERSION) {
-      console.log(`🚀 Backend listening on ${PORT} (IISNode)`);
-    } else {
+  if (process.env.IISNODE_VERSION) {
+    console.log(`🚀 Backend ready for IISNode (app exported as module)`);
+    // In IISNode, don't call app.listen() - the app is exported as module.exports
+  } else {
+    app.listen(PORT, () => {
       console.log(`🚀 Backend listening on ${PORT}`);
-    }
-  });
+    });
+  }
 }
 
 (async () => {
@@ -768,3 +769,8 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
 // We intentionally do not map passcode -> cid. The client can read
 // `window.helixResolvedProspectId` to determine if the server found an
 // associated ProspectId for prefill/validation purposes.
+
+// Export the Express app when hosted in IISNode
+if (process.env.IISNODE_VERSION) {
+  module.exports = app;
+}
