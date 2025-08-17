@@ -256,7 +256,7 @@ app.get('/api/getDealByPasscodeIncludingLinked', async (req, res) => {
 // Prefer explicit environment variable, but fall back to the known
 // production vault name so the app can run inside a restricted VNet
 // where app settings may not be propagated during initial debugging.
-const keyVaultName = process.env.KEY_VAULT_NAME && process.env.KEY_VAULT_NAME.trim();
+const keyVaultName = process.env.KEY_VAULT_NAME && process.env.KEY_VAULT_NAME.trim() || 'helixlaw-instructions';
 if (!process.env.KEY_VAULT_NAME) {
   console.warn('⚠️  KEY_VAULT_NAME not set in env — defaulting to', keyVaultName);
 }
@@ -730,13 +730,18 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
           }
         } catch (err) { /* ignore lookup failures */ }
 
-  const fetchCid = resolvedProspectId || cid;
-        const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
-        const fnCode = cachedFetchInstructionDataCode;
-        const url = `${fnUrl}?cid=${encodeURIComponent(fetchCid)}&code=${fnCode}`;
-        const { data } = await axios.get(url, { timeout: 8_000 });
-        if (data && Object.keys(data).length > 0) {
-          html = injectPrefill(html, data);
+        // Fetch additional data from legacy function if numeric code and secret available
+        try {
+          const fetchCid = resolvedProspectId || cid;
+          const fnUrl = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
+          const fnCode = cachedFetchInstructionDataCode;
+          const url = `${fnUrl}?cid=${encodeURIComponent(fetchCid)}&code=${fnCode}`;
+          const { data } = await axios.get(url, { timeout: 8_000 });
+          if (data && Object.keys(data).length > 0) {
+            html = injectPrefill(html, data);
+          }
+        } catch (legacyFetchErr) {
+          console.warn('⚠️ Legacy fetch failed (continuing without prefill):', legacyFetchErr.message);
         }
 
         // Inject resolution metadata for the client to consume. Client should
