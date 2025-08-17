@@ -2,11 +2,9 @@
 node_modules/
 unzipped/
 
-# Artifacts created by build-and-deploy.ps1
-/server.js
+# Artifacts created by build-and-deploy.ps1 (except server.js and web.config which are needed for IISNode)
 /upload.js
 /package.json
-/web.config
 /.env
 push-package.zip
 
