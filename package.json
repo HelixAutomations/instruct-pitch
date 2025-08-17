@@ -1,0 +1,13 @@
+{
+  "name": "instruct-pitch",
+  "version": "1.0.0",
+  "description": "Azure deployment bootstrap - ensures Kudu uses Node.js 18+",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "private": true
+}
