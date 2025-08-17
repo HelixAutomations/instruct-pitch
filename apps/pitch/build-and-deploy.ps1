@@ -38,7 +38,6 @@ npm run build
 Pop-Location
 
 # Copy backend files to root
-Copy-Item .\backend\app.js $packageRoot -Force
 Copy-Item .\backend\server.js $packageRoot -Force
 Copy-Item .\backend\email.js $packageRoot -Force
 Copy-Item .\backend\upload.js $packageRoot -Force
@@ -68,7 +67,6 @@ npm install @azure/identity @azure/keyvault-secrets
 # Ensure dist exists before zipping
 # Verify critical files exist before creating the deployment archive
 $expectedFiles = @(
-  (Join-Path $packageRoot 'app.js'),
   (Join-Path $packageRoot 'server.js'),
   (Join-Path $packageRoot 'client\dist\index.html'),
   (Join-Path $packageRoot 'dist\generateInstructionRef.js')
@@ -83,20 +81,22 @@ foreach ($f in $expectedFiles) {
 
 # Create deployment archive from package root
 Push-Location $packageRoot
-Compress-Archive -Path `
-  .\client, `
-  .\dist, `
-  .\server.js, `
-  .\email.js, `
-  .\upload.js, `
-  .\sqlClient.js, `
-  .\instructionDb.js, `
-  .\web.config, `
-  .\package.json, `
-  .\.env, `
-  .\utilities, `
-  .\node_modules `
-  -DestinationPath push-package.zip -Force
+ $paths = @(
+   '.\server.js',
+   '.\client',
+   '.\dist',
+   '.\email.js',
+   '.\upload.js',
+   '.\sqlClient.js',
+   '.\instructionDb.js',
+   '.\web.config',
+   '.\package.json',
+   '.\\.env',
+   '.\utilities',
+   '.\node_modules'
+ )
+ if (Test-Path .\hello.js) { $paths += '.\hello.js' }
+ Compress-Archive -Path $paths -DestinationPath push-package.zip -Force
 Pop-Location
 
 # Deploy to Azure
@@ -108,7 +108,8 @@ az webapp deployment source config-zip `
 # Optional cleanup
 $shouldClean = $true
 if ($shouldClean) {
-  Remove-Item .\app.js, .\server.js, .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
+  # Do not remove app.js or server.js until after deploy completes successfully
+  Remove-Item .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue

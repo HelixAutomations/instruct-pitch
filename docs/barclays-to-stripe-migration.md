@@ -216,6 +216,7 @@ Documentation (2 files):
 3. Replace Payment.tsx with Stripe Elements components
 4. Update PaymentResult.tsx for Stripe confirmation flow
 5. Test payment flow with Stripe test keys
+6. Remove temporary diagnostics (/diag route, hello.js, enabled iisnode devErrors) once stable
 
 ### ⚠️ Notes
 - **Database fields preserved**: PaymentResult, PaymentMethod, etc. kept for historical data

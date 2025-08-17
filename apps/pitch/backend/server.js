@@ -118,11 +118,18 @@ if (startupError) {
   });
 }
 
-// Global error handlers to prevent process crashes
+// EARLY DIAGNOSTIC MIDDLEWARE (inserted very early)
+app.use((req, res, next) => {
+  try {
+    console.log('🔎 REQ EARLY', req.method, req.originalUrl);
+  } catch (_) {}
+  next();
+});
+
+// Global error handlers (do NOT exit while diagnosing 500.1001)
 process.on('uncaughtException', (err) => {
-  console.error('💥 UNCAUGHT EXCEPTION - Server crashing:', err);
-  console.error('Stack:', err.stack);
-  process.exit(1);
+  console.error('💥 UNCAUGHT EXCEPTION (suppressed exit for diagnostics):', err && err.stack || err);
+  // Intentionally not exiting so we can inspect via log stream
 });
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -141,16 +148,35 @@ app.use((req, _res, next) => {
 
 // Add error handling middleware to catch route errors
 app.use((err, req, res, next) => {
-  console.error('💥 EXPRESS ERROR HANDLER:', err);
-  console.error('Request:', req.method, req.originalUrl);
-  console.error('Stack:', err.stack);
-  res.status(500).json({ error: 'Internal server error', message: err.message });
+  try {
+    console.error('💥 EXPRESS ERROR HANDLER:', err);
+    console.error('Request:', req.method, req.originalUrl);
+    console.error('Stack:', err && err.stack);
+  } catch (_) {}
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Internal server error', message: err && err.message });
 });
 app.use('/api', uploadRouter);
 
 // ─── Test route for debugging ──────────────────────────────────────────
 app.get('/test', (req, res) => {
   res.json({ message: 'Test route working', timestamp: new Date().toISOString() });
+});
+
+// Lightweight diagnostics route (no secrets)
+app.get('/diag', (req, res) => {
+  res.json({
+    ok: true,
+    time: new Date().toISOString(),
+    node: process.version,
+    startupError: !!startupError,
+    cwd: process.cwd(),
+    files: {
+      appJs: fs.existsSync(path.join(__dirname, 'app.js')),
+      serverJs: fs.existsSync(path.join(__dirname, 'server.js')),
+      distGenerate: fs.existsSync(path.join(__dirname, 'dist', 'generateInstructionRef.js'))
+    }
+  });
 });
 
 // ─── Block direct access to server files ───────────────────────────────

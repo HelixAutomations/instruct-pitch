@@ -9,15 +9,15 @@ This document outlines how the main components in this repository interact.
 - **Database (SQL Server)** – stores instruction information and payment records.
 - **Azure Key Vault** – holds connection strings and other secrets required by the backend and Azure Functions.
 - **Azure Blob Storage** – stores uploaded documents from the client.
-- **ePDQ** – third-party payment provider used for card transactions.
+- **(Payments)** – Legacy ePDQ removed; Stripe integration pending (placeholders only).
 - **Azure Functions** – processes asynchronous tasks such as deal capture using the same Key Vault secrets.
 
 ## Data Flow
 
 1. The **client** submits instruction data and file uploads to the **backend**.
-2. The **backend** accesses secrets from **Key Vault** to connect to the **database**, **Blob Storage** and the **ePDQ** payment gateway.
+2. The **backend** accesses secrets from **Key Vault** to connect to the **database** and **Blob Storage** (Stripe keys will be added once integration proceeds).
 3. Uploaded files are saved to **Blob Storage** and instruction data is stored in the **database**.
-4. When a payment is required, the **backend** sends the details to **ePDQ** and awaits confirmation.
+4. (Planned) When a payment is required, the **backend** will create a Stripe PaymentIntent and confirm it client-side.
 5. Certain events trigger **Azure Functions** which also use Key Vault secrets and may update the **database** independently of the main backend.
 
 ## Diagram
@@ -28,7 +28,8 @@ flowchart LR
     Backend-->KeyVault
     Backend-->SQLDB[Database]
     Backend-->Blob[Blob Storage]
-    Backend-->ePDQ[ePDQ]
+    %% Payments layer (Stripe planned)
+    Backend-->Payments[(Stripe - planned)]
     Backend-->Functions[Azure Functions]
     Functions-->SQLDB
     Functions-->KeyVault
@@ -36,11 +37,5 @@ flowchart LR
 
 ### Error Handling
 
-When ePDQ returns an XML payload instead of the normal key/value pairs, the
-backend now parses the `NCERROR` and `NCERRORPLUS` values. These fields are
-included in the JSON response so the client can surface a meaningful error
-message while still exposing the raw XML for reference.
-
-All parameters sent to ePDQ are upper‑cased before computing the SHA signature.
-This matches the gateway's signing rules and prevents signature mismatches when
-additional fields like the 3‑D Secure browser attributes are included.
+Legacy Barclays ePDQ handling & SHA signing logic has been removed. Stripe specific
+error handling (webhooks, 3‑D Secure events) will be documented once implemented.
