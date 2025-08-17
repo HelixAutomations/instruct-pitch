@@ -268,11 +268,13 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
 
 function startServer() {
   const PORT = process.env.PORT || 3000;
-  if (!process.env.IISNODE_VERSION) {
-    app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));
-  } else {
-    console.log(`🚀 Backend ready for IISNode hosting`);
-  }
+  app.listen(PORT, () => {
+    if (process.env.IISNODE_VERSION) {
+      console.log(`🚀 Backend listening on ${PORT} (IISNode)`);
+    } else {
+      console.log(`🚀 Backend listening on ${PORT}`);
+    }
+  });
 }
 
 (async () => {
