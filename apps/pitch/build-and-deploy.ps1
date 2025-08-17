@@ -50,7 +50,16 @@ Copy-Item .\backend\.env $packageRoot -Force -ErrorAction SilentlyContinue
 # Copy backend dist (compiled TypeScript output) to root-level dist
 Write-Host "Copying backend compiled artifacts to package root dist"
 New-Item -ItemType Directory -Path (Join-Path $packageRoot 'dist') -Force | Out-Null
-Copy-Item -Recurse -Force .\backend\dist\* (Join-Path $packageRoot 'dist')
+Copy-Item -Force .\backend\dist\generateInstructionRef.js (Join-Path $packageRoot 'dist')
+
+# Validate critical file exists
+$genRef = Join-Path $packageRoot 'dist\generateInstructionRef.js'
+if (!(Test-Path $genRef)) {
+  throw "❌ generateInstructionRef.js missing after copy step"
+}
+else {
+  Write-Host "✅ Found $genRef"
+}
 
 # Copy utilities directory (required for normalize module)
 Write-Host "Copying backend utilities to package root"
