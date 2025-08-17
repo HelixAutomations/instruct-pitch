@@ -180,9 +180,19 @@ app.get('/diag', (req, res) => {
 });
 
 // ─── Block direct access to server files ───────────────────────────────
-app.all('/server.js', (_req, res) => {
-  res.status(404).send('Not found');
+// IIS rewrites all requests to `server.js` before Express sees them. When
+// the rewrite happens, the original URL is preserved in `req.originalUrl`.
+// Only return 404 when the original request was actually for `/server.js`
+// to prevent short‑circuiting legitimate rewrites (which would make every
+// request appear as `/server.js`).
+app.all('/server.js', (req, res, next) => {
+  if (req.originalUrl === '/server.js') {
+    return res.status(404).send('Not found');
+  }
+  next();
 });
+
+// Explicitly block favicon requests which can trigger unnecessary log noise.
 app.all('/favicon.ico', (_req, res) => {
   res.status(404).send('Not found');
 });
@@ -271,6 +281,8 @@ function startServer() {
   if (process.env.IISNODE_VERSION) {
     console.log(`🚀 Backend ready for IISNode (app exported as module)`);
     // In IISNode, don't call app.listen() - the app is exported as module.exports
+    // Make sure the app is exported immediately for IISNode
+    module.exports = app;
   } else {
     app.listen(PORT, () => {
       console.log(`🚀 Backend listening on ${PORT}`);
@@ -808,7 +820,4 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
 // `window.helixResolvedProspectId` to determine if the server found an
 // associated ProspectId for prefill/validation purposes.
 
-// Export the Express app when hosted in IISNode
-if (process.env.IISNODE_VERSION) {
-  module.exports = app;
-}
+// Express app export is handled in startServer() function above
