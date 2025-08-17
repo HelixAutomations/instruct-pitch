@@ -5,7 +5,29 @@ try {
 }
 // console.log('AZURE_STORAGE_ACCOUNT:', process.env.AZURE_STORAGE_ACCOUNT);
 // console.log('UPLOAD_CONTAINER:', process.env.UPLOAD_CONTAINER);
-const express = require('express');
+let startupError = null;
+let express;
+try {
+  express = require('express');
+} catch (err) {
+  startupError = `Critical dependency missing: express (${err.message})`;
+  console.error(startupError);
+  // Minimal express stub so iisnode returns a helpful message instead of 500.1001
+  express = function () {
+    const handler = (req, res) => {
+      res.statusCode = 503;
+      res.setHeader('Content-Type', 'text/plain');
+      res.end(startupError);
+    };
+    const noop = () => handler;
+    handler.use = handler.get = handler.post = handler.all = handler.head = noop;
+    handler.set = () => { };
+    handler.listen = (port, cb) => {
+      require('http').createServer(handler).listen(port, cb);
+    };
+    return handler;
+  };
+}
 const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
@@ -37,7 +59,6 @@ requiredArtifacts.forEach((p) => {
 // a friendly 503 explaining the deployment problem rather than crashing the
 // process (which produces an opaque iisnode 500.1001). We still log loudly
 // so deployment diagnostics appear in logs.
-let startupError = null;
 let generateInstructionRef = null;
 
 if (!fs.existsSync(path.join(__dirname, 'dist', 'generateInstructionRef.js'))) {
