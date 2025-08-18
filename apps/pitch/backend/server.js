@@ -177,7 +177,14 @@ app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   res.status(500).json({ error: 'Internal server error', message: err && err.message });
 });
-app.use('/api', uploadRouter);
+if (uploadRouter) {
+  app.use('/api', uploadRouter);
+} else {
+  console.warn('⚠️  upload router not initialized; /api routes disabled');
+  app.use('/api', (_req, res) => {
+    res.status(503).json({ error: 'Upload service unavailable', message: startupError });
+  });
+}
 
 // ─── Test route for debugging ──────────────────────────────────────────
 app.get('/test', (req, res) => {

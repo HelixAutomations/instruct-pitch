@@ -1,3 +1,4 @@
+// client/vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -6,10 +7,10 @@ export default defineConfig({
   plugins: [react()],
   build: {
     sourcemap: false,
-    outDir: 'dist',
+    outDir: 'dist/pitch',  // ✅ Build to dist/pitch to match IIS structure
     assetsDir: 'assets',
   },
-  base: '/pitch/', // ✅ Required so assets resolve correctly when served under /pitch/
+  base: '/pitch/',  // ✅ Base path for assets
   // Dev server proxy: forward any /api requests to the backend (port 4000)
   // so the Vite dev server can serve the client while backend APIs are reachable.
   server: {

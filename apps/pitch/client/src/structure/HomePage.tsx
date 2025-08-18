@@ -369,7 +369,7 @@ const HomePage: React.FC<HomePageProps> = ({
     [instruction.amount, instruction.product]
   );
   // Payment preloading removed during Barclays->Stripe migration
-  const [prefetchPayment, setPrefetchPayment] = useState(false);
+  const [prefetchPayment] = useState(false);
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
   const [closingStep, setClosingStep] = useState<0 | 1 | 2 | 3>(0);

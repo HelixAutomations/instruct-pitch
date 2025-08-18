@@ -1,7 +1,12 @@
 const express = require('express');
 const multer = require('multer');
-const { DefaultAzureCredential } = require('@azure/identity');
-const { BlobServiceClient } = require('@azure/storage-blob');
+let DefaultAzureCredential;
+try {
+  ({ DefaultAzureCredential } = require('@azure/identity'));
+} catch (err) {
+  console.warn('⚠️  @azure/identity not available:', err.message);
+}
+const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
 const sql = require('mssql');
 const { getSqlPool } = require('./sqlClient');
 const { sendEmail } = require('./email');
@@ -22,20 +27,23 @@ if (!account || !container) {
 }
 
 const storageKey = process.env.AZURE_STORAGE_KEY;
-const { StorageSharedKeyCredential } = require('@azure/storage-blob');
-const credential = storageKey 
+const credential = storageKey
   ? new StorageSharedKeyCredential(account, storageKey)
-  : new DefaultAzureCredential();
-const serviceClient = new BlobServiceClient(
-  `https://${account}.blob.core.windows.net`,
-  credential
-);
-const containerClient = serviceClient.getContainerClient(container);
+  : DefaultAzureCredential
+    ? new DefaultAzureCredential()
+    : null;
+const serviceClient = credential
+  ? new BlobServiceClient(`https://${account}.blob.core.windows.net`, credential)
+  : null;
+const containerClient = serviceClient ? serviceClient.getContainerClient(container) : null;
 
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     if (!account || !container) {
       throw new Error('Missing storage account or container');
+    }
+    if (!containerClient) {
+      return res.status(503).json({ error: 'Storage client not initialized' });
     }
 
     let { instructionRef } = req.body;
