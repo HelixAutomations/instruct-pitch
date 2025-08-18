@@ -250,12 +250,10 @@ module.exports = async function (context, req) {
   }
 
   try {
-    // Parse request body
-    const requestBody = req.body;
-    if (!requestBody) {
-      context.log('ERROR: Request body is empty or null');
-      context.res = { status: 400, body: 'Request body is required' };
-      return;
+    // Parse request body (accept empty body and proceed)
+    const requestBody = req.body || {};
+    if (!req.body) {
+      context.log('WARN: Request body is empty or null - proceeding with empty object');
     }
 
     // Extract source type, data, and ActiveCampaign flag
@@ -271,27 +269,21 @@ module.exports = async function (context, req) {
     const mappedData = mapEnquiryData(sourceData, sourceType);
     context.log('Mapped enquiry data:', JSON.stringify(mappedData, null, 2));
 
-    // Validate required fields
+    // Validate required fields but do NOT fail the request here; convert to warnings
     const validationErrors = validateRequiredFields(mappedData);
+    const validationWarnings = [];
     if (validationErrors.length > 0) {
-      context.log('ERROR: Validation failed -', validationErrors.join(', '));
-      context.res = {
-        status: 400,
-        body: {
-          error: 'Validation failed',
-          details: validationErrors,
-          receivedData: sourceData,
-          mappedData: mappedData
-        }
-      };
-      return;
+      context.log('WARN: Validation issues -', validationErrors.join(', '));
+      validationWarnings.push(...validationErrors);
     }
 
-    // Connect to database
-    context.log('Connecting to database...');
-    await ensureDbPassword();
-    const pool = await getSqlPool();
-    context.log('Database connection established');
+  // Identify and log source (try query param, body.source, mappedData.source, fallback to 'Undefined')
+  const identifiedSource = (req.query && req.query.source) || requestBody.source || mappedData.source || sourceType || 'Undefined';
+  context.log('Identified incoming source:', identifiedSource);
+
+  // Feature flag: enable DB insert via env or query param. Default: disabled (dry-run)
+  const enableInsert = (process.env.ENABLE_DB_INSERT === 'true') || (req.query && req.query.enableInsert === 'true');
+  context.log(`DB insert enabled: ${enableInsert}`);
 
     // Process ActiveCampaign integration if enabled
     let activeCampaignResult = null;
@@ -307,8 +299,17 @@ module.exports = async function (context, req) {
       }
     }
 
-    // Prepare SQL insert query - note: [id] is IDENTITY so we don't insert it
-    const insertQuery = `
+    // Prepare SQL insert and execute only if enabled. Otherwise perform dry-run (no DB changes).
+    let insertResult = { rowsAffected: [0] };
+    if (enableInsert) {
+      // Connect to database
+      context.log('Connecting to database...');
+      await ensureDbPassword();
+      const pool = await getSqlPool();
+      context.log('Database connection established');
+
+      // Prepare SQL insert query - note: [id] is IDENTITY so we don't insert it
+      const insertQuery = `
       INSERT INTO [dbo].[enquiries] (
         [datetime], [stage], [claim], [poc], [pitch], [aow], [tow], [moc], 
         [rep], [first], [last], [email], [phone], [value], [notes], [rank], 
@@ -321,41 +322,66 @@ module.exports = async function (context, req) {
         @company_referrer, @gclid
       )`;
 
-    const request = pool.request();
+      const request = pool.request();
 
-    // Add parameters with proper type handling
-    request.input('datetime', sql.DateTime, mappedData.datetime);
-    request.input('stage', sql.NVarChar(50), mappedData.stage);
-    request.input('claim', sql.DateTime, mappedData.claim);
-    request.input('poc', sql.NVarChar(100), mappedData.poc);
-    request.input('pitch', sql.Int, mappedData.pitch);
-    request.input('aow', sql.NVarChar(100), mappedData.aow);
-    request.input('tow', sql.NVarChar(100), mappedData.tow);
-    request.input('moc', sql.NVarChar(50), mappedData.moc);
-    request.input('rep', sql.NVarChar(100), mappedData.rep);
-    request.input('first', sql.NVarChar(100), mappedData.first);
-    request.input('last', sql.NVarChar(100), mappedData.last);
-    request.input('email', sql.NVarChar(255), mappedData.email);
-    request.input('phone', sql.NVarChar(50), mappedData.phone);
-    request.input('value', sql.NVarChar(100), mappedData.value);
-    request.input('notes', sql.NVarChar(sql.MAX), mappedData.notes);
-    request.input('rank', sql.NVarChar(50), mappedData.rank);
-    request.input('rating', sql.NVarChar(50), mappedData.rating);
-    request.input('acid', sql.NVarChar(100), mappedData.acid);
-    request.input('card_id', sql.NVarChar(100), mappedData.card_id);
-    request.input('source', sql.NVarChar(100), mappedData.source);
-    request.input('url', sql.NVarChar(sql.MAX), mappedData.url);
-    request.input('contact_referrer', sql.NVarChar(100), mappedData.contact_referrer);
-    request.input('company_referrer', sql.NVarChar(100), mappedData.company_referrer);
-    request.input('gclid', sql.NVarChar(255), mappedData.gclid);
+      // Helper to safely bind SQL parameters without throwing on bad types or nulls
+      function safeInput(reqObj, name, type, value) {
+        if (value === undefined || value === null || value === '') {
+          reqObj.input(name, type, null);
+          return;
+        }
+        // Dates: ensure Date object
+        if (type === sql.DateTime) {
+          reqObj.input(name, type, ensureDateTime(value));
+          return;
+        }
+        // Integers: coerce safely
+        if (type === sql.Int) {
+          const n = parseInt(value, 10);
+          reqObj.input(name, type, Number.isNaN(n) ? null : n);
+          return;
+        }
+        // Default: pass value (strings will be converted)
+        reqObj.input(name, type, value);
+      }
 
-    context.log('Executing SQL insert...');
-    context.log('SQL Query:', insertQuery);
+      // Add parameters with safe handling
+      safeInput(request, 'datetime', sql.DateTime, mappedData.datetime);
+      safeInput(request, 'stage', sql.NVarChar(50), mappedData.stage);
+      safeInput(request, 'claim', sql.DateTime, mappedData.claim);
+      safeInput(request, 'poc', sql.NVarChar(100), mappedData.poc);
+      safeInput(request, 'pitch', sql.Int, mappedData.pitch);
+      safeInput(request, 'aow', sql.NVarChar(100), mappedData.aow);
+      safeInput(request, 'tow', sql.NVarChar(100), mappedData.tow);
+      safeInput(request, 'moc', sql.NVarChar(50), mappedData.moc);
+      safeInput(request, 'rep', sql.NVarChar(100), mappedData.rep);
+      safeInput(request, 'first', sql.NVarChar(100), mappedData.first);
+      safeInput(request, 'last', sql.NVarChar(100), mappedData.last);
+      safeInput(request, 'email', sql.NVarChar(255), mappedData.email);
+      safeInput(request, 'phone', sql.NVarChar(50), mappedData.phone);
+      safeInput(request, 'value', sql.NVarChar(100), mappedData.value);
+      safeInput(request, 'notes', sql.NVarChar(sql.MAX), mappedData.notes);
+      safeInput(request, 'rank', sql.NVarChar(50), mappedData.rank);
+      safeInput(request, 'rating', sql.NVarChar(50), mappedData.rating);
+      safeInput(request, 'acid', sql.NVarChar(100), mappedData.acid);
+      safeInput(request, 'card_id', sql.NVarChar(100), mappedData.card_id);
+      safeInput(request, 'source', sql.NVarChar(100), mappedData.source);
+      safeInput(request, 'url', sql.NVarChar(sql.MAX), mappedData.url);
+      safeInput(request, 'contact_referrer', sql.NVarChar(100), mappedData.contact_referrer);
+      safeInput(request, 'company_referrer', sql.NVarChar(100), mappedData.company_referrer);
+      safeInput(request, 'gclid', sql.NVarChar(255), mappedData.gclid);
 
-    // Execute the insert
-    const result = await request.query(insertQuery);
+      context.log('Executing SQL insert...');
+      context.log('SQL Query:', insertQuery);
 
-    context.log(`SUCCESS: Enquiry inserted from source ${sourceType}. Rows affected: ${result.rowsAffected[0]}`);
+      // Execute the insert
+      insertResult = await request.query(insertQuery);
+      context.log(`SUCCESS: Enquiry inserted from source ${sourceType}. Rows affected: ${insertResult.rowsAffected[0]}`);
+    } else {
+      context.log('DB insert disabled by feature flag - performing dry-run (no DB operations)');
+    }
+
+  context.log(`SUCCESS: Enquiry inserted from source ${sourceType}. Rows affected: ${result.rowsAffected[0]}`);
 
     // Return success response
     context.res = {
@@ -367,6 +393,8 @@ module.exports = async function (context, req) {
         success: true,
         message: 'Enquiry inserted successfully',
         sourceType: sourceType,
+        identifiedSource: identifiedSource,
+        validationWarnings: validationWarnings,
         rowsAffected: result.rowsAffected[0],
         insertedData: mappedData,
         activeCampaign: activeCampaignResult,
