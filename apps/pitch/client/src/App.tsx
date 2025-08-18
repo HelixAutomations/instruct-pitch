@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, useMatch } from 'react-router-dom';
+import { StripeProvider } from './context/StripeContext';
 import Header from './structure/Header';
 import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
@@ -151,79 +152,81 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="app-page">
-      <div className="page-hero">
-        <div className="page-hero-content">
-          <div className="page-hero-content-inner">
-            <Header />
-            <ClientDetails
-              stage={
-                instructionConfirmed
-                  ? "We've got your instructions."
-                  : 'Confirmation of Instruction'
-              }
-              instructionRef={instructionRef}
-              confirmed={instructionConfirmed}
-              greeting={completionGreeting ?? undefined}
-              onAnimationEnd={() => {
-                setTimeout(() => setStep1Reveal(true), 550);
-              }}
-              showHelp={!returning}
-            />
+    <StripeProvider>
+      <div className="app-page">
+        <div className="page-hero">
+          <div className="page-hero-content">
+            <div className="page-hero-content-inner">
+              <Header />
+              <ClientDetails
+                stage={
+                  instructionConfirmed
+                    ? "We've got your instructions."
+                    : 'Confirmation of Instruction'
+                }
+                instructionRef={instructionRef}
+                confirmed={instructionConfirmed}
+                greeting={completionGreeting ?? undefined}
+                onAnimationEnd={() => {
+                  setTimeout(() => setStep1Reveal(true), 550);
+                }}
+                showHelp={!returning}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <main className="app-container">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <IDAuth
-                clientId={clientId}
-                setClientId={setClientId}
-                passcode={passcode}
-                setPasscode={setPasscode}
-                setInstructionRef={setInstructionRef}
-                onConfirm={handleConfirm}
-                showClientId={true}
-              />
-            }
-          />
-          <Route
-            path="/:param/*"
-            element={
-              <>
-                {showIdAuth && !instructionRef && (
-                  <IDAuth
-                    clientId={clientId}
-                    setClientId={setClientId}
-                    passcode={passcode}
-                    setPasscode={setPasscode}
-                    setInstructionRef={setInstructionRef}
-                    onConfirm={handleConfirm}
-                    showClientId={false}
-                  />
-                )}
-                <HomePage
-                  step1Reveal={step1Reveal}
+        <main className="app-container">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <IDAuth
                   clientId={clientId}
+                  setClientId={setClientId}
                   passcode={passcode}
-                  instructionRef={instructionRef}
-                  returning={returning}
-                  onInstructionConfirmed={() => setInstructionConfirmed(true)}
-                  onGreetingChange={setCompletionGreeting}
-                  onContactInfoChange={handleContactInfoChange}
-                  feeEarner={feeEarner}
+                  setPasscode={setPasscode}
+                  setInstructionRef={setInstructionRef}
+                  onConfirm={handleConfirm}
+                  showClientId={true}
                 />
-              </>
-            }
-          />
-        </Routes>
-      </main>
+              }
+            />
+            <Route
+              path="/:param/*"
+              element={
+                <>
+                  {showIdAuth && !instructionRef && (
+                    <IDAuth
+                      clientId={clientId}
+                      setClientId={setClientId}
+                      passcode={passcode}
+                      setPasscode={setPasscode}
+                      setInstructionRef={setInstructionRef}
+                      onConfirm={handleConfirm}
+                      showClientId={false}
+                    />
+                  )}
+                  <HomePage
+                    step1Reveal={step1Reveal}
+                    clientId={clientId}
+                    passcode={passcode}
+                    instructionRef={instructionRef}
+                    returning={returning}
+                    onInstructionConfirmed={() => setInstructionConfirmed(true)}
+                    onGreetingChange={setCompletionGreeting}
+                    onContactInfoChange={handleContactInfoChange}
+                    feeEarner={feeEarner}
+                  />
+                </>
+              }
+            />
+          </Routes>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </StripeProvider>
   );
 };
 

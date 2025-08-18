@@ -49,6 +49,7 @@ import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
 import { CSSTransition } from 'react-transition-group';
 import { toTitleCase } from '../utils/format';
+import { PaymentExample } from '../components/PaymentExample';
 import InfoPopover from '../components/InfoPopover';
 import ClientHub from './ClientHub';
 
@@ -356,8 +357,10 @@ const HomePage: React.FC<HomePageProps> = ({
       });
   }, [instruction.instructionRef]);
 
-  // Payment system migration: Payments are disabled during Barclays->Stripe transition
-  const paymentsDisabled = true;
+  // Payment system: Enable Stripe integration only for test passcode 20200
+  // For all other users, payments remain disabled during transition
+  const paymentsDisabled = passcode !== '20200';
+  
   const ACCEPT_URL = useMemo(
     () =>
       `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`,
@@ -368,8 +371,8 @@ const HomePage: React.FC<HomePageProps> = ({
       `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`,
     [instruction.amount, instruction.product]
   );
-  // Payment preloading removed during Barclays->Stripe migration
-  const [prefetchPayment] = useState(false);
+  // Enable payment preloading for test passcode 20200 when Stripe is active
+  const prefetchPayment = !paymentsDisabled && instruction.amount > 0;
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
   const [closingStep, setClosingStep] = useState<0 | 1 | 2 | 3>(0);
@@ -1276,28 +1279,77 @@ const proofSummary = (
                       </div>
                     )}
 
-                    {/* Only include Payment component when payments are enabled. */}
+                    {/* Payment component - Stripe integration for passcode 20200, legacy for others */}
                     {!paymentsDisabled && (prefetchPayment || openStep === 2 || closingStep === 2) && (
-                        <Payment
-                          style={{ display: openStep === 2 ? 'block' : 'none' }}
-                          paymentDetails={paymentDetails}
-                          setIsComplete={setPaymentDone}
-                          onBack={back}
-                          onNext={next}
-                          onError={(code) => console.error('Payment error', code)}
-                          orderId={instruction.instructionRef}
-                          amount={instruction.amount}
-                          product={instruction.product}
-                          workType={instruction.workType}
-                          contactFirstName={proofData.helixContact.split(' ')[0] || ''}
-                          pitchedAt={instruction.pitchedAt}
-                          acceptUrl={ACCEPT_URL}
-                          exceptionUrl={EXCEPTION_URL}
-                          
-                          instructionReady={instructionReady}
-                          onPaymentData={updatePaymentData}
-                          hideSummary
-                        />
+                      <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
+                        {passcode === '20200' ? (
+                          // New Stripe payment integration for test user
+                          <div className="step-content-wrapper">
+                            <PaymentExample
+                              instructionRef={instruction.instructionRef}
+                              amount={instruction.amount}
+                              currency="gbp"
+                              onSuccess={() => setPaymentDone(true)}
+                              onError={(error: string) => console.error('Payment error:', error)}
+                            />
+                            <div className="payment-navigation" style={{
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              marginTop: '24px',
+                              gap: '16px'
+                            }}>
+                              <button 
+                                onClick={() => back()} 
+                                className="btn-secondary"
+                                style={{
+                                  padding: '12px 24px',
+                                  backgroundColor: '#f5f5f5',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Back
+                              </button>
+                              <button 
+                                onClick={() => next()} 
+                                className="btn-primary"
+                                disabled={!isPaymentDone}
+                                style={{
+                                  padding: '12px 24px',
+                                  backgroundColor: isPaymentDone ? '#0066cc' : '#cccccc',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: isPaymentDone ? 'pointer' : 'not-allowed'
+                                }}
+                              >
+                                Continue
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          // Legacy payment component for other users
+                          <Payment
+                            paymentDetails={paymentDetails}
+                            setIsComplete={setPaymentDone}
+                            onBack={back}
+                            onNext={next}
+                            onError={(code) => console.error('Payment error', code)}
+                            orderId={instruction.instructionRef}
+                            amount={instruction.amount}
+                            product={instruction.product}
+                            workType={instruction.workType}
+                            contactFirstName={proofData.helixContact.split(' ')[0] || ''}
+                            pitchedAt={instruction.pitchedAt}
+                            acceptUrl={ACCEPT_URL}
+                            exceptionUrl={EXCEPTION_URL}
+                            instructionReady={instructionReady}
+                            onPaymentData={updatePaymentData}
+                            hideSummary
+                          />
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

@@ -112,8 +112,8 @@ Pop-Location
 az webapp deployment source config-zip `
   --resource-group Instructions `
   --name instruct-helixlaw-pitch `
+  --slot staging `
   --src (Join-Path $packageRoot 'push-package.zip')
-
 # Optional cleanup
 $shouldClean = $true
 if ($shouldClean) {

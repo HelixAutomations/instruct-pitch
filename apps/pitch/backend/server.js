@@ -85,6 +85,11 @@ try {
   ({ SecretClient } = require('@azure/keyvault-secrets'));
   ({ getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb'));
   ({ normalizeInstruction } = require('./utilities/normalize'));
+  
+  // Payment-related modules
+  const stripeService = require('./stripe-service');
+  const paymentDatabase = require('./payment-database');
+  const paymentRoutes = require('./payment-routes');
 } catch (err) {
   if (!startupError) {
     startupError = `Failed to load required modules: ${err.message}`;
@@ -185,6 +190,35 @@ if (uploadRouter) {
     res.status(503).json({ error: 'Upload service unavailable', message: startupError });
   });
 }
+
+// ─── Payment Routes and Stripe Initialization ────────────────────────────
+// Initialize Stripe service and payment database
+(async () => {
+  try {
+    if (stripeService && paymentDatabase && paymentRoutes) {
+      // Initialize Stripe service
+      await stripeService.initialize();
+      
+      // Initialize payment database tables
+      await paymentDatabase.initializeTables();
+      
+      // Mount payment routes
+      app.use('/api/payments', paymentRoutes);
+      app.use('/api', paymentRoutes); // For webhook endpoint
+      
+      console.log('✅ Payment system initialized successfully');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize payment system:', error);
+    // Mount error handler for payment routes
+    app.use('/api/payments', (_req, res) => {
+      res.status(503).json({ 
+        error: 'Payment service unavailable', 
+        message: error.message 
+      });
+    });
+  }
+})();
 
 // ─── Test route for debugging ──────────────────────────────────────────
 app.get('/test', (req, res) => {
