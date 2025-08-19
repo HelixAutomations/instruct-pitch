@@ -7,10 +7,10 @@ export default defineConfig({
   plugins: [react()],
   build: {
     sourcemap: false,
-    outDir: 'dist/pitch',  // ✅ Build to dist/pitch to match IIS structure
+    outDir: 'dist',  // ✅ Build to dist root for proper static serving
     assetsDir: 'assets',
   },
-  base: '/pitch/',  // ✅ Base path for assets
+  base: '/',  // ✅ Root base path for universal asset serving
   // Dev server proxy: forward any /api requests to the backend (port 4000)
   // so the Vite dev server can serve the client while backend APIs are reachable.
   server: {
