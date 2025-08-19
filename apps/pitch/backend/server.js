@@ -874,7 +874,10 @@ function resolvePort() {
   if (/^\d+$/.test(RAW_PORT)) {
     const n = Number(RAW_PORT);
     if (n === 80) {
-      console.warn('⚠️  PORT=80 detected. If running under iisnode this may fail. Consider removing custom PORT setting.');
+      console.warn(
+        '⚠️  PORT=80 detected. If running under iisnode this may fail. Falling back to 3000. Remove custom PORT setting to avoid this warning.'
+      );
+      return 3000;
     }
     return n;
   }
