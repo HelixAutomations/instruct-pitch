@@ -47,6 +47,11 @@ Copy-Item .\backend\package.json $packageRoot -Force
 Copy-Item .\backend\web.config $packageRoot -Force
 Copy-Item .\backend\.env $packageRoot -Force -ErrorAction SilentlyContinue
 
+# Copy Stripe integration files
+Copy-Item .\backend\stripe-service.js $packageRoot -Force
+Copy-Item .\backend\payment-database.js $packageRoot -Force
+Copy-Item .\backend\payment-routes.js $packageRoot -Force
+
 # Copy backend dist (compiled TypeScript output) to root-level dist
 Write-Host "Copying backend compiled artifacts to package root dist"
 New-Item -ItemType Directory -Path (Join-Path $packageRoot 'dist') -Force | Out-Null
@@ -98,6 +103,9 @@ Push-Location $packageRoot
    '.\upload.js',
    '.\sqlClient.js',
    '.\instructionDb.js',
+   '.\stripe-service.js',
+   '.\payment-database.js',
+   '.\payment-routes.js',
    '.\web.config',
    '.\package.json',
    '.\\.env',
@@ -118,7 +126,7 @@ az webapp deployment source config-zip `
 $shouldClean = $true
 if ($shouldClean) {
   # Do not remove app.js or server.js until after deploy completes successfully
-  Remove-Item .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env -ErrorAction SilentlyContinue
+  Remove-Item .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env, .\stripe-service.js, .\payment-database.js, .\payment-routes.js -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
   Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue

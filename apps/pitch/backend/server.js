@@ -76,6 +76,8 @@ if (!fs.existsSync(path.join(__dirname, 'dist', 'generateInstructionRef.js'))) {
 let uploadRouter, sql, getSqlPool, DefaultAzureCredential, SecretClient;
 let getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction;
 let normalizeInstruction;
+// Payment-related modules (declared here so later async init can see them)
+let stripeService, paymentDatabase, paymentRoutes;
 
 try {
   uploadRouter = require('./upload');
@@ -87,9 +89,9 @@ try {
   ({ normalizeInstruction } = require('./utilities/normalize'));
   
   // Payment-related modules
-  const stripeService = require('./stripe-service');
-  const paymentDatabase = require('./payment-database');
-  const paymentRoutes = require('./payment-routes');
+  stripeService = require('./stripe-service');
+  paymentDatabase = require('./payment-database');
+  paymentRoutes = require('./payment-routes');
 } catch (err) {
   if (!startupError) {
     startupError = `Failed to load required modules: ${err.message}`;
@@ -860,8 +862,42 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
 // `window.helixResolvedProspectId` to determine if the server found an
 // associated ProspectId for prefill/validation purposes.
 
-// Note: iisnode provides a named pipe in process.env.PORT. Do not hardcode 80.
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('🚀 Backend listening on', PORT);
-});
+// ─── Listening (guard against double-listen & bad PORT) ──────────────────────
+// In Azure App Service with iisnode, PORT may be a named pipe or already managed.
+// If a custom App Setting 'PORT=80' was added it can cause binding errors (UNKNOWN :::80).
+// Remove any manual PORT setting in App Settings; let the platform supply it.
+const RAW_PORT = process.env.PORT;
+function resolvePort() {
+  if (!RAW_PORT) return 3000; // local fallback only
+  // If RAW_PORT looks numeric and is 80 under iisnode, prefer letting Node bind anyway;
+  // but log a warning so it can be corrected in configuration.
+  if (/^\d+$/.test(RAW_PORT)) {
+    const n = Number(RAW_PORT);
+    if (n === 80) {
+      console.warn('⚠️  PORT=80 detected. If running under iisnode this may fail. Consider removing custom PORT setting.');
+    }
+    return n;
+  }
+  return RAW_PORT; // pipe name
+}
+
+function startListening() {
+  if (global.__HLX_LISTENING__) {
+    console.log('ℹ️  Listen already established, skipping duplicate call');
+    return;
+  }
+  const portVal = resolvePort();
+  try {
+    app.listen(portVal, () => {
+      global.__HLX_LISTENING__ = true;
+      console.log('🚀 Backend listening on', portVal, '(raw PORT env =', RAW_PORT || 'undefined', ')');
+    });
+  } catch (err) {
+    console.error('❌ Failed to start listener on', portVal, 'error:', err.message);
+    if (portVal === 80) {
+      console.error('Hint: Remove PORT=80 from App Settings or let platform provide a named pipe.');
+    }
+  }
+}
+
+startListening();

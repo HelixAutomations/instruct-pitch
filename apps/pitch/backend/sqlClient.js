@@ -14,4 +14,10 @@ function getSqlPool() {
   return poolPromise;
 }
 
-module.exports = { getSqlPool };
+// Backwards-compatible alias expected by payment-database.js
+async function getSqlClient() {
+  await getSqlPool(); // ensures global connection established so sql.query works
+  return sql; // mssql library with .query now bound to active global connection
+}
+
+module.exports = { getSqlPool, getSqlClient };
