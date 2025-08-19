@@ -194,33 +194,7 @@ if (uploadRouter) {
 }
 
 // ─── Payment Routes and Stripe Initialization ────────────────────────────
-// Initialize Stripe service and payment database
-(async () => {
-  try {
-    if (stripeService && paymentDatabase && paymentRoutes) {
-      // Initialize Stripe service
-      await stripeService.initialize();
-      
-      // Initialize payment database tables
-      await paymentDatabase.initializeTables();
-      
-      // Mount payment routes
-      app.use('/api/payments', paymentRoutes);
-      app.use('/api', paymentRoutes); // For webhook endpoint
-      
-      console.log('✅ Payment system initialized successfully');
-    }
-  } catch (error) {
-    console.error('❌ Failed to initialize payment system:', error);
-    // Mount error handler for payment routes
-    app.use('/api/payments', (_req, res) => {
-      res.status(503).json({ 
-        error: 'Payment service unavailable', 
-        message: error.message 
-      });
-    });
-  }
-})();
+// Payment system initialization will happen after Key Vault secrets are loaded
 
 // ─── Test route for debugging ──────────────────────────────────────────
 app.get('/test', (req, res) => {
@@ -383,6 +357,33 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
     }
 
     console.log('✅ Key Vault secret retrieval complete');
+
+    // ─── Initialize Payment System After Secrets Are Loaded ─────────────────
+    // Now that DB password is available, initialize payment system
+    try {
+      if (stripeService && paymentDatabase && paymentRoutes) {
+        // Initialize Stripe service
+        await stripeService.initialize();
+        
+        // Initialize payment database tables (now that DB password is set)
+        await paymentDatabase.initializeTables();
+        
+        // Mount payment routes
+        app.use('/api/payments', paymentRoutes);
+        app.use('/api', paymentRoutes); // For webhook endpoint
+        
+        console.log('✅ Payment system initialized successfully');
+      }
+    } catch (paymentError) {
+      console.error('❌ Failed to initialize payment system:', paymentError);
+      // Mount error handler for payment routes
+      app.use('/api/payments', (_req, res) => {
+        res.status(503).json({ 
+          error: 'Payment service unavailable', 
+          message: paymentError.message 
+        });
+      });
+    }
   } catch (err) {
     console.error('❌ Failed to load secrets from Key Vault — starting server without them:', err && err.message);
     // Do not crash the process; start the server and allow runtime paths to handle missing secrets.
