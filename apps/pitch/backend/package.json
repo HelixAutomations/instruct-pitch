@@ -11,7 +11,8 @@
     "dev:mock": "node scripts/mock_local_server.js",
     "dev:decoupled": "npm --prefix ../../../decoupled-functions run start",
     "dev:local": "npm run dev:client && concurrently -k \"npm:dev:mock\" \"npm:dev:decoupled\"",
-    "dev:hot": "concurrently -k \"npm --prefix ../client run dev\" \"node scripts/mock_local_server.js\" \"npm --prefix ../../../decoupled-functions run start\""
+    "dev:hot": "concurrently -k \"npm --prefix ../client run dev\" \"node scripts/mock_local_server.js\" \"npm --prefix ../../../decoupled-functions run start\"",
+    "dev:production": "concurrently -k \"npm --prefix ../client run dev\" \"node server.js\" \"npm --prefix ../../../decoupled-functions run start\""
   },
   "engines": {
     "node": ">=18"

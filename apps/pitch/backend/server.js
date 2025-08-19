@@ -762,15 +762,22 @@ app.get(['/pitch', '/pitch/:code', '/pitch/:code/*'], async (req, res) => {
           html = injectPrefill(html, prefill);
         }
       } else if (/^\d+-\d+$/.test(code)) {
-        // Handle clientId-passcode format (e.g., "27367-59914")
+        // Handle clientId-passcode format (e.g., "27367-20200")
         const [clientId, passcode] = code.split('-');
         
-        // For development: hardcode the test case from mock server
-        if (clientId === '27367' && passcode === '59914') {
-          resolvedProspectId = '27367';
-          injectedPasscode = '59914';
+        // Try to verify this is a valid combination by looking up the deal
+        try {
+          const deal = await getDealByPasscodeIncludingLinked(passcode);
+          if (deal && String(deal.ProspectId) === clientId) {
+            resolvedProspectId = clientId;
+            injectedPasscode = passcode;
+            log('✅ Validated clientId-passcode format:', { clientId, passcode });
+          } else {
+            log('⚠️ Invalid clientId-passcode combination:', { clientId, passcode });
+          }
+        } catch (lookupErr) {
+          log('⚠️ Failed to validate clientId-passcode:', lookupErr.message);
         }
-        // Add other known test cases here as needed
         
         // If we found a match, fetch prefill data
         if (resolvedProspectId && cachedFetchInstructionDataCode) {

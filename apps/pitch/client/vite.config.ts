@@ -11,12 +11,12 @@ export default defineConfig({
     assetsDir: 'assets',
   },
   base: '/',  // ✅ Root base path for universal asset serving
-  // Dev server proxy: forward any /api requests to the backend (port 4000)
+  // Dev server proxy: forward any /api requests to the backend (port 3000 for production, 4000 for mock)
   // so the Vite dev server can serve the client while backend APIs are reachable.
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
