@@ -117,7 +117,7 @@ Push-Location $packageRoot
 Pop-Location
 
 # Deploy to Azure
-$deployResult = az webapp deployment source config-zip `
+az webapp deployment source config-zip `
   --resource-group Instructions `
   --name instruct-helixlaw-pitch `
   --slot staging `
