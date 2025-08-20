@@ -1,0 +1,5 @@
+# Format: old_secret==>new_value
+# Example:
+# sk_live_XXXXXX==>***REMOVED***
+REPLACE_WITH_STRIPE_SECRET==>***REMOVED***
+REPLACE_WITH_STRIPE_WEBHOOK_SECRET==>***REMOVED***

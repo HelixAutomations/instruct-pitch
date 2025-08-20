@@ -1,0 +1,6 @@
+# Add one exact secret per line (do NOT commit real secrets into the repo).
+# Example:
+# sk_live_XXXXXX
+# whsec_YYYYYY
+REPLACE_WITH_STRIPE_SECRET
+REPLACE_WITH_STRIPE_WEBHOOK_SECRET
