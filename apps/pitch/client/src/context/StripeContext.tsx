@@ -122,7 +122,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       },
     },
     currency: config.currency.toLowerCase(),
-    mode: 'payment' as const,
+    mode: 'setup' as const, // Use setup mode to avoid requiring amount upfront
   };
 
   return (

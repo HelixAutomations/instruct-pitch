@@ -23,33 +23,55 @@ const App: React.FC = () => {
   const [returning, setReturning] = useState(false);
   const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const [feeEarner, setFeeEarner] = useState<string | undefined>();
+  const [isInitializing, setIsInitializing] = useState(true);
   const location = useLocation();
 
+  // Produce a canonical path form (cid-passcode). We prefer to *replace* the
+  // URL only when we started from a raw passcode form to avoid a visible
+  // flicker caused by a push + re-render sequence.
+  const canonicalPath = (cid: string, code: string) => `/${cid}-${code}`;
+
   useEffect(() => {
+    // Helper function to complete initialization
+    const completeInitialization = () => {
+      setIsInitializing(false);
+    };
+
     // If server injected a passcode/cid (for /pitch/<passcode>), use that first
     const injectedPasscode = (window as any).helixOriginalPasscode;
     const injectedCid = (window as any).helixCid;
     if (injectedPasscode && injectedCid) {
       setClientId(String(injectedCid));
       setPasscode(String(injectedPasscode));
-  // Hide the ID/passcode modal when the server has injected a passcode
-  // (we'll still attempt to auto-generate an instructionRef below).
-  setShowIdAuth(false);
+      // Hide the ID/passcode modal when the server has injected a passcode
+      // (we'll still attempt to auto-generate an instructionRef below).
+      setShowIdAuth(false);
       // attempt to auto-generate instructionRef
       fetch(`/api/generate-instruction-ref?cid=${encodeURIComponent(String(injectedCid))}&passcode=${encodeURIComponent(String(injectedPasscode))}`)
         .then(res => res.json())
         .then(data => {
           if (data.instructionRef) {
             setInstructionRef(data.instructionRef);
-            // keep the passcode visible in the URL so the app can be reloaded
-            // into the same state (use cid-passcode form)
-            navigate(`/${injectedCid}-${injectedPasscode}`);
+            // Only replace the URL if we are currently on a pure passcode path
+            // (e.g. /20200) to prevent a visible flicker. Use history *replace*
+            // so we don't add an extra entry.
+            const target = canonicalPath(String(injectedCid), String(injectedPasscode));
+            if (/^\/(\d+)$/.test(location.pathname)) {
+              if (location.pathname !== target) {
+                navigate(target, { replace: true });
+              }
+            }
           }
         })
-        .catch(() => { /* ignore */ });
+        .catch(() => { /* ignore */ })
+        .finally(completeInitialization);
       return;
     }
-    if (!cidParam) return;
+    
+    if (!cidParam) {
+      completeInitialization();
+      return;
+    }
     
     // Check if this might be a passcode that needs lookup
     if (/^\d+$/.test(cidParam)) {
@@ -84,15 +106,37 @@ const App: React.FC = () => {
           if (data && data.instructionRef) {
             console.log('Setting instruction ref:', data.instructionRef);
             setInstructionRef(data.instructionRef);
-            // Don't navigate - stay on the current URL to avoid loops
-            console.log('Successfully set up instruction, staying on current URL');
+            // If we started from a pure passcode (e.g. /20200) replace it with
+            // canonical cid-passcode to allow refresh/bookmark without a second
+            // network lookup on reload. Using replace avoids flicker.
+            if (/^\/(\d+)$/.test(location.pathname)) {
+              const prospectId = data?.ProspectId || clientId;
+              if (prospectId) {
+                const target = canonicalPath(String(prospectId), String(passcode || cidParam));
+                if (target && location.pathname !== target && /-/.test(target)) {
+                  navigate(target, { replace: true });
+                }
+              }
+            }
+            console.log('Successfully set up instruction (canonical path applied if needed)');
           }
         })
         .catch(() => {
           // If lookup fails, treat as regular client ID
           setClientId(cidParam);
           setShowIdAuth(true);
-        });
+        })
+        .finally(completeInitialization);
+      return;
+    }
+    
+    // Handle malformed URLs like /-20200 by treating as pure passcode
+    if (cidParam.startsWith('-') && /^-\d+$/.test(cidParam)) {
+      const passcodeOnly = cidParam.substring(1); // Remove leading dash
+      console.log('Detected malformed URL with leading dash, treating as passcode:', passcodeOnly);
+      // Redirect to clean passcode URL
+      navigate(`/${passcodeOnly}`, { replace: true });
+      completeInitialization();
       return;
     }
     
@@ -107,6 +151,7 @@ const App: React.FC = () => {
       setReturning(true);
       setShowIdAuth(false);
       setClientId(cid);
+      completeInitialization();
       return;
     }
     setClientId(cid);
@@ -115,6 +160,7 @@ const App: React.FC = () => {
       setInstructionRef(cidParam);
       setPasscode('');
       setShowIdAuth(false);
+      completeInitialization();
       return;
     }
 
@@ -127,16 +173,23 @@ const App: React.FC = () => {
         .then(data => {
           if (data.instructionRef) {
             setInstructionRef(data.instructionRef);
-            // keep passcode in the path so the user can bookmark/refresh the
-            // same entry point (cid-passcode form)
-            navigate(`/${cid}-${code}`);
+            // Replace (not push) only if current path is *not* already canonical
+            const target = canonicalPath(cid, code);
+            if (location.pathname !== target) {
+              navigate(target, { replace: true });
+            }
           }
         })
-        .catch(err => console.error('auto generate error', err));
+        .catch(err => console.error('auto generate error', err))
+        .finally(completeInitialization);
     } else if (!code) {
       setShowIdAuth(passcode === '');
+      completeInitialization();
+    } else {
+      completeInitialization();
     }
-  }, [cidParam, navigate]);
+  // include location.pathname so conditional navigation can evaluate current path
+  }, [cidParam, navigate, location.pathname]);
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
@@ -177,51 +230,57 @@ const App: React.FC = () => {
         </div>
 
         <main className="app-container">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <IDAuth
-                  clientId={clientId}
-                  setClientId={setClientId}
-                  passcode={passcode}
-                  setPasscode={setPasscode}
-                  setInstructionRef={setInstructionRef}
-                  onConfirm={handleConfirm}
-                  showClientId={true}
-                />
-              }
-            />
-            <Route
-              path="/:param/*"
-              element={
-                <>
-                  {showIdAuth && !instructionRef && (
-                    <IDAuth
-                      clientId={clientId}
-                      setClientId={setClientId}
-                      passcode={passcode}
-                      setPasscode={setPasscode}
-                      setInstructionRef={setInstructionRef}
-                      onConfirm={handleConfirm}
-                      showClientId={false}
-                    />
-                  )}
-                  <HomePage
-                    step1Reveal={step1Reveal}
+          {isInitializing ? (
+            <div className="loading-state">
+              {/* Show a subtle loading indicator instead of the modal flicker */}
+            </div>
+          ) : (
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <IDAuth
                     clientId={clientId}
+                    setClientId={setClientId}
                     passcode={passcode}
-                    instructionRef={instructionRef}
-                    returning={returning}
-                    onInstructionConfirmed={() => setInstructionConfirmed(true)}
-                    onGreetingChange={setCompletionGreeting}
-                    onContactInfoChange={handleContactInfoChange}
-                    feeEarner={feeEarner}
+                    setPasscode={setPasscode}
+                    setInstructionRef={setInstructionRef}
+                    onConfirm={handleConfirm}
+                    showClientId={true}
                   />
-                </>
-              }
-            />
-          </Routes>
+                }
+              />
+              <Route
+                path="/:param/*"
+                element={
+                  <>
+                    {showIdAuth && !instructionRef && (
+                      <IDAuth
+                        clientId={clientId}
+                        setClientId={setClientId}
+                        passcode={passcode}
+                        setPasscode={setPasscode}
+                        setInstructionRef={setInstructionRef}
+                        onConfirm={handleConfirm}
+                        showClientId={false}
+                      />
+                    )}
+                    <HomePage
+                      step1Reveal={step1Reveal}
+                      clientId={clientId}
+                      passcode={passcode}
+                      instructionRef={instructionRef}
+                      returning={returning}
+                      onInstructionConfirmed={() => setInstructionConfirmed(true)}
+                      onGreetingChange={setCompletionGreeting}
+                      onContactInfoChange={handleContactInfoChange}
+                      feeEarner={feeEarner}
+                    />
+                  </>
+                }
+              />
+            </Routes>
+          )}
         </main>
 
         <Footer />

@@ -373,10 +373,16 @@ const HomePage: React.FC<HomePageProps> = ({
   );
   // Enable payment preloading for test passcode 20200 when Stripe is active
   const prefetchPayment = !paymentsDisabled && instruction.amount > 0;
+
+  // Allow viewing the payment step locally for the test passcode so devs can preview it
+  
   
   const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
   const [closingStep, setClosingStep] = useState<0 | 1 | 2 | 3>(0);
-  const hasDeal = instruction.amount > 0;
+  // Consider a deal present if we have a non-zero amount OR product/workType metadata
+  // This covers cases where the backend returns product/service but amount may be zero/null
+  const hasDeal = instruction.amount > 0 || Boolean(instruction.product) || Boolean(instruction.workType);
+  const showPaymentStep = hasDeal && (!paymentsDisabled || (import.meta.env && import.meta.env.DEV && passcode === '20200'));
   // When payments are disabled we collapse the payment step so Documents
   // becomes step 2 instead of step 3. This keeps the UI numbering simple
   // while avoiding rendering the payment UI at all.
@@ -568,6 +574,37 @@ const HomePage: React.FC<HomePageProps> = ({
 
   const [instructionReady, setInstructionReady] = useState(false);
   const [instructionError] = useState<string | null>(null);
+
+  // Debug: log payment visibility state to help diagnose missing step 2
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line no-console
+      console.log('[HomePage] payment debug', {
+        passcode,
+        paymentsDisabled: passcode !== '20200',
+        instructionRef: instruction.instructionRef,
+        instructionAmount: instruction.amount,
+        hasDeal: instruction.amount > 0,
+        prefetchPayment: !((passcode !== '20200')) && instruction.amount > 0,
+        instructionReady,
+        openStep,
+      });
+    } catch (e) {
+      // swallow logging errors
+    }
+  }, [passcode, instruction.instructionRef, instruction.amount, instructionReady, openStep]);
+
+  // Debug logging for payment visibility
+  console.log('[HomePage] Payment visibility check:', {
+    passcode,
+    paymentsDisabled,
+    hasDeal,
+    instructionAmount: instruction.amount,
+    instructionReady,
+    paymentStepNumber,
+    documentsStepNumber,
+    maxStep
+  });
 
   const [isIdReviewDone, setIdReviewDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
@@ -773,7 +810,12 @@ function getPulseClass(step: number, done: boolean, isEditing = false) {
 }
 
   useEffect(() => {
-    if (step1Reveal && !returning) goToStep(1);
+    // Only auto-open Step 1 for new arrivals when steps are not locked and
+    // no other step is currently open. This avoids auto-expanding a locked
+    // Step 1 (greyed out) or interrupting the user's current view.
+    if (step1Reveal && !returning && !stepsLocked && openStep === 0) {
+      goToStep(1);
+    }
   }, [step1Reveal, returning]);
 
   const initialStepScrollSkipped = useRef(false);
@@ -1179,9 +1221,11 @@ const proofSummary = (
                 complete={isIdReviewDone}
                 open={openStep === 1}
                 toggle={() => goToStep(openStep === 1 ? 0 : 1)}
-                locked={isIdReviewDone}
-                editable={!isIdReviewDone}
-                onEdit={isIdReviewDone ? undefined : handleEdit}
+                locked={stepsLocked}
+                editable={!stepsLocked}
+                onEdit={stepsLocked ? undefined : handleEdit}
+                allowToggleWhenLocked={true}
+                dimOnLock={false}
               />
               <div
                 className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone, editing)}`}
@@ -1229,7 +1273,7 @@ const proofSummary = (
               </div>
             </div>
 
-            {hasDeal && !paymentsDisabled && (
+            {showPaymentStep && (
               <CSSTransition
                 in={dealStepsVisible}
                 timeout={300}
@@ -1243,8 +1287,10 @@ const proofSummary = (
                     complete={isPaymentDone}
                     open={openStep === 2}
                     toggle={() => goToStep(openStep === 2 ? 0 : 2)}
-                    locked={isPaymentDone}
-                    editable={!isPaymentDone}
+                    locked={stepsLocked}
+                    editable={!stepsLocked}
+                    allowToggleWhenLocked={true}
+                    dimOnLock={false}
                   />
                   <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
                     {!isPaymentDone && (
@@ -1268,7 +1314,7 @@ const proofSummary = (
                             <div className="summary-label">
                               Amount <span className="summary-note">(inc. VAT)</span>
                             </div>
-                            <div className="summary-value">£{formatAmount(instruction.amount)}</div>
+                            <div className="summary-value amount-value">£{formatAmount(instruction.amount)}</div>
                           </div>
                         </div>
                         {proofData.helixContact && (
@@ -1289,41 +1335,20 @@ const proofSummary = (
                               instructionRef={instruction.instructionRef}
                               amount={instruction.amount}
                               currency="gbp"
-                              onSuccess={() => setPaymentDone(true)}
+                              passcode={passcode}
+                              product={instruction.product}
+                              workType={instruction.workType}
+                              onSuccess={() => {
+                                console.log('HomePage: Payment success callback received');
+                                setPaymentDone(true);
+                              }}
                               onError={(error: string) => console.error('Payment error:', error)}
                             />
-                            <div className="payment-navigation" style={{
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
-                              marginTop: '24px',
-                              gap: '16px'
-                            }}>
-                              <button 
-                                onClick={() => back()} 
-                                className="btn-secondary"
-                                style={{
-                                  padding: '12px 24px',
-                                  backgroundColor: '#f5f5f5',
-                                  border: '1px solid #ddd',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer'
-                                }}
-                              >
+                            <div className="payment-navigation" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', gap: '16px' }}>
+                              <button onClick={() => back()} className="btn secondary">
                                 Back
                               </button>
-                              <button 
-                                onClick={() => next()} 
-                                className="btn-primary"
-                                disabled={!isPaymentDone}
-                                style={{
-                                  padding: '12px 24px',
-                                  backgroundColor: isPaymentDone ? '#0066cc' : '#cccccc',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: isPaymentDone ? 'pointer' : 'not-allowed'
-                                }}
-                              >
+                              <button onClick={() => next()} className="btn primary" disabled={!isPaymentDone}>
                                 Continue
                               </button>
                             </div>

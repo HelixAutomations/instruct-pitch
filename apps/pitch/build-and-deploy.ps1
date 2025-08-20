@@ -117,26 +117,30 @@ Push-Location $packageRoot
 Pop-Location
 
 # Deploy to Azure
-az webapp deployment source config-zip `
+$deployResult = az webapp deployment source config-zip `
   --resource-group Instructions `
   --name instruct-helixlaw-pitch `
   --slot staging `
   --src (Join-Path $packageRoot 'push-package.zip')
-# Optional cleanup
-$shouldClean = $true
-if ($shouldClean) {
-  # Do not remove app.js or server.js until after deploy completes successfully
-  Remove-Item .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env, .\stripe-service.js, .\payment-database.js, .\payment-routes.js -ErrorAction SilentlyContinue
-  Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
-  Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
-  Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue
-  Remove-Item -Recurse -Force .\utilities -ErrorAction SilentlyContinue
+
+# Check deployment success before cleanup
+if ($LASTEXITCODE -eq 0) {
+  Write-Host "✅ Deployment successful"
+  # Optional cleanup after successful deployment
+  $shouldClean = $true
+  if ($shouldClean) {
+    Remove-Item .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env, .\stripe-service.js, .\payment-database.js, .\payment-routes.js -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force .\utilities -ErrorAction SilentlyContinue
+  }
+} else {
+  Write-Host "❌ Deployment failed with exit code $LASTEXITCODE"
+  throw "Deployment failed"
 }
 
 # Restore original location
-Pop-Location
-
-# Pop again to return to the caller's starting directory
 Pop-Location
 
 # Restore client dependencies removed during packaging so the

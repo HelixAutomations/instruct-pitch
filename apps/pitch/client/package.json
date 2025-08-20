@@ -25,6 +25,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/react-transition-group": "^4.4.12",
     "@vitejs/plugin-react": "^4.0.3",
+    "react-refresh": "^0.17.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   }

@@ -9,11 +9,17 @@
  */
 
 const express = require('express');
-const { nanoid } = require('nanoid');
 const stripeService = require('./stripe-service');
 const paymentDatabase = require('./payment-database');
 
 const router = express.Router();
+
+// Dynamic import for nanoid (ESM module)
+let nanoid;
+(async () => {
+  const nanoidModule = await import('nanoid');
+  nanoid = nanoidModule.nanoid;
+})();
 
 // Middleware for raw body parsing (needed for webhook signature verification)
 const rawBodyMiddleware = express.raw({ type: 'application/json' });
@@ -71,6 +77,11 @@ router.post('/create-payment-intent', async (req, res) => {
     }
 
     // Generate unique payment ID
+    if (!nanoid) {
+      // Fallback if nanoid isn't loaded yet
+      const nanoidModule = await import('nanoid');
+      nanoid = nanoidModule.nanoid;
+    }
     const paymentId = nanoid();
 
     // Create PaymentIntent with Stripe
