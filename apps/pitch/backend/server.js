@@ -128,7 +128,22 @@ function injectPrefill(html, data) {
 
 const app = express();
 app.set('trust proxy', true);
-app.use(express.json());
+// Custom JSON parser so we can preserve the raw body for Stripe webhooks
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    try {
+      const url = req.originalUrl || '';
+      if (url.includes('/webhook/stripe')) {
+        req.rawBody = buf; // store raw body buffer for Stripe signature verification
+        if (process.env.DEBUG_LOG) {
+          console.log('🧪 Captured raw webhook body len=%d for %s', buf.length, url);
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️  Raw body capture error:', e.message);
+    }
+  }
+}));
 
 // Add a simple test route at the very beginning to test if routes work at all
 app.get('/simple-test', (req, res) => {
@@ -426,13 +441,68 @@ app.post('/pitch/confirm-payment-intent', async (req, res) => {
   }
 });
 
+// ─── Test endpoint to verify server restart ──────────────────────────
+app.get('/api/test-fix', (req, res) => {
+  res.json({ message: 'Server is running updated code', timestamp: new Date().toISOString() });
+});
+
+// ─── Test endpoint to check deal lookup ──────────────────────────────
+app.get('/api/test-deal/:prospectId', async (req, res) => {
+  try {
+    const prospectId = Number(req.params.prospectId);
+    const deal = await getDealByProspectId(prospectId);
+    res.json({ prospectId, deal });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Test endpoint to check deal lookup by passcode ──────────────────
+app.get('/api/test-passcode/:passcode', async (req, res) => {
+  try {
+    const passcode = req.params.passcode;
+    const deal = await getDealByPasscodeIncludingLinked(passcode);
+    res.json({ passcode, deal });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Instruction data upsert ──────────────────────────────────────────
 app.get('/api/instruction', async (req, res) => {
   const ref = req.query.instructionRef;
   if (!ref) return res.status(400).json({ error: 'Missing instructionRef' });
   try {
-    const data = await getInstruction(ref);
+    let data = await getInstruction(ref);
     log('Fetched instruction', ref);
+    
+    // If instruction exists but PaymentAmount is missing or 0, try to prefill from deal
+    if (data && (data.PaymentAmount == null || data.PaymentAmount === 0)) {
+      console.log('PaymentAmount is missing or 0, attempting prefill for', ref);
+      const match = /HLX-(\d+)-(.+)$/.exec(ref);
+      if (match) {
+        const prospectId = Number(match[1]);
+        const passcode = match[2];
+        try {
+          console.log('Looking up deal by ProspectId and passcode:', prospectId, passcode);
+          const deal = await getDealByPasscodeIncludingLinked(passcode, prospectId);
+          console.log('Found deal:', deal);
+          if (deal && deal.Amount) {
+            console.log('Prefilling missing PaymentAmount from deal:', deal.Amount);
+            data = { ...data, PaymentAmount: deal.Amount };
+          } else {
+            console.log('No deal found or deal has no amount');
+          }
+        } catch (prefillErr) {
+          console.warn('⚠️ Failed to prefill PaymentAmount from deal:', prefillErr?.message || prefillErr);
+        }
+      } else {
+        console.log('InstructionRef does not match expected format');
+      }
+    } else {
+      console.log('PaymentAmount already exists:', data?.PaymentAmount);
+    }
+    
     res.json(data || null);
   } catch (err) {
     console.error('❌ /api/instruction GET error:', err);

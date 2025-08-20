@@ -166,17 +166,20 @@ export const PaymentExample: React.FC<PaymentExampleProps> = ({
         </div>
       ) : (
         <PaymentForm
-        amount={amount}
-        currency={currency}
-        instructionRef={instructionRef}
-        metadata={{
-          source: 'instruction_portal',
-          timestamp: new Date().toISOString(),
-        }}
-        onSuccess={handlePaymentSuccess}
-        onError={handlePaymentError}
-        onStatusUpdate={handleStatusUpdate}
-      />
+          amount={amount}
+          currency={currency}
+          instructionRef={instructionRef}
+          // Stable metadata: timestamp only generated once
+          metadata={React.useMemo(() => ({
+            source: 'instruction_portal',
+            // Provide createdAt once; PaymentForm no longer depends on metadata so this is safe
+            createdAt: new Date().toISOString(),
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          }), [instructionRef])}
+          onSuccess={handlePaymentSuccess}
+          onError={handlePaymentError}
+          onStatusUpdate={handleStatusUpdate}
+        />
       )}
     </div>
   );

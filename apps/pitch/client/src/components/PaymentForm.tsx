@@ -4,7 +4,7 @@
  * Complete Stripe payment form with Elements integration
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   useStripe,
   useElements,
@@ -41,40 +41,76 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>('');
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
+  
+  // Use ref to persist across re-renders and prevent duplicate payment intent creation
+  const paymentIntentCreatedRef = useRef(false);
+  const currentInstructionRef = useRef<string>('');
 
-  // Create PaymentIntent on component mount
+  // Create PaymentIntent on component mount - only once per instruction (guarding StrictMode double invoke)
   useEffect(() => {
-    const createPaymentIntent = async () => {
+    // Narrow dependencies deliberately: metadata & onError excluded to avoid re-trigger due to new object/function identities
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const paymentIntentKey = `payment-intent-${instructionRef}`;
+    const creatingKey = `payment-intent-creating-${instructionRef}`;
+
+    // Global (per-tab) cache in case component unmounts/remounts rapidly
+    const globalCache: any = (window as any).__paymentIntents || ((window as any).__paymentIntents = {});
+    const globalEntry = globalCache[instructionRef];
+    if (globalEntry && globalEntry.amount === amount) {
+      if (!clientSecret) {
+        setClientSecret(globalEntry.clientSecret);
+        setPaymentId(globalEntry.paymentId);
+        console.log('♻️ Reusing global cached PaymentIntent for', instructionRef);
+      }
+      return;
+    }
+
+    // Reuse if already created & stored
+    const existingClientSecret = sessionStorage.getItem(paymentIntentKey);
+    if (existingClientSecret && !clientSecret) {
+      setClientSecret(existingClientSecret);
+      console.log('♻️ Reusing cached PaymentIntent (client) for', instructionRef);
+      return;
+    }
+
+    // Abort if creation already in-flight or unsuitable
+  if (sessionStorage.getItem(creatingKey)) { return; }
+  if (paymentIntentCreatedRef.current) { return; }
+  if (amount <= 0) { return; }
+  if (!instructionRef) { return; }
+  if (clientSecret) { return; }
+
+    // Pre-mark to block StrictMode second invoke BEFORE async starts
+    sessionStorage.setItem(creatingKey, '1');
+    paymentIntentCreatedRef.current = true;
+    currentInstructionRef.current = instructionRef;
+    let cancelled = false;
+
+    (async () => {
       try {
-        setIsLoading(true);
-        setError('');
-        
-        const response = await paymentService.createPaymentIntent({
-          amount,
-          currency,
-          instructionRef,
-          metadata,
-        });
-        
+        setIsLoading(true); setError('');
+    const response = await paymentService.createPaymentIntent({ amount, currency, instructionRef, metadata });
+        if (cancelled) return; // component unmounted
         setClientSecret(response.clientSecret);
         setPaymentId(response.paymentId);
-        
-        console.log('✅ Payment intent created for form');
+        sessionStorage.setItem(paymentIntentKey, response.clientSecret);
+    globalCache[instructionRef] = { clientSecret: response.clientSecret, paymentId: response.paymentId, amount };
+    console.log('✅ Created / obtained PaymentIntent', response.paymentId);
       } catch (err) {
+        // Allow retry
+        paymentIntentCreatedRef.current = false;
+        sessionStorage.removeItem(creatingKey);
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
         setError(errorMessage);
-        if (onError) {
-          onError(errorMessage);
-        }
+        onError?.(errorMessage);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
+        sessionStorage.removeItem(creatingKey); // clear in all cases
       }
-    };
+    })();
 
-    if (amount > 0 && instructionRef) {
-      createPaymentIntent();
-    }
-  }, [amount, currency, instructionRef, metadata, onError]);
+    return () => { cancelled = true; };
+  }, [amount, currency, instructionRef, clientSecret]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -194,6 +230,11 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             <p><strong>Payment ID:</strong> {paymentStatus.paymentId}</p>
             <p><strong>Instruction:</strong> {paymentStatus.instructionRef}</p>
           </div>
+          {paymentStatus.paymentStatus === 'requires_action' && (
+            <div className="auth-hint">
+              <p>Your bank needs you to complete an additional authentication step (3D Secure). Please follow any popup or inline prompt above. If nothing appears, click the Pay button again or refresh this page.</p>
+            </div>
+          )}
           {severity === 'error' && (
             <button 
               type="button" 

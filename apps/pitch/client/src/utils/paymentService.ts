@@ -50,13 +50,36 @@ export interface InstructionPayments {
 
 class PaymentService {
   private baseUrl = '/api/payments';
+  // Simple in-memory (per page load) cache + in-flight promise map to prevent duplicate
+  // creation requests when multiple components or rapid re-renders attempt to create
+  // the same payment intent simultaneously.
+  private static cache: Record<string, PaymentIntentResponse & { ts: number }> = {};
+  private static inflight: Record<string, Promise<PaymentIntentResponse>> = {};
 
   /**
    * Create a new PaymentIntent
    */
   async createPaymentIntent(request: PaymentIntentRequest): Promise<PaymentIntentResponse> {
     try {
+      const currency = (request.currency || 'gbp').toLowerCase();
+      const key = `${request.instructionRef}|${request.amount}|${currency}`;
+
+      // Reuse cached successful result for 2 minutes to avoid hammering backend
+      const cached = PaymentService.cache[key];
+      if (cached && Date.now() - cached.ts < 2 * 60 * 1000) {
+        console.log('♻️  Reusing cached payment intent (client cache):', cached.paymentId);
+        return cached;
+      }
+
+      // Coalesce concurrent in-flight requests
+  if (PaymentService.inflight[key] !== undefined) {
+        console.log('⏳ Awaiting in-flight payment intent creation for', key);
+        const result = await PaymentService.inflight[key];
+        return result;
+      }
+
       console.log('Creating payment intent:', request);
+      PaymentService.inflight[key] = (async () => {
       
       const response = await fetch(`${this.baseUrl}/create-payment-intent`, {
         method: 'POST',
@@ -72,9 +95,18 @@ class PaymentService {
       }
 
       const result: PaymentIntentResponse = await response.json();
-      console.log('✅ Payment intent created:', result.paymentId);
-      
-      return result;
+        console.log('✅ Payment intent created:', result.paymentId);
+        PaymentService.cache[key] = { ...result, ts: Date.now() };
+        return result;
+      })();
+
+      try {
+        const finalResult = await PaymentService.inflight[key];
+        return finalResult;
+      } finally {
+        // Keep cache but clear inflight ref
+        delete PaymentService.inflight[key];
+      }
     } catch (error) {
       console.error('❌ Failed to create payment intent:', error);
       throw error;

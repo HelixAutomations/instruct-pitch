@@ -17,23 +17,23 @@ class StripeService {
   }
 
   /**
-   * Initialize Stripe with secret key from environment or Azure Key Vault
+   * Initialize Stripe with secret key from Azure Key Vault via App Settings
    */
   async initialize() {
     try {
-      const secretKey = process.env.STRIPE_SECRET_KEY;
-      this.webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      // Prefer standard STRIPE_* env vars; fallback to legacy INSTRUCTIONS_SANDBOX_*
+      const secretKey = process.env.STRIPE_SECRET_KEY || process.env.INSTRUCTIONS_SANDBOX_SK;
+      this.webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.INSTRUCTIONS_SANDBOX_SS;
 
       if (!secretKey) {
-        throw new Error('STRIPE_SECRET_KEY is required');
+        throw new Error('Stripe secret key missing (set STRIPE_SECRET_KEY)');
       }
-
       if (!this.webhookSecret) {
-        throw new Error('STRIPE_WEBHOOK_SECRET is required');
+        throw new Error('Stripe webhook secret missing (set STRIPE_WEBHOOK_SECRET)');
       }
 
       this.stripe = new Stripe(secretKey, {
-        apiVersion: '2024-06-20', // Use latest stable API version
+        apiVersion: '2025-07-30.basil', // Updated API version
       });
 
       this.initialized = true;
@@ -59,10 +59,10 @@ class StripeService {
     }
 
     try {
+      const minorAmount = Math.round(amount * 100); // amount provided as major units
       const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to smallest currency unit
+        amount: minorAmount,
         currency: currency.toLowerCase(),
-        payment_method_types: ['card'],
         metadata: {
           paymentId,
           ...metadata,
@@ -71,7 +71,7 @@ class StripeService {
         automatic_payment_methods: {
           enabled: true,
         },
-      });
+      }, { idempotencyKey: paymentId });
 
       console.log(`✅ Created PaymentIntent: ${paymentIntent.id} for payment: ${paymentId}`);
       
@@ -79,7 +79,7 @@ class StripeService {
         paymentIntentId: paymentIntent.id,
         clientSecret: paymentIntent.client_secret,
         status: paymentIntent.status,
-        amount: paymentIntent.amount,
+  amount: paymentIntent.amount, // minor units
         currency: paymentIntent.currency,
       };
     } catch (error) {
@@ -164,11 +164,11 @@ class StripeService {
   }
 
   /**
-   * Get publishable key for frontend
+   * Get publishable key for frontend (from Key Vault via App Settings)
    * @returns {string} Stripe publishable key
    */
   getPublishableKey() {
-    return process.env.STRIPE_PUBLISHABLE_KEY;
+  return process.env.STRIPE_PUBLISHABLE_KEY || process.env.INSTRUCTIONS_SANDBOX_PK;
   }
 }
 
