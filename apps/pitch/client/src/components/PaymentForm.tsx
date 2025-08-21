@@ -275,13 +275,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
   return (
     <div className="payment-form">
-      <div className="payment-form__header">
-        <h3>Payment Details</h3>
-        <div className="payment-amount">
-          {paymentService.formatAmount(amount, currency)}
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} className="payment-form__form">
         {clientSecret && (
           <div className="payment-element-container">
@@ -326,7 +319,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
               Processing...
             </>
           ) : (
-            `Pay ${paymentService.formatAmount(amount, currency)}`
+            `Complete Payment`
           )}
         </button>
       </form>

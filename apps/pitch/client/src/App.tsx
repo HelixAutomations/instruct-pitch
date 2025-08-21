@@ -20,7 +20,7 @@ const App: React.FC = () => {
   const navigate = useNavigate();
 
   // Use ClientContext for shared state
-  const { clientId, setClientId, instructionRef, setInstructionRef, dealData, setDealData } = useClient();
+  const { clientId, setClientId, instructionRef, setInstructionRef, setDealData } = useClient();
 
   const [passcode, setPasscode] = useState('');
   const [showIdAuth, setShowIdAuth] = useState(true);

@@ -30,8 +30,6 @@ const PremiumFailurePage: React.FC = () => {
   const errorCode = paymentData?.status || 'failed';
   const errorMessage = paymentData ? getPremiumErrorMessage(paymentData) : null;
   const amount = paymentData?.amount;
-  const paymentId = paymentData?.paymentId;
-  const instructionRef = paymentData?.instructionRef || ref;
 
   // Map error codes to user-friendly messages
   const getErrorInfo = (code: string | null) => {

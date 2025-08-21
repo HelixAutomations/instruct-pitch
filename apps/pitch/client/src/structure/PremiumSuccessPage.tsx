@@ -6,9 +6,9 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { PaymentLayout } from '../components/premium/PaymentLayout';
-import { getStoredPaymentData, clearStoredPaymentData, createReturnUrl } from '../utils/premiumPaymentUtils';
+import { getStoredPaymentData, clearStoredPaymentData } from '../utils/premiumPaymentUtils';
 import { paymentService } from '../utils/paymentService';
 import '../styles/premium/premiumComponents.css';
 
@@ -30,7 +30,6 @@ const PremiumSuccessPage: React.FC = () => {
   // Extract payment details from stored data or URL params as fallback
   const amount = paymentData?.amount;
   const paymentId = paymentData?.paymentId;
-  const instructionRef = paymentData?.instructionRef || ref;
   const timestamp = paymentData?.timestamp;
 
   return (

@@ -41,7 +41,6 @@ import {
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
-import Payment from './Payment';
 import ReviewConfirm from './ReviewConfirm';
 import '../styles/HomePage.css';
 import { ProofData } from '../context/ProofData';
@@ -49,7 +48,6 @@ import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
 import { CSSTransition } from 'react-transition-group';
 import { toTitleCase } from '../utils/format';
-import { PaymentExample } from '../components/PaymentExample';
 import PremiumCheckout from '../components/premium/PremiumCheckout';
 import InfoPopover from '../components/InfoPopover';
 import ClientHub from './ClientHub';
@@ -246,7 +244,7 @@ const HomePage: React.FC<HomePageProps> = ({
   onContactInfoChange,
 }) => {
   const params = new URLSearchParams(window.location.search);
-  const [paymentData, setPaymentData] = useState<{
+  const [paymentData] = useState<{
     aliasId?: string;
     orderId?: string;
     shaSign?: string;
@@ -258,17 +256,6 @@ const HomePage: React.FC<HomePageProps> = ({
     paymentMethod: (sessionStorage.getItem('paymentMethod') as 'card' | 'bank' | null) || undefined,
   });
 
-  const updatePaymentData = (data: {
-    aliasId?: string;
-    orderId?: string;
-    shaSign?: string;
-    paymentMethod?: 'card' | 'bank';
-  }) => {
-    if (data.paymentMethod) {
-      sessionStorage.setItem('paymentMethod', data.paymentMethod);
-    }
-    setPaymentData(prev => ({ ...prev, ...data }));
-  };
 // with
   const [instruction, setInstruction] = useState({
     instructionRef,
@@ -362,16 +349,6 @@ const HomePage: React.FC<HomePageProps> = ({
   // For all other users, payments remain disabled during transition
   const paymentsDisabled = passcode !== '20200' && passcode !== '85490'; // Allow payments for test deal too
   
-  const ACCEPT_URL = useMemo(
-    () =>
-      `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`,
-    [instruction.amount, instruction.product]
-  );
-  const EXCEPTION_URL = useMemo(
-    () =>
-      `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`,
-    [instruction.amount, instruction.product]
-  );
   // Enable payment preloading for test passcode 20200 when Stripe is active
   const prefetchPayment = !paymentsDisabled && instruction.amount > 0;
 
@@ -570,7 +547,7 @@ const HomePage: React.FC<HomePageProps> = ({
 
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [paymentDetails] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
+  const [] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
   const [isUploadSkipped, setUploadSkipped] = useState(false);
 
   const [instructionReady, setInstructionReady] = useState(false);
