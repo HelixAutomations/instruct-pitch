@@ -12,6 +12,7 @@ import PaymentResult from './structure/PaymentResult';
 import PremiumSuccessPage from './structure/PremiumSuccessPage';
 import PremiumFailurePage from './structure/PremiumFailurePage';
 import PaymentLayoutTest from './components/PaymentLayoutTest';
+import PaymentV2Demo from './structure/PaymentV2Demo';
 import './styles/App.css';
 
 const App: React.FC = () => {
@@ -305,6 +306,10 @@ const App: React.FC = () => {
             </div>
           ) : (
             <Routes>
+              <Route
+                path="/payment-v2-demo"
+                element={<PaymentV2Demo />}
+              />
               <Route
                 path="/"
                 element={
