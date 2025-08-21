@@ -1,11 +1,8 @@
 /* ─────────────────────────────────────────────
-   HELIX - HomePage.css - Premium Enhanced
-   Premium styling with trust-first design
+   HELIX - HomePage.css - Enhanced
+   Clean styling with trust-first design
    Mobile-first responsive with fluid typography
    ───────────────────────────────────────────── */
-
-/* Import premium theme variables */
-@import './premium/premiumComponents.css';
 
 /* Premium Checkout Integration */
 .premium-checkout-wrapper {
@@ -282,9 +279,7 @@
 /* ---------- RED PULSE REMOVED ---------- */
 @keyframes borderPulseRed {}
 
-.step-content.pulse-red {
-  /* Red pulse removed as requested */
-}
+/* Removed .step-content.pulse-red empty ruleset to satisfy linter */
 
 /* ========== TYPOGRAPHY / FORM UTILITIES ==================================== */
 
@@ -452,7 +447,7 @@
 .step-content::-webkit-scrollbar-thumb,
 .summary-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-/* Firefox scrollbars */
+/* Firefox scrollbars (optional – retain for appearance, remove if causing warnings) */
 .step-content,
 .summary-content { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f0f4fa; }
 

@@ -7,17 +7,17 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PaymentLayout } from './premium/PaymentLayout';
-import '../styles/premium/premiumComponents.css';
+// Premium layout removed; fallback to simple container for test or remove file if unused
+// If still referenced, this lightweight wrapper keeps build passing.
+const PaymentLayout: React.FC<React.PropsWithChildren<{ supportPhone?: string; supportEmail?: string }>> = ({ children }) => (
+  <div style={{ maxWidth: 960, margin: '0 auto', padding: '2rem' }}>{children}</div>
+);
 
 const PaymentLayoutTest: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <PaymentLayout
-      supportPhone="+44 20 7183 6832"
-      supportEmail="support@helixlaw.co.uk"
-    >
+  <PaymentLayout>
       {/* Test Content */}
       <div className="premium-grid premium-grid--two-column">
         
@@ -87,65 +87,7 @@ const PaymentLayoutTest: React.FC = () => {
         </div>
       </div>
       
-      {/* Loading States Demo */}
-      <div className="premium-card" style={{ marginTop: 'clamp(16px, 4vw, 32px)' }}>
-        <h2 className="premium-heading">Loading States Demo</h2>
-        <div className="premium-grid premium-grid--three-column">
-          <div>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: '600' }}>Skeleton Loading</h3>
-            <div className="premium-skeleton premium-skeleton--heading"></div>
-            <div className="premium-skeleton premium-skeleton--text"></div>
-            <div className="premium-skeleton premium-skeleton--text" style={{ width: '80%' }}></div>
-            <div className="premium-skeleton premium-skeleton--amount"></div>
-          </div>
-          
-          <div>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: '600' }}>Button States</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button className="premium-button premium-button--primary">
-                Normal State
-              </button>
-              <button className="premium-button premium-button--primary premium-button--loading">
-                Loading State
-              </button>
-              <button className="premium-button premium-button--primary" disabled>
-                Disabled State
-              </button>
-            </div>
-          </div>
-          
-          <div>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: '600' }}>CTA Button</h3>
-            <button 
-              className="premium-button premium-button--cta"
-              onClick={() => navigate('/HLX-12345-ABCD-EFGH/failure')}
-            >
-              Test Failure Page
-            </button>
-            <p className="premium-caption" style={{ marginTop: '12px' }}>
-              This button scales perfectly and maintains proper touch targets across all devices.
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      {/* Responsive Test Instructions */}
-      <div className="premium-card" style={{ marginTop: 'clamp(16px, 4vw, 32px)' }}>
-        <h2 className="premium-heading">📱 Responsive Testing</h2>
-        <div className="premium-body">
-          <strong>To test responsiveness:</strong>
-          <ul style={{ margin: '12px 0', paddingLeft: '24px', lineHeight: '1.6' }}>
-            <li><strong>Mobile (up to 640px):</strong> Stack layout, call support link, full-width buttons</li>
-            <li><strong>iPad (768px-1023px):</strong> Two-column layout, balanced spacing</li>
-            <li><strong>Desktop (1024px+):</strong> Multi-column grids, inline buttons, generous spacing</li>
-            <li><strong>Landscape Mobile:</strong> Optimized header and content spacing</li>
-          </ul>
-          <p className="premium-caption">
-            Use browser dev tools to test different screen sizes and orientations.
-            Typography and spacing scale fluidly using CSS clamp().
-          </p>
-        </div>
-      </div>
+  {/* Trimmed extra demo/test sections to reduce bundle & remove premium styles */}
     </PaymentLayout>
   );
 };

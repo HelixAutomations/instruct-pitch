@@ -812,10 +812,8 @@
   border-radius: 4px;
 }
 
-.form-container.apple-form {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f0f4fa;
-}
+/* Scrollbar styling (Firefox specific). Safe to ignore in non-supporting browsers. */
+/* Removed scrollbar-width/scrollbar-color for wider browser support; retain minimal webkit styling if needed */
 
 .sticky-stepbar {
   position: sticky;

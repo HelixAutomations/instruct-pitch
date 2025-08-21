@@ -1,7 +1,8 @@
 /**
- * Payment Example Component
+ * Payment Example Component - iPhone Case Checkout Inspired
  * 
- * Demonstrates how to use the PaymentForm and PaymentStatus components
+ * Clean, premium payment experience for legal services
+ * Follows the design principles from iPhone case checkout cleanness
  */
 
 import React, { useState } from 'react';
@@ -9,6 +10,8 @@ import { PaymentForm } from './PaymentForm';
 import { PaymentStatus } from './PaymentStatus';
 import { paymentService } from '../utils/paymentService';
 import { PaymentStatus as PaymentStatusType } from '../utils/paymentService';
+import { useClient } from '../context/ClientContext';
+import './PaymentExample.css';
 
 interface PaymentExampleProps {
   instructionRef: string;
@@ -23,7 +26,7 @@ interface PaymentExampleProps {
 
 export const PaymentExample: React.FC<PaymentExampleProps> = ({
   instructionRef,
-  amount = 500, // Default £500
+  amount,
   currency = 'gbp',
   onSuccess,
   onError,
@@ -31,6 +34,12 @@ export const PaymentExample: React.FC<PaymentExampleProps> = ({
   product,
   workType,
 }) => {
+  // Get deal data from context to determine the actual payment amount
+  const { dealData } = useClient();
+  
+  // Use amount from deal data if available, otherwise fall back to prop
+  const paymentAmount = dealData?.Amount || amount || 1000; // Default £1000 instead of £500
+  
   const [currentPaymentId, setCurrentPaymentId] = useState<string>('');
   const [showStatus, setShowStatus] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
@@ -69,24 +78,55 @@ export const PaymentExample: React.FC<PaymentExampleProps> = ({
   };
 
   if (showStatus && currentPaymentId) {
-    // For preview payments, show simple success instead of polling status
+    // For preview payments, show clean success state
     if (import.meta.env && import.meta.env.DEV && passcode === '20200' && currentPaymentId.startsWith('preview-')) {
       return (
-        <div className="payment-example">
-          <div className="payment-form status status--success">
-            <div className="payment-form__status">
-              <h3>Payment Completed</h3>
-              <p className="status-text">Preview payment completed successfully</p>
-              <div className="payment-details">
-                <p><strong>Amount:</strong> {paymentService.formatAmount(amount || 0, currency)}</p>
-                <p><strong>Service:</strong> {product || 'Preview Service'}</p>
-                {workType && <p><strong>Work Type:</strong> {workType}</p>}
+        <div className="premium-payment-container">
+          <div className="payment-success-card">
+            <div className="success-icon">✓</div>
+            <h2>Payment Received</h2>
+            <p className="success-message">Thank you for your payment of {paymentService.formatAmount(paymentAmount, currency)}</p>
+            
+            <div className="receipt-details">
+              <div className="receipt-header">
+                <h3>Receipt</h3>
+                <div className="receipt-id">#{currentPaymentId.split('-')[1]}</div>
               </div>
-              <div style={{ marginTop: '16px', textAlign: 'center' }}>
-                <button onClick={resetPayment} className="btn secondary">
-                  Make Another Payment
-                </button>
+              
+              <div className="receipt-summary">
+                <div className="receipt-line">
+                  <span>Legal consultation</span>
+                  <span>{paymentService.formatAmount(paymentAmount, currency)}</span>
+                </div>
+                {workType && (
+                  <div className="receipt-line secondary">
+                    <span>{workType} matter</span>
+                    <span>Included</span>
+                  </div>
+                )}
+                <div className="receipt-line">
+                  <span>Processing fee</span>
+                  <span>£0.00</span>
+                </div>
+                <div className="receipt-total">
+                  <span>Total paid</span>
+                  <span>{paymentService.formatAmount(paymentAmount, currency)}</span>
+                </div>
               </div>
+              
+              <div className="receipt-footer">
+                <div className="receipt-info">
+                  <p><strong>Payment method:</strong> Test payment</p>
+                  <p><strong>Transaction ID:</strong> {currentPaymentId}</p>
+                  <p><strong>Date:</strong> {new Date().toLocaleDateString('en-GB')}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="action-buttons">
+              <button onClick={resetPayment} className="secondary-button">
+                Make Another Payment
+              </button>
             </div>
           </div>
         </div>
@@ -94,53 +134,71 @@ export const PaymentExample: React.FC<PaymentExampleProps> = ({
     }
 
     return (
-      <div className="payment-example">
-        <PaymentStatus
-          paymentId={currentPaymentId}
-          autoRefresh={!paymentCompleted}
-          refreshInterval={3000}
-          onStatusChange={handleStatusUpdate}
-        />
-        
-        {paymentCompleted && (
-          <div style={{ marginTop: '16px', textAlign: 'center' }}>
-            <button onClick={resetPayment} className="secondary-button">
-              Make Another Payment
-            </button>
-          </div>
-        )}
+      <div className="premium-payment-container">
+        <div className="payment-status-card">
+          <PaymentStatus
+            paymentId={currentPaymentId}
+            autoRefresh={!paymentCompleted}
+            refreshInterval={3000}
+            onStatusChange={handleStatusUpdate}
+          />
+          
+          {paymentCompleted && (
+            <div className="action-buttons">
+              <button onClick={resetPayment} className="secondary-button">
+                Make Another Payment
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="payment-example">
-      {/* If running locally with the test passcode and amount is zero, show preview Pay flow */}
-      {import.meta.env && import.meta.env.DEV && passcode === '20200' && (!amount || amount <= 0) ? (
-        <div className="payment-form preview">
-          <div className="payment-form__header">
-            <h3>Payment Details</h3>
-            <div className="payment-amount">{paymentService.formatAmount(amount, currency)}</div>
-          </div>
-          <div className="payment-form__service">
-            <div className="service-description">
-              {product && <div><strong>Service:</strong> {product}</div>}
-              {workType && <div><strong>Work Type:</strong> {workType}</div>}
+    <div className="premium-payment-container">
+      {/* Typeform-like clean interface */}
+      
+      {/* If running locally with test passcode, show simplified preview */}
+      {import.meta.env && import.meta.env.DEV && passcode === '20200' && (!paymentAmount || paymentAmount <= 0) ? (
+        <div className="payment-preview-card">
+          <div className="order-summary">
+            <h2>Legal Services</h2>
+            <div className="service-details">
+              <p>Professional legal consultation and document preparation</p>
+              {workType && <p className="work-type">Area: {workType}</p>}
+            </div>
+            
+            <div className="receipt-summary">
+              <div className="receipt-line">
+                <span>Legal consultation</span>
+                <span>{paymentService.formatAmount(paymentAmount, currency)}</span>
+              </div>
+              {workType && (
+                <div className="receipt-line secondary">
+                  <span>{workType} matter</span>
+                  <span>Included</span>
+                </div>
+              )}
+              <div className="receipt-total">
+                <span>Total</span>
+                <span>{paymentService.formatAmount(paymentAmount, currency)}</span>
+              </div>
             </div>
           </div>
-          <div className="payment-form__form">
+          
+          <div className="payment-action">
             <button
               type="button"
-              className="payment-form__submit"
+              className="premium-pay-button"
               onClick={() => {
-                console.log('Preview payment clicked - simulating success');
+                console.log('Preview payment - simulating success');
                 
-                // simulate a successful payment for preview - skip status polling
-                const mock: PaymentStatusType = {
+                const mockPayment: PaymentStatusType = {
                   paymentId: `preview-${Date.now()}`,
                   paymentStatus: 'succeeded',
                   internalStatus: 'completed',
-                  amount: amount || 0,
+                  amount: paymentAmount,
                   currency: currency,
                   instructionRef: instructionRef,
                   createdAt: new Date().toISOString(),
@@ -148,38 +206,57 @@ export const PaymentExample: React.FC<PaymentExampleProps> = ({
                   webhookEvents: [],
                 } as any;
                 
-                // Set local state to completed
                 setPaymentCompleted(true);
-                setCurrentPaymentId(mock.paymentId);
+                setCurrentPaymentId(mockPayment.paymentId);
                 setShowStatus(true);
                 
-                // Call parent success callback
                 if (onSuccess) {
-                  console.log('Calling onSuccess callback');
-                  onSuccess(mock);
+                  onSuccess(mockPayment);
                 }
               }}
             >
-              Pay {paymentService.formatAmount(amount, currency)} (Preview)
+              Complete Payment {paymentService.formatAmount(paymentAmount, currency)}
             </button>
+            <div className="trust-indicators">
+              Secure payment • 256-bit encryption
+            </div>
           </div>
         </div>
       ) : (
-        <PaymentForm
-          amount={amount}
-          currency={currency}
-          instructionRef={instructionRef}
-          // Stable metadata: timestamp only generated once
-          metadata={React.useMemo(() => ({
-            source: 'instruction_portal',
-            // Provide createdAt once; PaymentForm no longer depends on metadata so this is safe
-            createdAt: new Date().toISOString(),
-          // eslint-disable-next-line react-hooks/exhaustive-deps
-          }), [instructionRef])}
-          onSuccess={handlePaymentSuccess}
-          onError={handlePaymentError}
-          onStatusUpdate={handleStatusUpdate}
-        />
+        /* Clean Stripe Payment Form - Typeform inspired */
+        <div className="premium-payment-card">
+          <div className="checkout-header">
+            <h2>Complete your order</h2>
+            <div className="order-total">{paymentService.formatAmount(paymentAmount, currency)}</div>
+          </div>
+          
+          <div className="order-summary-minimal">
+            <div className="service-item">
+              <span className="service-name">{product || 'Legal Services'}</span>
+              <span className="service-price">{paymentService.formatAmount(paymentAmount, currency)}</span>
+            </div>
+            {workType && (
+              <div className="service-details-line">
+                <span>{workType} matter</span>
+              </div>
+            )}
+          </div>
+          
+          <PaymentForm
+            amount={paymentAmount}
+            currency={currency}
+            instructionRef={instructionRef}
+            metadata={React.useMemo(() => ({
+              source: 'premium_legal_services',
+              service_type: product || 'Legal Consultation',
+              work_area: workType || 'General',
+              createdAt: new Date().toISOString(),
+            }), [instructionRef, product, workType])}
+            onSuccess={handlePaymentSuccess}
+            onError={handlePaymentError}
+            onStatusUpdate={handleStatusUpdate}
+          />
+        </div>
       )}
     </div>
   );

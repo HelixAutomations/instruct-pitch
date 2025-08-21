@@ -199,8 +199,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 type="button"
                 className={`modern-toggle-button ${idStatus === 'first-time' ? 'active' : ''}`}
                 onClick={() => handleIdStatusChange('first-time')}
-                aria-pressed={idStatus === 'first-time'}
                 role="radio"
+                aria-checked={idStatus === 'first-time'}
               >
                 First-Time ID
               </button>
@@ -208,8 +208,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 type="button"
                 className={`modern-toggle-button ${idStatus === 'renewing' ? 'active' : ''}`}
                 onClick={() => handleIdStatusChange('renewing')}
-                aria-pressed={idStatus === 'renewing'}
                 role="radio"
+                aria-checked={idStatus === 'renewing'}
               >
                 Renewing ID
               </button>
@@ -226,8 +226,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 type="button"
                 className={`modern-toggle-button ${!isCompanyClient ? 'active' : ''}`}
                 onClick={() => handleCompanyClientChange(false)}
-                aria-pressed={!isCompanyClient}
                 role="radio"
+                aria-checked={!isCompanyClient}
               >
                 For Myself
               </button>
@@ -235,8 +235,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                 type="button"
                 className={`modern-toggle-button ${isCompanyClient ? 'active' : ''}`}
                 onClick={() => handleCompanyClientChange(true)}
-                aria-pressed={isCompanyClient}
                 role="radio"
+                aria-checked={isCompanyClient}
               >
                 For a Company
               </button>
@@ -622,8 +622,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   type="button"
                   className={`modern-toggle-button ${idType === 'passport' ? 'active' : ''}`}
                   onClick={() => handleIdTypeChange('passport')}
-                  aria-pressed={idType === 'passport'}
                   role="radio"
+                  aria-checked={idType === 'passport'}
                 >
                   Passport
                 </button>
@@ -631,8 +631,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({ onUpdate, setIsComplete, onNext }
                   type="button"
                   className={`modern-toggle-button ${idType === 'driver-license' ? 'active' : ''}`}
                   onClick={() => handleIdTypeChange('driver-license')}
-                  aria-pressed={idType === 'driver-license'}
                   role="radio"
+                  aria-checked={idType === 'driver-license'}
                 >
                   Driver's License
                 </button>

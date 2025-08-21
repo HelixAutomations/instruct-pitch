@@ -41,16 +41,13 @@ import {
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
-import Payment from './Payment';
 import ReviewConfirm from './ReviewConfirm';
 import '../styles/HomePage.css';
 import { ProofData } from '../context/ProofData';
-import { PaymentDetails } from '../context/PaymentDetails';
 import SummaryReview from './SummaryReview';
 import { CSSTransition } from 'react-transition-group';
 import { toTitleCase } from '../utils/format';
 import { PaymentExample } from '../components/PaymentExample';
-import PremiumCheckout from '../components/premium/PremiumCheckout';
 import InfoPopover from '../components/InfoPopover';
 import ClientHub from './ClientHub';
 
@@ -245,30 +242,10 @@ const HomePage: React.FC<HomePageProps> = ({
   onGreetingChange,
   onContactInfoChange,
 }) => {
-  const params = new URLSearchParams(window.location.search);
-  const [paymentData, setPaymentData] = useState<{
-    aliasId?: string;
-    orderId?: string;
-    shaSign?: string;
-    paymentMethod?: 'card' | 'bank';
-  }>({
-    aliasId: params.get('Alias.AliasId') || sessionStorage.getItem('aliasId') || undefined,
-    orderId: params.get('Alias.OrderId') || sessionStorage.getItem('orderId') || undefined,
-    shaSign: params.get('SHASign') || sessionStorage.getItem('shaSign') || undefined,
-    paymentMethod: (sessionStorage.getItem('paymentMethod') as 'card' | 'bank' | null) || undefined,
-  });
+  // params parsing removed (was only for legacy payment redirect)
+  // removed paymentData state (unused after premium/payment refactor)
 
-  const updatePaymentData = (data: {
-    aliasId?: string;
-    orderId?: string;
-    shaSign?: string;
-    paymentMethod?: 'card' | 'bank';
-  }) => {
-    if (data.paymentMethod) {
-      sessionStorage.setItem('paymentMethod', data.paymentMethod);
-    }
-    setPaymentData(prev => ({ ...prev, ...data }));
-  };
+  // updatePaymentData removed (unused)
 // with
   const [instruction, setInstruction] = useState({
     instructionRef,
@@ -362,16 +339,7 @@ const HomePage: React.FC<HomePageProps> = ({
   // For all other users, payments remain disabled during transition
   const paymentsDisabled = passcode !== '20200' && passcode !== '85490'; // Allow payments for test deal too
   
-  const ACCEPT_URL = useMemo(
-    () =>
-      `${window.location.origin}/pitch/payment/result?result=accept&amount=${instruction.amount}&product=${instruction.product}`,
-    [instruction.amount, instruction.product]
-  );
-  const EXCEPTION_URL = useMemo(
-    () =>
-      `${window.location.origin}/pitch/payment/result?result=reject&amount=${instruction.amount}&product=${instruction.product}`,
-    [instruction.amount, instruction.product]
-  );
+  // ACCEPT_URL / EXCEPTION_URL removed (unused legacy constructs)
   // Enable payment preloading for test passcode 20200 when Stripe is active
   const prefetchPayment = !paymentsDisabled && instruction.amount > 0;
 
@@ -570,7 +538,7 @@ const HomePage: React.FC<HomePageProps> = ({
 
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [paymentDetails] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
+  // paymentDetails state removed (unused)
   const [isUploadSkipped, setUploadSkipped] = useState(false);
 
   const [instructionReady, setInstructionReady] = useState(false);
@@ -1175,29 +1143,7 @@ const proofSummary = (
     goToStep(target);
   };
 
-  useEffect(() => {
-    const { orderId, shaSign, paymentMethod } = paymentData;
-
-    if (
-      !instruction.instructionRef ||
-      !instruction.instructionRef.startsWith('HLX-')
-    ) return;
-
-    if (paymentMethod || orderId || shaSign) {
-      const payload: any = {
-        instructionRef: instruction.instructionRef,
-        stage: 'in_progress',
-        paymentMethod,
-        orderId,
-        shaSign,
-      };
-      fetch('/api/instruction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }).catch(err => console.error('Failed to save payment info', err));
-    }
-  }, [paymentData, instruction.instructionRef]);
+  // removed effect that persisted legacy payment redirect data
 
   return (
     <div className="home-page">
@@ -1263,9 +1209,9 @@ const proofSummary = (
                       amount={instruction.amount}
                       product={instruction.product}
                       workType={instruction.workType}
-                      aliasId={paymentData.aliasId || undefined}
-                      orderId={paymentData.orderId || undefined}
-                      shaSign={paymentData.shaSign || undefined}
+                      aliasId={undefined}
+                      orderId={undefined}
+                      shaSign={undefined}
                       onConfirmed={next}
                       onEdit={handleEdit}
                     />
@@ -1329,18 +1275,18 @@ const proofSummary = (
                     {/* Premium Checkout - Modern single-page checkout experience */}
                     {!paymentsDisabled && (prefetchPayment || openStep === 2 || closingStep === 2) && (
                       <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
-                        {/* Use Premium Checkout for modern experience */}
-                        <div className="premium-checkout-wrapper">
-                          <PremiumCheckout
-                            instructionRef={instruction.instructionRef}
-                            onComplete={() => {
-                              console.log('HomePage: Premium checkout completed');
-                              setPaymentDone(true);
-                              // Auto-advance to next step after successful payment
-                              setTimeout(() => next(), 1500);
-                            }}
-                          />
-                        </div>
+                        {/* Clean Payment Experience */}
+                        <PaymentExample 
+                          instructionRef={instruction.instructionRef}
+                          onSuccess={(payment) => {
+                            console.log('HomePage: Payment completed successfully', payment);
+                            setPaymentDone(true);
+                            setTimeout(() => next(), 1500);
+                          }}
+                          onError={(error) => {
+                            console.error('HomePage: Payment failed', error);
+                          }}
+                        />
                       </div>
                     )}
                   </div>

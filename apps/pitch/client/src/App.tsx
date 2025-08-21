@@ -6,12 +6,8 @@ import Header from './structure/Header';
 import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
-import PremiumHomePage from './structure/PremiumHomePage';
 import ClientDetails from './structure/ClientDetails';
 import PaymentResult from './structure/PaymentResult';
-import PremiumSuccessPage from './structure/PremiumSuccessPage';
-import PremiumFailurePage from './structure/PremiumFailurePage';
-import PaymentLayoutTest from './components/PaymentLayoutTest';
 import './styles/App.css';
 
 const App: React.FC = () => {
@@ -20,7 +16,7 @@ const App: React.FC = () => {
   const navigate = useNavigate();
 
   // Use ClientContext for shared state
-  const { clientId, setClientId, instructionRef, setInstructionRef, dealData, setDealData } = useClient();
+  const { clientId, setClientId, instructionRef, setInstructionRef, setDealData } = useClient();
 
   const [passcode, setPasscode] = useState('');
   const [showIdAuth, setShowIdAuth] = useState(true);
@@ -30,7 +26,6 @@ const App: React.FC = () => {
   const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const [feeEarner, setFeeEarner] = useState<string | undefined>();
   const [isInitializing, setIsInitializing] = useState(true);
-  const [usePremiumLayout, setUsePremiumLayout] = useState(false);
   const location = useLocation();
 
   // Produce a canonical path form (cid-passcode). We prefer to *replace* the
@@ -43,10 +38,6 @@ const App: React.FC = () => {
     const completeInitialization = () => {
       setIsInitializing(false);
     };
-
-    // Check if we should use premium layout (for all new flows)
-    // Use premium layout by default - it's backwards compatible
-    setUsePremiumLayout(true);
 
     // If server injected a passcode/cid (for /pitch/<passcode>), use that first
     const injectedPasscode = (window as any).helixOriginalPasscode;
@@ -251,17 +242,12 @@ const App: React.FC = () => {
 
   // Premium payment success route
   if (location.pathname.match(/^\/[^\/]+\/success$/)) {
-    return <PremiumSuccessPage />;
+    return <PaymentResult />;
   }
 
   // Premium payment failure route  
   if (location.pathname.match(/^\/[^\/]+\/failure$/)) {
-    return <PremiumFailurePage />;
-  }
-
-  // Test route for premium payment layout
-  if (location.pathname === '/test/premium-layout' || location.pathname === '/pitch/test/premium-layout') {
-    return <PaymentLayoutTest />;
+    return <PaymentResult />;
   }
 
   const handleConfirm = () => {
@@ -334,31 +320,17 @@ const App: React.FC = () => {
                         showClientId={false}
                       />
                     )}
-                    {usePremiumLayout ? (
-                      <PremiumHomePage
-                        step1Reveal={step1Reveal}
-                        clientId={clientId}
-                        passcode={passcode}
-                        instructionRef={instructionRef}
-                        returning={returning}
-                        onInstructionConfirmed={() => setInstructionConfirmed(true)}
-                        onGreetingChange={setCompletionGreeting}
-                        onContactInfoChange={handleContactInfoChange}
-                        feeEarner={feeEarner}
-                      />
-                    ) : (
-                      <HomePage
-                        step1Reveal={step1Reveal}
-                        clientId={clientId}
-                        passcode={passcode}
-                        instructionRef={instructionRef}
-                        returning={returning}
-                        onInstructionConfirmed={() => setInstructionConfirmed(true)}
-                        onGreetingChange={setCompletionGreeting}
-                        onContactInfoChange={handleContactInfoChange}
-                        feeEarner={feeEarner}
-                      />
-                    )}
+                    <HomePage
+                      step1Reveal={step1Reveal}
+                      clientId={clientId}
+                      passcode={passcode}
+                      instructionRef={instructionRef}
+                      returning={returning}
+                      onInstructionConfirmed={() => setInstructionConfirmed(true)}
+                      onGreetingChange={setCompletionGreeting}
+                      onContactInfoChange={handleContactInfoChange}
+                      feeEarner={feeEarner}
+                    />
                   </>
                 }
               />

@@ -341,6 +341,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 type="button"
                 className={`modern-toggle-button ${idStatus === 'first-time' ? 'active' : ''}`}
                 onClick={() => handleIdStatusChange('first-time')}
+                role="radio"
+                aria-checked={idStatus === 'first-time'}
               >
                 First-Time ID
               </button>
@@ -348,6 +350,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 type="button"
                 className={`modern-toggle-button ${idStatus === 'renewing' ? 'active' : ''}`}
                 onClick={() => handleIdStatusChange('renewing')}
+                role="radio"
+                aria-checked={idStatus === 'renewing'}
               >
                 Renewing ID
               </button>
@@ -366,6 +370,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 type="button"
                 className={`modern-toggle-button ${isCompanyClient === false ? 'active' : ''}`}
                 onClick={() => handleCompanyClientChange(false)}
+                role="radio"
+                aria-checked={isCompanyClient === false}
               >
                 <FaUser className="button-icon" />
                 For Myself
@@ -374,6 +380,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 type="button"
                 className={`modern-toggle-button ${isCompanyClient === true ? 'active' : ''}`}
                 onClick={() => handleCompanyClientChange(true)}
+                role="radio"
+                aria-checked={isCompanyClient === true}
               >
                 <FaCity className="button-icon" />
                 For a Company
@@ -599,6 +607,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                               ]);
                               handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
                             }}
+                            aria-label="Company Country"
                           >
                             <option value="">Country</option>
                             {countries.map(c => (
@@ -668,6 +677,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'nationality',
                       ])
                     }
+                    aria-label="Title"
                   >
                     <option value="">Title</option>
                     {titles.map(t => (
@@ -753,6 +763,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'nationality',
                       ])
                     }
+                    aria-label="Gender"
                   >
                     <option value="">Gender</option>
                     {genders.map(g => (
@@ -776,6 +787,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'nationality',
                       ])
                     }
+                    aria-label="Nationality"
                   >
                     <option value="">Nationality</option>
                     {countries.map(c => (
@@ -936,6 +948,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                         'country',
                       ])
                     }
+                    aria-label="Country"
                   >
                     <option value="">Country</option>
                     {countries.map(c => (
@@ -1039,8 +1052,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     type="button"
                     className={`modern-toggle-button ${idType === 'passport' ? 'active' : ''}`}
                     onClick={() => handleIdTypeChange('passport')}
-                    aria-pressed={idType === 'passport'}
                     role="radio"
+                    aria-checked={idType === 'passport'}
                   >
                     Passport
                   </button>
@@ -1048,8 +1061,8 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     type="button"
                     className={`modern-toggle-button ${idType === 'driver-license' ? 'active' : ''}`}
                     onClick={() => handleIdTypeChange('driver-license')}
-                    aria-pressed={idType === 'driver-license'}
                     role="radio"
+                    aria-checked={idType === 'driver-license'}
                   >
                     Driver's License
                   </button>
@@ -1106,6 +1119,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                   value={value.helixContact}
                   onChange={handleInputChange}
                   onBlur={() => handleBlur('helixContact', ['helixContact'])}
+                  aria-label="Helix Contact"
                 >
                   <option value="" disabled hidden>
                     Person you have spoken to at Helix Law
