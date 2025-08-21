@@ -44,6 +44,8 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<Promise<any> | null>(null);
+  // Detect V2 demo route so we can bypass legacy gating that requires dealData.Amount
+  const isV2Demo = typeof window !== 'undefined' && /payment-v2-demo/.test(window.location.pathname);
 
   useEffect(() => {
     const loadStripeConfig = async () => {
@@ -112,7 +114,10 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
   }
 
   // Wait for deal data to be available before initializing Stripe Elements
-  if (!dealData || (!dealData.Amount && dealData.Amount !== 0)) {
+  // Legacy flow required dealData.Amount before rendering anything so Elements could be configured
+  // For the V2 demo we intentionally allow rendering even without dealData so the new orchestrated
+  // payment flow can fetch/create its own PaymentIntent. If deal data later arrives it doesn't break.
+  if (!isV2Demo && (!dealData || (!dealData.Amount && dealData.Amount !== 0))) {
     return (
       <StripeContext.Provider value={contextValue}>
         <div className="stripe-loading">
@@ -137,8 +142,17 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     currency: config.currency.toLowerCase(),
     mode: 'payment' as const,
     // Include amount from deal data (Stripe expects amount in cents)
-    amount: Math.round(dealData.Amount * 100),
+    amount: dealData && typeof dealData.Amount === 'number' ? Math.round(dealData.Amount * 100) : undefined,
   };
+
+  // Skip wrapping with Elements for V2 demo (it handles its own <Elements> with clientSecret)
+  if (isV2Demo) {
+    return (
+      <StripeContext.Provider value={contextValue}>
+        {children}
+      </StripeContext.Provider>
+    );
+  }
 
   return (
     <StripeContext.Provider value={contextValue}>
