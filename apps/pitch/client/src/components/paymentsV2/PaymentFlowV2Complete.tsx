@@ -13,6 +13,9 @@ import { PaymentLayout } from './PaymentLayoutV2';
 import { PriceSummaryCard } from './PriceSummaryCardV2';
 import { PreflightPane } from './PreflightPaneV2';
 import { TrustStrip } from './TrustStrip';
+import { PaymentFormV2 } from './PaymentFormV2';
+import { PaymentResultV2 } from './PaymentResultV2';
+import { paymentTelemetry } from '../../utils/paymentTelemetry';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
@@ -28,7 +31,7 @@ interface PaymentFlowV2Props {
   onCancel?: () => void;
 }
 
-type PaymentStep = 'preflight' | 'payment' | 'processing' | 'result';
+type PaymentStep = 'preflight' | 'payment' | 'processing' | 'success' | 'failed' | 'requires_action';
 
 export const PaymentFlowV2: React.FC<PaymentFlowV2Props> = ({
   amount,
@@ -43,6 +46,22 @@ export const PaymentFlowV2: React.FC<PaymentFlowV2Props> = ({
   const isV2Enabled = useFeatureFlag('PAYMENTS_UX_V2');
   const [currentStep, setCurrentStep] = useState<PaymentStep>('preflight');
   const [clientSecret, setClientSecret] = useState<string>('');
+  const [paymentIntentId, setPaymentIntentId] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [flowStartTime, setFlowStartTime] = useState<number>(Date.now());
+
+  // Track flow initialization
+  useEffect(() => {
+    paymentTelemetry.trackEvent({
+      event: 'payment_flow_started',
+      instructionRef,
+      amount,
+      currency,
+      metadata: { legalService, source: 'payments_v2' }
+    });
+    
+    setFlowStartTime(Date.now());
+  }, [instructionRef, amount, currency, legalService]);
 
   // If V2 is not enabled, fallback to legacy component
   if (!isV2Enabled) {
@@ -51,9 +70,18 @@ export const PaymentFlowV2: React.FC<PaymentFlowV2Props> = ({
   }
 
   const handlePreflightComplete = async () => {
+    const preflightStartTime = Date.now();
+    
     try {
-      // Create payment intent
-      const response = await fetch('/api/payments/create-intent', {
+      paymentTelemetry.trackEvent({
+        event: 'preflight_completed',
+        instructionRef,
+        amount,
+        currency
+      });
+
+      // Create payment intent - updated to match backend endpoint
+      const response = await fetch('/api/payments/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,23 +102,95 @@ export const PaymentFlowV2: React.FC<PaymentFlowV2Props> = ({
       
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
+        setPaymentIntentId(data.paymentId);
         setCurrentStep('payment');
+        
+        paymentTelemetry.trackEvent({
+          event: 'payment_intent_created',
+          paymentIntentId: data.paymentId,
+          instructionRef,
+          amount,
+          currency,
+          duration: Date.now() - preflightStartTime
+        });
       } else {
+        setErrorMessage('Failed to initialize payment session');
+        setCurrentStep('failed');
+        
+        paymentTelemetry.trackEvent({
+          event: 'payment_intent_failed',
+          instructionRef,
+          amount,
+          currency,
+          error: 'No client secret received'
+        });
+        
         onError?.('Failed to initialize payment session');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment intent creation failed:', error);
+      setErrorMessage('Failed to initialize payment session');
+      setCurrentStep('failed');
+      
+      paymentTelemetry.trackEvent({
+        event: 'payment_intent_failed',
+        instructionRef,
+        amount,
+        currency,
+        error: error.message,
+        duration: Date.now() - preflightStartTime
+      });
+      
       onError?.('Failed to initialize payment session');
     }
   };
 
   const handlePaymentSuccess = (paymentIntentId: string) => {
-    setCurrentStep('result');
+    setPaymentIntentId(paymentIntentId);
+    setCurrentStep('success');
     onSuccess?.(paymentIntentId);
   };
 
   const handlePaymentError = (error: string) => {
+    setErrorMessage(error);
+    setCurrentStep('failed');
     onError?.(error);
+  };
+
+  const handlePaymentProcessing = (processing: boolean) => {
+    if (processing) {
+      setCurrentStep('processing');
+    }
+  };
+
+  const handleRetryPayment = () => {
+    setErrorMessage('');
+    setCurrentStep('preflight');
+  };
+
+  const handleContinue = () => {
+    // Track completion and flow duration
+    paymentTelemetry.trackEvent({
+      event: 'payment_flow_completed',
+      paymentIntentId,
+      instructionRef,
+      amount,
+      currency,
+      duration: Date.now() - flowStartTime
+    });
+    
+    // This would typically navigate to next page or close modal
+    console.log('Continue after successful payment');
+  };
+
+  const handleDownloadReceipt = () => {
+    paymentTelemetry.trackUserInteraction('receipt_download', {
+      paymentIntentId,
+      instructionRef
+    });
+    
+    // This would trigger receipt download
+    console.log('Download receipt for payment:', paymentIntentId);
   };
 
   const renderCurrentStep = () => {
@@ -145,14 +245,15 @@ export const PaymentFlowV2: React.FC<PaymentFlowV2Props> = ({
                   },
                 }}
               >
-                <div className="payment-form-placeholder">
-                  {/* Enhanced PaymentForm component would go here */}
-                  <div className="form-placeholder">
-                    <h3>Payment Form</h3>
-                    <p>Enhanced Stripe Elements form will be implemented here</p>
-                    <p>Features: 3D Secure, automatic payment methods, Helix theming</p>
-                  </div>
-                </div>
+                <PaymentFormV2
+                  clientSecret={clientSecret}
+                  amount={amount}
+                  currency={currency}
+                  instructionRef={instructionRef}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  onProcessingChange={handlePaymentProcessing}
+                />
               </Elements>
             )}
           </div>
@@ -160,24 +261,52 @@ export const PaymentFlowV2: React.FC<PaymentFlowV2Props> = ({
 
       case 'processing':
         return (
-          <div className="processing-step">
-            <div className="processing-content">
-              <div className="spinner"></div>
-              <h3>Processing your payment...</h3>
-              <p>Please do not close this window</p>
-            </div>
-          </div>
+          <PaymentResultV2
+            status="processing"
+            amount={amount}
+            currency={currency}
+            instructionRef={instructionRef}
+            legalService={legalService}
+          />
         );
 
-      case 'result':
+      case 'success':
         return (
-          <div className="result-step">
-            <div className="success-content">
-              <h3>Payment Successful</h3>
-              <p>Your legal service payment has been processed successfully.</p>
-              <p>Reference: {instructionRef}</p>
-            </div>
-          </div>
+          <PaymentResultV2
+            status="success"
+            paymentIntentId={paymentIntentId}
+            amount={amount}
+            currency={currency}
+            instructionRef={instructionRef}
+            legalService={legalService}
+            onContinue={handleContinue}
+            onDownloadReceipt={handleDownloadReceipt}
+          />
+        );
+
+      case 'failed':
+        return (
+          <PaymentResultV2
+            status="failed"
+            amount={amount}
+            currency={currency}
+            instructionRef={instructionRef}
+            legalService={legalService}
+            errorMessage={errorMessage}
+            onRetry={handleRetryPayment}
+          />
+        );
+
+      case 'requires_action':
+        return (
+          <PaymentResultV2
+            status="requires_action"
+            paymentIntentId={paymentIntentId}
+            amount={amount}
+            currency={currency}
+            instructionRef={instructionRef}
+            legalService={legalService}
+          />
         );
 
       default:
@@ -211,61 +340,6 @@ export const PaymentFlowV2: React.FC<PaymentFlowV2Props> = ({
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
-        }
-
-        .form-placeholder {
-          background: #f8fafc;
-          border: 2px dashed #cbd5e1;
-          border-radius: 8px;
-          padding: 2rem;
-          text-align: center;
-          color: #64748b;
-        }
-
-        .form-placeholder h3 {
-          margin: 0 0 1rem 0;
-          color: #374151;
-        }
-
-        .form-placeholder p {
-          margin: 0.5rem 0;
-        }
-
-        .processing-step, .result-step {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 300px;
-        }
-
-        .processing-content, .success-content {
-          text-align: center;
-          max-width: 400px;
-        }
-
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #e2e8f0;
-          border-top: 4px solid #3b82f6;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .processing-content h3, .success-content h3 {
-          margin: 0 0 1rem 0;
-          color: #1e293b;
-        }
-
-        .processing-content p, .success-content p {
-          color: #64748b;
-          margin: 0.5rem 0;
         }
       `}</style>
     </PaymentLayout>

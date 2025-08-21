@@ -10,6 +10,8 @@ export { PriceSummaryCard } from './PriceSummaryCardV2';
 export { PreflightPane } from './PreflightPaneV2';
 export { TrustStrip } from './TrustStrip';
 export { PaymentFlowV2 } from './PaymentFlowV2Complete';
+export { PaymentFormV2 } from './PaymentFormV2';
+export { PaymentResultV2 } from './PaymentResultV2';
 
 // Type exports
 export type { default as PaymentFlowV2Props } from './PaymentFlowV2Complete';
