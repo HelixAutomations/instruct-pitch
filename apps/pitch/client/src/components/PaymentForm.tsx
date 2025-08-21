@@ -46,6 +46,20 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   const paymentIntentCreatedRef = useRef(false);
   const currentInstructionRef = useRef<string>('');
 
+  // Debug state changes
+  useEffect(() => {
+    console.log('🔍 PaymentForm state update:', {
+      stripe: !!stripe,
+      elements: !!elements,
+      clientSecret: !!clientSecret,
+      isLoading,
+      isProcessing,
+      error: !!error,
+      instructionRef,
+      amount
+    });
+  }, [stripe, elements, clientSecret, isLoading, isProcessing, error, instructionRef, amount]);
+
   // Create PaymentIntent on component mount - only once per instruction (guarding StrictMode double invoke)
   useEffect(() => {
     // Narrow dependencies deliberately: metadata & onError excluded to avoid re-trigger due to new object/function identities
@@ -74,8 +88,12 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     }
 
     // Abort if creation already in-flight or unsuitable
-  if (sessionStorage.getItem(creatingKey)) { return; }
-  if (paymentIntentCreatedRef.current) { return; }
+    // Abort if creation already in-flight or unsuitable
+    if (sessionStorage.getItem(creatingKey)) { return; }
+    if (paymentIntentCreatedRef.current) { return; }
+    if (amount <= 0) { return; }
+    if (!instructionRef) { return; }
+    if (clientSecret) { return; }
   if (amount <= 0) { return; }
   if (!instructionRef) { return; }
   if (clientSecret) { return; }
@@ -89,13 +107,18 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     (async () => {
       try {
         setIsLoading(true); setError('');
-    const response = await paymentService.createPaymentIntent({ amount, currency, instructionRef, metadata });
-        if (cancelled) return; // component unmounted
+        console.log('🔧 About to create payment intent with:', { amount, currency, instructionRef, metadata });
+        const response = await paymentService.createPaymentIntent({ amount, currency, instructionRef, metadata });
+        console.log('🔧 Payment service response:', response);
+        if (cancelled) { 
+          console.log('🔧 Component cancelled, but we have a valid response - proceeding with setClientSecret');
+        }
+        console.log('🔧 Setting clientSecret:', response.clientSecret);
         setClientSecret(response.clientSecret);
         setPaymentId(response.paymentId);
         sessionStorage.setItem(paymentIntentKey, response.clientSecret);
-    globalCache[instructionRef] = { clientSecret: response.clientSecret, paymentId: response.paymentId, amount };
-    console.log('✅ Created / obtained PaymentIntent', response.paymentId);
+        globalCache[instructionRef] = { clientSecret: response.clientSecret, paymentId: response.paymentId, amount };
+        console.log('✅ Created / obtained PaymentIntent', response.paymentId);
       } catch (err) {
         // Allow retry
         paymentIntentCreatedRef.current = false;
@@ -104,7 +127,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         setError(errorMessage);
         onError?.(errorMessage);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        // Always clear loading state, even if cancelled, to prevent stuck loading
+        setIsLoading(false);
         sessionStorage.removeItem(creatingKey); // clear in all cases
       }
     })();
@@ -282,6 +306,19 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           type="submit"
           disabled={!stripe || !elements || isProcessing || !clientSecret}
           className={`payment-form__submit ${isProcessing ? 'processing' : ''}`}
+          onClick={() => {
+            console.log('🔍 Button state check:', {
+              stripe: !!stripe,
+              elements: !!elements,
+              isProcessing,
+              clientSecret: !!clientSecret,
+              disabled: !stripe || !elements || isProcessing || !clientSecret,
+              'stripe?': stripe ? 'YES' : 'NO',
+              'elements?': elements ? 'YES' : 'NO', 
+              'isProcessing?': isProcessing ? 'YES' : 'NO',
+              'clientSecret?': clientSecret ? 'YES' : 'NO'
+            });
+          }}
         >
           {isProcessing ? (
             <>

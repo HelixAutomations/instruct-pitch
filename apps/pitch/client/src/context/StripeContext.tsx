@@ -7,6 +7,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
+import { useClient } from './ClientContext';
 
 interface StripeConfig {
   publishableKey: string;
@@ -25,10 +26,10 @@ const StripeContext = createContext<StripeContextType>({
   error: null,
 });
 
-export const useStripe = () => {
+export const useStripeConfig = () => {
   const context = useContext(StripeContext);
   if (!context) {
-    throw new Error('useStripe must be used within a StripeProvider');
+    throw new Error('useStripeConfig must be used within a StripeProvider');
   }
   return context;
 };
@@ -38,6 +39,7 @@ interface StripeProviderProps {
 }
 
 export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
+  const { dealData } = useClient();
   const [config, setConfig] = useState<StripeConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +111,18 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     );
   }
 
-  // Stripe Elements configuration
+  // Wait for deal data to be available before initializing Stripe Elements
+  if (!dealData || (!dealData.Amount && dealData.Amount !== 0)) {
+    return (
+      <StripeContext.Provider value={contextValue}>
+        <div className="stripe-loading">
+          <p>Initializing payment...</p>
+        </div>
+      </StripeContext.Provider>
+    );
+  }
+
+  // Stripe Elements configuration - only when we have deal data
   const options = {
     appearance: {
       theme: 'stripe' as const,
@@ -122,8 +135,9 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       },
     },
     currency: config.currency.toLowerCase(),
-    // Switch to payment mode – amount is specified when PaymentIntent is created
     mode: 'payment' as const,
+    // Include amount from deal data (Stripe expects amount in cents)
+    amount: Math.round(dealData.Amount * 100),
   };
 
   return (

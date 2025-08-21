@@ -50,6 +50,7 @@ import SummaryReview from './SummaryReview';
 import { CSSTransition } from 'react-transition-group';
 import { toTitleCase } from '../utils/format';
 import { PaymentExample } from '../components/PaymentExample';
+import PremiumCheckout from '../components/premium/PremiumCheckout';
 import InfoPopover from '../components/InfoPopover';
 import ClientHub from './ClientHub';
 
@@ -359,7 +360,7 @@ const HomePage: React.FC<HomePageProps> = ({
 
   // Payment system: Enable Stripe integration only for test passcode 20200
   // For all other users, payments remain disabled during transition
-  const paymentsDisabled = passcode !== '20200';
+  const paymentsDisabled = passcode !== '20200' && passcode !== '85490'; // Allow payments for test deal too
   
   const ACCEPT_URL = useMemo(
     () =>
@@ -1325,55 +1326,21 @@ const proofSummary = (
                       </div>
                     )}
 
-                    {/* Payment component - Stripe integration for passcode 20200, legacy for others */}
+                    {/* Premium Checkout - Modern single-page checkout experience */}
                     {!paymentsDisabled && (prefetchPayment || openStep === 2 || closingStep === 2) && (
                       <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
-                        {passcode === '20200' ? (
-                          // New Stripe payment integration for test user
-                          <div className="step-content-wrapper">
-                            <PaymentExample
-                              instructionRef={instruction.instructionRef}
-                              amount={instruction.amount}
-                              currency="gbp"
-                              passcode={passcode}
-                              product={instruction.product}
-                              workType={instruction.workType}
-                              onSuccess={() => {
-                                console.log('HomePage: Payment success callback received');
-                                setPaymentDone(true);
-                              }}
-                              onError={(error: string) => console.error('Payment error:', error)}
-                            />
-                            <div className="payment-navigation" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', gap: '16px' }}>
-                              <button onClick={() => back()} className="btn secondary">
-                                Back
-                              </button>
-                              <button onClick={() => next()} className="btn primary" disabled={!isPaymentDone}>
-                                Continue
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          // Legacy payment component for other users
-                          <Payment
-                            paymentDetails={paymentDetails}
-                            setIsComplete={setPaymentDone}
-                            onBack={back}
-                            onNext={next}
-                            onError={(code) => console.error('Payment error', code)}
-                            orderId={instruction.instructionRef}
-                            amount={instruction.amount}
-                            product={instruction.product}
-                            workType={instruction.workType}
-                            contactFirstName={proofData.helixContact.split(' ')[0] || ''}
-                            pitchedAt={instruction.pitchedAt}
-                            acceptUrl={ACCEPT_URL}
-                            exceptionUrl={EXCEPTION_URL}
-                            instructionReady={instructionReady}
-                            onPaymentData={updatePaymentData}
-                            hideSummary
+                        {/* Use Premium Checkout for modern experience */}
+                        <div className="premium-checkout-wrapper">
+                          <PremiumCheckout
+                            instructionRef={instruction.instructionRef}
+                            onComplete={() => {
+                              console.log('HomePage: Premium checkout completed');
+                              setPaymentDone(true);
+                              // Auto-advance to next step after successful payment
+                              setTimeout(() => next(), 1500);
+                            }}
                           />
-                        )}
+                        </div>
                       </div>
                     )}
                   </div>

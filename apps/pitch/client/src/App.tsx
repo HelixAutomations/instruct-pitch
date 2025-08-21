@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, useMatch } from 'react-router-dom';
 import { StripeProvider } from './context/StripeContext';
+import { useClient } from './context/ClientContext';
 import Header from './structure/Header';
 import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
+import PremiumHomePage from './structure/PremiumHomePage';
 import ClientDetails from './structure/ClientDetails';
 import PaymentResult from './structure/PaymentResult';
+import PremiumSuccessPage from './structure/PremiumSuccessPage';
+import PremiumFailurePage from './structure/PremiumFailurePage';
+import PaymentLayoutTest from './components/PaymentLayoutTest';
 import './styles/App.css';
 
 const App: React.FC = () => {
@@ -14,16 +19,18 @@ const App: React.FC = () => {
   const cidParam = match?.params.param;
   const navigate = useNavigate();
 
-  const [clientId, setClientId] = useState('');
+  // Use ClientContext for shared state
+  const { clientId, setClientId, instructionRef, setInstructionRef, dealData, setDealData } = useClient();
+
   const [passcode, setPasscode] = useState('');
   const [showIdAuth, setShowIdAuth] = useState(true);
-  const [instructionRef, setInstructionRef] = useState('');
   const [instructionConfirmed, setInstructionConfirmed] = useState(false);
   const [step1Reveal, setStep1Reveal] = useState(false);
   const [returning, setReturning] = useState(false);
   const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const [feeEarner, setFeeEarner] = useState<string | undefined>();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [usePremiumLayout, setUsePremiumLayout] = useState(false);
   const location = useLocation();
 
   // Produce a canonical path form (cid-passcode). We prefer to *replace* the
@@ -36,6 +43,10 @@ const App: React.FC = () => {
     const completeInitialization = () => {
       setIsInitializing(false);
     };
+
+    // Check if we should use premium layout (for all new flows)
+    // Use premium layout by default - it's backwards compatible
+    setUsePremiumLayout(true);
 
     // If server injected a passcode/cid (for /pitch/<passcode>), use that first
     const injectedPasscode = (window as any).helixOriginalPasscode;
@@ -81,7 +92,14 @@ const App: React.FC = () => {
         .then(res => res.json())
         .then(data => {
           console.log('Passcode lookup result:', data);
+          console.log('Deal data type:', typeof data);
+          console.log('Deal data Amount:', data.Amount);
+          console.log('Deal data Amount type:', typeof data.Amount);
           if (data.ProspectId) {
+            // Store the deal data for Stripe
+            console.log('🎯 Setting deal data for Stripe:', data);
+            setDealData(data);
+            console.log('✅ Deal data has been set in ClientContext');
             // Found a match! Use the ProspectId as clientId and the original as passcode
             console.log('Setting clientId:', data.ProspectId, 'passcode:', cidParam);
             setClientId(String(data.ProspectId));
@@ -125,6 +143,42 @@ const App: React.FC = () => {
           // If lookup fails, treat as regular client ID
           setClientId(cidParam);
           setShowIdAuth(true);
+        })
+        .finally(completeInitialization);
+      return;
+    }
+    
+    // Handle canonical cid-passcode format like "27367-20200"
+    if (/^\d+-\d+$/.test(cidParam)) {
+      const [clientIdPart, passcodePart] = cidParam.split('-');
+      
+      // Fetch deal data for Stripe using the passcode
+      fetch(`/api/getDealByPasscodeIncludingLinked?passcode=${encodeURIComponent(passcodePart)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.ProspectId) {
+            setDealData(data);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching deal data for canonical format:', error);
+        });
+      
+      // Set up the client ID and passcode directly
+      setClientId(clientIdPart);
+      setPasscode(passcodePart);
+      setShowIdAuth(false);
+      
+      // Generate instruction ref
+      fetch(`/api/generate-instruction-ref?cid=${encodeURIComponent(clientIdPart)}&passcode=${encodeURIComponent(passcodePart)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.instructionRef) {
+            setInstructionRef(data.instructionRef);
+          }
+        })
+        .catch(error => {
+          console.error('Error generating instruction ref for canonical format:', error);
         })
         .finally(completeInitialization);
       return;
@@ -193,6 +247,21 @@ const App: React.FC = () => {
 
   if (location.pathname === '/payment/result') {
     return <PaymentResult />;
+  }
+
+  // Premium payment success route
+  if (location.pathname.match(/^\/[^\/]+\/success$/)) {
+    return <PremiumSuccessPage />;
+  }
+
+  // Premium payment failure route  
+  if (location.pathname.match(/^\/[^\/]+\/failure$/)) {
+    return <PremiumFailurePage />;
+  }
+
+  // Test route for premium payment layout
+  if (location.pathname === '/test/premium-layout' || location.pathname === '/pitch/test/premium-layout') {
+    return <PaymentLayoutTest />;
   }
 
   const handleConfirm = () => {
@@ -265,17 +334,31 @@ const App: React.FC = () => {
                         showClientId={false}
                       />
                     )}
-                    <HomePage
-                      step1Reveal={step1Reveal}
-                      clientId={clientId}
-                      passcode={passcode}
-                      instructionRef={instructionRef}
-                      returning={returning}
-                      onInstructionConfirmed={() => setInstructionConfirmed(true)}
-                      onGreetingChange={setCompletionGreeting}
-                      onContactInfoChange={handleContactInfoChange}
-                      feeEarner={feeEarner}
-                    />
+                    {usePremiumLayout ? (
+                      <PremiumHomePage
+                        step1Reveal={step1Reveal}
+                        clientId={clientId}
+                        passcode={passcode}
+                        instructionRef={instructionRef}
+                        returning={returning}
+                        onInstructionConfirmed={() => setInstructionConfirmed(true)}
+                        onGreetingChange={setCompletionGreeting}
+                        onContactInfoChange={handleContactInfoChange}
+                        feeEarner={feeEarner}
+                      />
+                    ) : (
+                      <HomePage
+                        step1Reveal={step1Reveal}
+                        clientId={clientId}
+                        passcode={passcode}
+                        instructionRef={instructionRef}
+                        returning={returning}
+                        onInstructionConfirmed={() => setInstructionConfirmed(true)}
+                        onGreetingChange={setCompletionGreeting}
+                        onContactInfoChange={handleContactInfoChange}
+                        feeEarner={feeEarner}
+                      />
+                    )}
                   </>
                 }
               />
