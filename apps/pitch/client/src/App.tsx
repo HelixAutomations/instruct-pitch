@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, useMatch } from 'react-router-dom';
 import { StripeProvider } from './context/StripeContext';
 import { useClient } from './context/ClientContext';
-import Header from './structure/Header';
 import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
 import PremiumHomePage from './structure/PremiumHomePage';
-import ClientDetails from './structure/ClientDetails';
 import PaymentResult from './structure/PaymentResult';
 import PremiumSuccessPage from './structure/PremiumSuccessPage';
 import PremiumFailurePage from './structure/PremiumFailurePage';
@@ -25,10 +23,8 @@ const App: React.FC = () => {
 
   const [passcode, setPasscode] = useState('');
   const [showIdAuth, setShowIdAuth] = useState(true);
-  const [instructionConfirmed, setInstructionConfirmed] = useState(false);
-  const [step1Reveal, setStep1Reveal] = useState(false);
+  const [step1Reveal] = useState(false);
   const [returning, setReturning] = useState(false);
-  const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
   const [feeEarner, setFeeEarner] = useState<string | undefined>();
   const [isInitializing, setIsInitializing] = useState(true);
   const [usePremiumLayout, setUsePremiumLayout] = useState(false);
@@ -277,28 +273,6 @@ const App: React.FC = () => {
   return (
     <StripeProvider>
       <div className="app-page">
-        <div className="page-hero">
-          <div className="page-hero-content">
-            <div className="page-hero-content-inner">
-              <Header />
-              <ClientDetails
-                stage={
-                  instructionConfirmed
-                    ? "We've got your instructions."
-                    : 'Confirmation of Instruction'
-                }
-                instructionRef={instructionRef}
-                confirmed={instructionConfirmed}
-                greeting={completionGreeting ?? undefined}
-                onAnimationEnd={() => {
-                  setTimeout(() => setStep1Reveal(true), 550);
-                }}
-                showHelp={!returning}
-              />
-            </div>
-          </div>
-        </div>
-
         <main className="app-container">
           {isInitializing ? (
             <div className="loading-state">
@@ -346,8 +320,6 @@ const App: React.FC = () => {
                         passcode={passcode}
                         instructionRef={instructionRef}
                         returning={returning}
-                        onInstructionConfirmed={() => setInstructionConfirmed(true)}
-                        onGreetingChange={setCompletionGreeting}
                         onContactInfoChange={handleContactInfoChange}
                         feeEarner={feeEarner}
                       />
@@ -358,8 +330,6 @@ const App: React.FC = () => {
                         passcode={passcode}
                         instructionRef={instructionRef}
                         returning={returning}
-                        onInstructionConfirmed={() => setInstructionConfirmed(true)}
-                        onGreetingChange={setCompletionGreeting}
                         onContactInfoChange={handleContactInfoChange}
                         feeEarner={feeEarner}
                       />

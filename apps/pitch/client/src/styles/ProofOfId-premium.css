@@ -1,0 +1,615 @@
+/* Premium ProofOfId Design System */
+
+/* FULL-WIDTH PREMIUM LAYOUT - Force complete viewport usage */
+.premium-identity-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--helix-grey) !important;
+  z-index: 1000 !important;
+  overflow-y: auto !important;
+}
+
+/* AGGRESSIVE LAYOUT OVERRIDES - Force full width premium experience */
+.home-page,
+.main-content,
+.modern-checkout-container,
+.checkout-content,
+.typeform-container,
+.identity-step {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: var(--helix-grey) !important;
+}
+
+/* Override any container constraints from parent components */
+.form-container,
+.apple-form {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Ensure full viewport usage */
+body, html {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--helix-grey) !important;
+}
+
+/* Override any inherited max-width constraints */
+* {
+  max-width: none !important;
+}
+
+/* Reset specific containers that might be constraining */
+.checkout-step,
+.step-content,
+.step-container {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.step-header {
+  text-align: center;
+  margin-bottom: clamp(32px, 6vw, 48px);
+  padding: 0 clamp(16px, 4vw, 24px);
+  background: var(--helix-grey);
+}
+
+.step-header h1 {
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 700;
+  color: var(--helix-navy);
+  margin-bottom: clamp(8px, 2vw, 12px);
+  line-height: 1.2;
+}
+
+.step-header p {
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  color: var(--grey-600);
+  line-height: 1.5;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Premium Identity Container */
+.premium-identity-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 24px);
+}
+
+.premium-identity-card {
+  width: 100% !important;
+  max-width: min(1200px, 90vw) !important;
+  margin: clamp(20px, 4vh, 40px) auto !important;
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--helix-border);
+  padding: clamp(24px, 6vw, 48px);
+  animation: fade-in 0.6s ease-out;
+  
+  /* Responsive design for different screen sizes */
+  @media (max-width: 768px) {
+    margin: clamp(10px, 2vh, 20px) clamp(10px, 3vw, 20px) !important;
+    max-width: calc(100vw - 40px) !important;
+    border-radius: var(--radius-lg);
+  }
+  
+  @media (min-width: 1400px) {
+    max-width: 1200px !important;
+    margin: clamp(40px, 6vh, 60px) auto !important;
+  }
+}
+
+/* Premium Progress Indicator */
+.premium-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(32px, 6vw, 48px);
+  gap: var(--space-4);
+}
+
+.premium-progress-step {
+  width: clamp(48px, 10vw, 60px);
+  height: clamp(48px, 10vw, 60px);
+  border-radius: 50%;
+  background: var(--grey-200);
+  color: var(--grey-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--weight-bold);
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.premium-progress-step.active {
+  background: var(--helix-navy);
+  color: var(--white);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.premium-progress-line {
+  width: clamp(40px, 8vw, 80px);
+  height: 4px;
+  background: var(--grey-200);
+  border-radius: var(--radius-full);
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-progress-line.completed::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--helix-navy);
+  border-radius: var(--radius-full);
+  animation: progress-fill 0.8s ease-out;
+}
+
+/* Premium Section Styling */
+.premium-section {
+  margin-bottom: clamp(24px, 6vw, 32px);
+  animation: slide-up 0.6s ease-out;
+}
+
+.premium-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: clamp(20px, 5vw, 32px);
+  padding-bottom: var(--space-4);
+  border-bottom: 2px solid var(--helix-border);
+}
+
+.premium-section-icon {
+  font-size: clamp(24px, 5vw, 32px);
+  color: var(--helix-blue);
+  flex-shrink: 0;
+}
+
+.premium-section-title {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-weight: var(--weight-bold);
+  color: var(--helix-navy);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.premium-section-content {
+  padding-left: clamp(0px, 2vw, 44px);
+}
+
+/* Premium Question Styling */
+.premium-question-container {
+  margin-bottom: clamp(20px, 5vw, 32px);
+}
+
+.premium-group-content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 6vw, 32px);
+}
+
+.premium-question {
+  border-bottom: 1px solid var(--grey-200);
+  padding-bottom: clamp(20px, 5vw, 24px);
+  margin-bottom: clamp(16px, 4vw, 20px);
+}
+
+.premium-question:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.premium-single-question {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 4vw, 20px);
+}
+
+.premium-question-banner {
+  background: linear-gradient(135deg, var(--grey-50), var(--white));
+  padding: clamp(16px, 4vw, 24px);
+  border-radius: var(--radius-xl);
+  border-left: 4px solid var(--helix-blue);
+  margin-bottom: clamp(12px, 3vw, 16px);
+  box-shadow: var(--shadow-sm);
+}
+
+.premium-question-label {
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  font-weight: var(--weight-semibold);
+  color: var(--helix-navy);
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Premium Form Styling */
+.premium-form-group {
+  margin-bottom: clamp(16px, 4vw, 24px);
+}
+
+.premium-choice-group {
+  display: flex;
+  gap: clamp(12px, 3vw, 16px);
+  flex-wrap: wrap;
+}
+
+.premium-choice-button {
+  flex: 1;
+  min-width: clamp(140px, 30vw, 240px);
+  padding: clamp(16px, 4vw, 20px) clamp(20px, 5vw, 24px);
+  background: var(--grey-50);
+  border: 2px solid var(--grey-200);
+  border-radius: var(--radius-xl);
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  font-weight: var(--weight-medium);
+  color: var(--grey-700);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: clamp(56px, 12vw, 72px);
+  box-shadow: var(--shadow-sm);
+}
+
+.premium-choice-button:hover {
+  background: var(--white);
+  border-color: var(--helix-blue);
+  color: var(--helix-blue);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.premium-choice-button.active {
+  background: var(--helix-navy);
+  border-color: var(--helix-navy);
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.premium-choice-button:focus-visible {
+  outline: 2px solid var(--helix-blue);
+  outline-offset: 2px;
+}
+
+/* Premium Input Styling */
+.premium-input {
+  width: 100%;
+  padding: clamp(14px, 3.5vw, 18px) clamp(16px, 4vw, 20px);
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  border: 2px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--helix-navy);
+  transition: all var(--transition-base);
+  min-height: clamp(52px, 12vw, 64px);
+}
+
+.premium-input:focus {
+  border-color: var(--helix-blue);
+  box-shadow: 0 0 0 3px rgba(54, 144, 206, 0.1);
+  outline: none;
+}
+
+.premium-input::placeholder {
+  color: var(--grey-400);
+}
+
+.premium-select {
+  width: 100%;
+  padding: clamp(14px, 3.5vw, 18px) clamp(16px, 4vw, 20px);
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  border: 2px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--helix-navy);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: clamp(52px, 12vw, 64px);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right clamp(12px, 3vw, 16px) center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: clamp(40px, 8vw, 48px);
+}
+
+.premium-select:focus {
+  border-color: var(--helix-blue);
+  box-shadow: 0 0 0 3px rgba(54, 144, 206, 0.1);
+  outline: none;
+}
+
+/* Premium Form Layout */
+.premium-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 40vw, 280px), 1fr));
+  gap: clamp(16px, 4vw, 24px);
+}
+
+.premium-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 4vw, 24px);
+}
+
+.premium-form-label {
+  display: block;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+  font-weight: var(--weight-medium);
+  color: var(--grey-700);
+  margin-bottom: var(--space-2);
+  line-height: 1.3;
+}
+
+/* Premium Navigation */
+.premium-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: clamp(12px, 3vw, 16px);
+  padding-top: clamp(24px, 6vw, 32px);
+  border-top: 1px solid var(--grey-200);
+  margin-top: clamp(24px, 6vw, 32px);
+}
+
+.premium-button {
+  background: var(--helix-navy);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-xl);
+  padding: clamp(16px, 4vw, 20px) clamp(24px, 6vw, 32px);
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: clamp(52px, 12vw, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: clamp(120px, 25vw, 160px);
+  box-shadow: var(--shadow-sm);
+}
+
+.premium-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--helix-navy) 90%, black);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.premium-button:disabled {
+  background: var(--grey-300);
+  color: var(--grey-500);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.premium-button-secondary {
+  background: var(--white);
+  color: var(--grey-700);
+  border: 2px solid var(--grey-200);
+  border-radius: var(--radius-xl);
+  padding: clamp(14px, 3.5vw, 18px) clamp(20px, 5vw, 28px);
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: clamp(52px, 12vw, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: clamp(100px, 20vw, 140px);
+  box-shadow: var(--shadow-sm);
+}
+
+.premium-button-secondary:hover {
+  background: var(--grey-50);
+  border-color: var(--grey-300);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Premium Info Trigger */
+.premium-info-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(20px, 4vw, 24px);
+  height: clamp(20px, 4vw, 24px);
+  background: var(--helix-blue);
+  color: var(--white);
+  border-radius: 50%;
+  font-size: clamp(12px, 2.5vw, 14px);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  flex-shrink: 0;
+}
+
+.premium-info-trigger:hover {
+  background: var(--helix-navy);
+  transform: scale(1.1);
+}
+
+/* Premium Question Description */
+.premium-question-description {
+  background: linear-gradient(135deg, var(--helix-blue), var(--helix-navy));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  font-weight: var(--weight-medium);
+  line-height: 1.5;
+  margin-bottom: clamp(20px, 5vw, 32px);
+  padding: clamp(12px, 3vw, 16px);
+  border-radius: var(--radius-lg);
+  background-color: var(--grey-50);
+  color: var(--grey-700);
+  font-style: italic;
+}
+
+/* Premium Subgroup Styling */
+.premium-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 4vw, 24px);
+  border: 1px solid var(--grey-200);
+  border-radius: var(--radius-xl);
+  padding: clamp(20px, 5vw, 24px);
+  background: linear-gradient(135deg, var(--white), var(--grey-50));
+}
+
+.premium-subgroup .premium-question-banner {
+  margin-bottom: clamp(12px, 3vw, 16px);
+  border-left-color: var(--helix-navy);
+  background: linear-gradient(135deg, var(--helix-blue), var(--helix-navy));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: var(--helix-navy);
+}
+
+.premium-subgroup .premium-question-banner h4 {
+  margin: 0;
+  font-size: clamp(1.125rem, 3.5vw, 1.25rem);
+  font-weight: var(--weight-semibold);
+}
+
+/* Enhanced animations with scale */
+.premium-scale-in {
+  animation: scale-in 0.4s ease-out;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.premium-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.premium-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .premium-choice-group {
+    flex-direction: column;
+  }
+  
+  .premium-choice-button {
+    min-width: 100%;
+  }
+  
+  .premium-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .premium-navigation {
+    flex-direction: column-reverse;
+  }
+  
+  .premium-button,
+  .premium-button-secondary {
+    width: 100%;
+  }
+  
+  .premium-section-content {
+    padding-left: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .premium-choice-group {
+    justify-content: center;
+  }
+  
+  .premium-choice-button {
+    flex: 0 1 auto;
+    max-width: 280px;
+  }
+}
+
+/* Hide original step navigation that conflicts with premium design */
+.step-navigation {
+  display: none !important;
+}
+
+/* Ensure proper background throughout */
+.home-page,
+.main-content {
+  background: var(--helix-grey) !important;
+}

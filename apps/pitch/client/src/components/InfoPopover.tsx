@@ -62,7 +62,7 @@ const InfoPopover: React.FC<InfoPopoverProps> = ({ text }) => {
     <div className="info-wrapper" ref={wrapperRef}>
       <span
         ref={iconRef}
-        className={`info-icon${open ? ' open' : ''}`}
+        className={`premium-info-trigger${open ? ' open' : ''}`}
         onClick={() => {
           if (iconRef.current) {
             const rect = iconRef.current.getBoundingClientRect();
@@ -81,7 +81,7 @@ const InfoPopover: React.FC<InfoPopoverProps> = ({ text }) => {
           <div className="info-overlay" onClick={() => setOpen(false)}>
             <div
               ref={modalRef}
-              className="info-modal"
+              className="info-modal premium-fade-in"
               style={{ top: modalPos.top, left: modalPos.left }}
               onClick={(e) => e.stopPropagation()}
             >

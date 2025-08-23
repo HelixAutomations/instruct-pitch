@@ -16,8 +16,8 @@ interface PremiumHomePageProps {
   passcode: string;
   instructionRef: string;
   returning: boolean;
-  onInstructionConfirmed: () => void;
-  onGreetingChange: (greeting: string | null) => void;
+  onInstructionConfirmed?: () => void;
+  onGreetingChange?: (greeting: string | null) => void;
   onContactInfoChange: (info: { feeEarner?: string }) => void;
   feeEarner?: string;
 }

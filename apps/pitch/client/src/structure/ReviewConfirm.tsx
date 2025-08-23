@@ -5,7 +5,7 @@ import { ProofData } from '../context/ProofData';
 import '../styles/ReviewConfirm.css';
 
 interface ReviewConfirmProps {
-  detailsConfirmed: boolean;
+  detailsConfirmed?: boolean;
   openSummaryPanel?: () => void;
   summaryContent?: React.ReactNode;
   isMobile?: boolean; // <-- Pass this down from HomePage for clarity!
@@ -54,7 +54,7 @@ const AccordionSection: React.FC<{
 };
 
 const ReviewConfirm: React.FC<ReviewConfirmProps> = ({
-  detailsConfirmed,
+  detailsConfirmed = true, // Default to true since we removed the confirmation system
   openSummaryPanel,
   summaryContent,
   isMobile = false,

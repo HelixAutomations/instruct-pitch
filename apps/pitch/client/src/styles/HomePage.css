@@ -509,3 +509,201 @@
   background: var(--helix-section-bg, #f7fafd);
   margin-bottom: 0.5em;
 }
+
+/* ─────────────────────────────────────────────
+   CHECKOUT FLOW STYLES
+   ───────────────────────────────────────────── */
+
+/* Progress indicator */
+.checkout-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.5rem;
+  height: 1px;
+  background: #d1d5db;
+}
+
+.progress-number {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.progress-step.active .progress-number {
+  background: #3b82f6;
+  color: white;
+}
+
+.progress-step.completed .progress-number {
+  background: #10b981;
+  color: white;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.progress-step.active .progress-label {
+  color: #3b82f6;
+}
+
+.progress-step.completed .progress-label {
+  color: #10b981;
+}
+
+/* Checkout flow container */
+.checkout-flow {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Typeform section styling */
+.typeform-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.typeform-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.typeform-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.typeform-subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.typeform-content,
+.documents-content {
+  /* Content styling handled by child components */
+  width: 100%;
+}
+
+/* Checkout section styling */
+.checkout-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.checkout-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.checkout-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.checkout-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+/* Documents section styling */
+.documents-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.documents-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.documents-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.documents-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .checkout-progress {
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+  }
+  
+  .progress-label {
+    display: none;
+  }
+  
+  .typeform-section,
+  .checkout-section,
+  .documents-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .typeform-title,
+  .checkout-title,
+  .documents-title {
+    font-size: 1.5rem;
+  }
+  
+  .typeform-subtitle,
+  .checkout-subtitle,
+  .documents-subtitle {
+    font-size: 1rem;
+  }
+}

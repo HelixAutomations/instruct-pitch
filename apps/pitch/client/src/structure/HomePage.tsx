@@ -15,41 +15,21 @@ declare global {
   }
 }
 
-import React, { useState, useEffect, useRef, useMemo, JSX } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { scrollIntoViewIfNeeded } from '../utils/scroll';
 import { useCompletion } from '../context/CompletionContext';
 import {
-  FaUser,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaCity,
-  FaIdCard,
-  FaUserTie,
-  FaFilePdf,
-  FaFileImage,
-  FaFileWord,
-  FaFileExcel,
-  FaFilePowerpoint,
-  FaFileArchive,
-  FaFileAlt,
-  FaFileAudio,
-  FaFileVideo,
-  FaFileUpload,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaEdit,
+// (Icons removed with old summary/review UI)
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
 import DocumentUpload from './DocumentUpload';
-import ReviewConfirm from './ReviewConfirm';
 import '../styles/HomePage.css';
+import '../styles/modern-checkout.css';
 import { ProofData } from '../context/ProofData';
 import { PaymentDetails } from '../context/PaymentDetails';
-import SummaryReview from './SummaryReview';
-import { CSSTransition } from 'react-transition-group';
-import { toTitleCase } from '../utils/format';
+// Removed summary/review dependencies
 import PremiumCheckout from '../components/premium/PremiumCheckout';
-import InfoPopover from '../components/InfoPopover';
+import CheckoutHeader from '../components/premium/CheckoutHeader';
 import ClientHub from './ClientHub';
 
 const ALLOWED_FIELDS = [
@@ -96,141 +76,11 @@ interface HomePageProps {
   passcode: string;
   instructionRef: string;
   returning?: boolean;
+  feeEarner?: string;
+  onContactInfoChange?: (info: { feeEarner?: string }) => void;
   onInstructionConfirmed?: () => void;
   onGreetingChange?: (greeting: string | null) => void;
-  onContactInfoChange?: (info: { feeEarner?: string }) => void;
-  feeEarner?: string;
 }
-
-interface StepHeaderProps {
-  step: number;
-  title: React.ReactNode;
-  complete: boolean;
-  open: boolean;
-  toggle: () => void;
-  locked?: boolean;
-  onEdit?: () => void;
-  editable?: boolean;
-  /**
-   * Allow the step to be toggled even when locked.
-   * This lets the content be revealed in a read‑only state.
-   */
-  allowToggleWhenLocked?: boolean;
-  /**
-   * Dim the header when locked. Defaults to true for backwards
-   * compatibility.
-   */
-  dimOnLock?: boolean;
-}
-
-interface UploadedFile {
-  file: File;
-  uploaded: boolean;
-}
-
-const iconMap: Record<string, JSX.Element> = {
-  pdf: <FaFilePdf className="section-icon" />,
-  doc: <FaFileWord className="section-icon" />,
-  docx: <FaFileWord className="section-icon" />,
-  xls: <FaFileExcel className="section-icon" />,
-  xlsx: <FaFileExcel className="section-icon" />,
-  ppt: <FaFilePowerpoint className="section-icon" />,
-  pptx: <FaFilePowerpoint className="section-icon" />,
-  txt: <FaFileAlt className="section-icon" />,
-  zip: <FaFileArchive className="section-icon" />,
-  rar: <FaFileArchive className="section-icon" />,
-  jpg: <FaFileImage className="section-icon" />,
-  jpeg: <FaFileImage className="section-icon" />,
-  png: <FaFileImage className="section-icon" />,
-  mp3: <FaFileAudio className="section-icon" />,
-  mp4: <FaFileVideo className="section-icon" />,
-};
-
-const getFileIcon = (filename?: string): JSX.Element => {
-  if (!filename) return <FaFileUpload className="section-icon" />;
-  const ext = filename.split('.').pop()?.toLowerCase() ?? '';
-  return iconMap[ext] || <FaFileAlt className="section-icon" />;
-};
-
-const StepHeader: React.FC<StepHeaderProps> = ({
-  step,
-  title,
-  complete,
-  open,
-  toggle,
-  locked = false,
-  onEdit,
-  editable = true,
-  allowToggleWhenLocked = false,
-  dimOnLock = true,
-}) => {
-  // dark-blue skin when the step is CLOSED and NOT complete
-  const attention = !open && !complete;
-  const { summaryComplete } = useCompletion();
-
-  const showTick = step === 1 ? summaryComplete : complete;
-  const showEdit = editable && !open && !locked && showTick;
-
-  return (
-    <div
-      className={
-        `step-header${open ? ' active' : ''}${locked ? ' locked' : ''}${attention ? ' attention' : ''}`
-      }
-      onClick={() => {
-        if (!locked || allowToggleWhenLocked) toggle();
-      }}
-      style={
-        locked
-          ? {
-              cursor: allowToggleWhenLocked ? 'pointer' : 'not-allowed',
-              opacity: dimOnLock ? 0.5 : 1,
-            }
-          : undefined
-      }
-      tabIndex={locked && !allowToggleWhenLocked ? -1 : 0}
-      aria-disabled={locked && !allowToggleWhenLocked}
-    >
-      <div className="step-number">{step}</div>
-      <h2>
-        {title}
-        {showTick && (
-          <span className="completion-tick visible">
-            <svg viewBox="0 0 24 24">
-              <polyline
-                points="5,13 10,18 19,7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-        )}
-        {/* keep tick only when locked, no padlock icon */}
-      </h2>
-      {showEdit && (
-        <FaEdit
-          className="edit-step"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit?.();
-            toggle();
-          }}
-        />
-      )}
-      <span className="toggle-icon">{open ? '−' : '+'}</span>
-    </div>
-  );
-};
-
-const DUMMY_DEAL = {
-  amount: 999,
-  product: 'Local Development Deal',
-  workType: 'Demo Work',
-  matterId: null,
-};
-
 
 const HomePage: React.FC<HomePageProps> = ({
   step1Reveal,
@@ -239,170 +89,42 @@ const HomePage: React.FC<HomePageProps> = ({
   instructionRef,
   returning,
   feeEarner,
+  onContactInfoChange,
   onInstructionConfirmed,
   onGreetingChange,
-  onContactInfoChange,
 }) => {
-  const params = new URLSearchParams(window.location.search);
-  const [paymentData] = useState<{
-    aliasId?: string;
-    orderId?: string;
-    shaSign?: string;
-    paymentMethod?: 'card' | 'bank';
-  }>({
-    aliasId: params.get('Alias.AliasId') || sessionStorage.getItem('aliasId') || undefined,
-    orderId: params.get('Alias.OrderId') || sessionStorage.getItem('orderId') || undefined,
-    shaSign: params.get('SHASign') || sessionStorage.getItem('shaSign') || undefined,
-    paymentMethod: (sessionStorage.getItem('paymentMethod') as 'card' | 'bank' | null) || undefined,
-  });
+  // --- STATE & STEP HANDLING (simplified after sidebar removal) ---
+  const [currentCheckoutStep, setCurrentCheckoutStep] = useState<'identity'|'documents'|'payment'>('identity');
+  const paymentsDisabled = passcode !== '20200';
+  const [instructionReady, setInstructionReady] = useState(false);
+  // instruction declared later; use a ref pattern by deferring showPaymentStep calculation
+  const [showPaymentStep, setShowPaymentStep] = useState(false);
+  const checkoutSteps = useMemo(() => {
+    const base: { key: 'identity'|'documents'|'payment'; label: string }[] = [
+      { key: 'identity', label: 'Identity Verification' },
+      { key: 'documents', label: 'Document Upload' },
+    ];
+    if (showPaymentStep) base.push({ key: 'payment', label: 'Payment' });
+    return base;
+  }, [showPaymentStep]);
 
-// with
-  const [instruction, setInstruction] = useState({
-    instructionRef,
-    amount: 0,
-    product: '',
-    workType: 'Shareholder Dispute',
-    pitchedAt: new Date().toISOString(),
-    matterId: null as string | null,
-  });
+  const getCurrentStepIndex = () => checkoutSteps.findIndex(s => s.key === currentCheckoutStep);
+  const nextStep = () => {
+    const idx = getCurrentStepIndex();
+    if (idx < checkoutSteps.length - 1) setCurrentCheckoutStep(checkoutSteps[idx + 1].key);
+  };
+  const prevStep = () => {
+    const idx = getCurrentStepIndex();
+    if (idx > 0) setCurrentCheckoutStep(checkoutSteps[idx - 1].key);
+  };
+  const goToStep = (stepKey: 'identity' | 'documents' | 'payment') => setCurrentCheckoutStep(stepKey);
 
-  // Keep internal instruction reference in sync with prop updates. This ensures
-  // the payment step receives a valid orderId generated by the backend.
-  useEffect(() => {
-    if (
-      instructionRef &&
-      instructionRef !== instruction.instructionRef
-    ) {
-      setInstruction(prev => ({ ...prev, instructionRef }));
-    }
-  }, [instructionRef]);
-
-  useEffect(() => {
-    if (!instruction.instructionRef) return;
-    fetch(`/api/instruction?instructionRef=${instruction.instructionRef}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data) {
-          const {
-            stage,
-            Stage: StageCap,
-            PaymentAmount,
-            PaymentProduct,
-            WorkType,
-            ...rest
-          } = data;
-          const mergedStage = stage || StageCap;
-          setProofData(prev => ({ ...prev, ...rest }));
-          setInstruction(prev => ({
-            ...prev,
-            amount: PaymentAmount != null ? Number(PaymentAmount) : prev.amount,
-            product: PaymentProduct ?? prev.product,
-            workType: WorkType ?? prev.workType,
-            matterId: rest.MatterId ?? prev.matterId,
-          }));
-          if (mergedStage === 'completed') {
-            setInstructionCompleted(true);
-            if (data.InternalStatus === 'paid') {
-              const fname = rest.FirstName || '';
-              const hr = new Date().getHours();
-              const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
-              setCompletionGreeting(`${greet}, ${fname}.`);
-            }
-            setInstructionReady(true);
-          } else {
-            setInstructionReady(true);
-          }
-        } else {
-          saveInstruction('initialised')
-            .then((saved) => {
-              if (saved) {
-                setInstruction(prev => ({
-                  ...prev,
-                  amount: saved.PaymentAmount != null ? Number(saved.PaymentAmount) : prev.amount,
-                  product: saved.PaymentProduct ?? prev.product,
-                  workType: saved.WorkType ?? prev.workType,
-                  matterId: saved.MatterId ?? prev.matterId,
-                }));
-              } else if (import.meta.env.DEV) {
-                setInstruction(prev => ({ ...prev, ...DUMMY_DEAL }));
-              }
-              setInstructionReady(true);
-            })
-            .catch(() => {
-              if (import.meta.env.DEV) {
-                setInstruction(prev => ({ ...prev, ...DUMMY_DEAL }));
-              }
-              setInstructionReady(true);
-            });
-
-        }
-      })
-      .catch(() => {
-        if (import.meta.env.DEV) {
-          setInstruction(prev => ({ ...prev, ...DUMMY_DEAL }));
-          setInstructionReady(true);
-        }
-      });
-  }, [instruction.instructionRef]);
-
-  // Payment system: Enable Stripe integration only for test passcode 20200
-  // For all other users, payments remain disabled during transition
-  const paymentsDisabled = passcode !== '20200' && passcode !== '85490'; // Allow payments for test deal too
-  
-  // Enable payment preloading for test passcode 20200 when Stripe is active
-  const prefetchPayment = !paymentsDisabled && instruction.amount > 0;
-
-  // Allow viewing the payment step locally for the test passcode so devs can preview it
-  
-  
-  const [openStep, setOpenStep] = useState<0 | 1 | 2 | 3>(0);
-  const [closingStep, setClosingStep] = useState<0 | 1 | 2 | 3>(0);
-  // Consider a deal present if we have a non-zero amount OR product/workType metadata
-  // This covers cases where the backend returns product/service but amount may be zero/null
-  const hasDeal = instruction.amount > 0 || Boolean(instruction.product) || Boolean(instruction.workType);
-  const showPaymentStep = hasDeal && (!paymentsDisabled || (import.meta.env && import.meta.env.DEV && passcode === '20200'));
-  // When payments are disabled we collapse the payment step so Documents
-  // becomes step 2 instead of step 3. This keeps the UI numbering simple
-  // while avoiding rendering the payment UI at all.
-  const paymentStepNumber: number | null = paymentsDisabled ? null : 2;
-  const documentsStepNumber: number = paymentsDisabled ? 2 : 3;
-  const maxStep = documentsStepNumber; // Always show documents step regardless of deal amount
-  const [dealStepsVisible, setDealStepsVisible] = useState(false);
-  const [documentsStepVisible, setDocumentsStepVisible] = useState(false);
-  const [proofStartStep, setProofStartStep] = useState<number>(1);
-  const [restartId, setRestartId] = useState(0);
-  const [instructionCompleted, setInstructionCompleted] = useState(false);
-  const [completionGreeting, setCompletionGreeting] = useState<string | null>(null);
-  const [showReview, setShowReview] = useState(false);
-
-  useEffect(() => {
-    if (onGreetingChange) {
-      onGreetingChange(completionGreeting);
-    }
-  }, [completionGreeting, onGreetingChange]);
+  useEffect(() => { if (onGreetingChange) onGreetingChange(null); }, [onGreetingChange]);
 
   const step1Ref = useRef<HTMLDivElement>(null);
-  const step2Ref = useRef<HTMLDivElement>(null);
-  const step3Ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    // Always show deal steps and documents step
-    setDealStepsVisible(true);
-    const t = setTimeout(() => setDocumentsStepVisible(true), 200);
-    return () => clearTimeout(t);
-  }, []); // Remove hasDeal dependency to always show steps
-
-  const goToStep = (target: 0 | 1 | 2 | 3) => {
-    if (openStep !== target) {
-      if (openStep !== 0) setClosingStep(openStep);
-      setOpenStep(target);
-    }
-  };
-
-  useEffect(() => {
-    if (!closingStep) return;
-    const t = setTimeout(() => setClosingStep(0), 400);
-    return () => clearTimeout(t);
-  }, [closingStep]);
+    // Steps are always visible in the new layout
+  }, []);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -439,6 +161,27 @@ const HomePage: React.FC<HomePageProps> = ({
     helixContact: '',
   });
 
+  // --- Instruction & payment state (restored after refactor) ---
+  interface InstructionState {
+    instructionRef: string;
+    amount: number;
+    product: string;
+    workType: string;
+    pitchedAt?: string;
+    matterId?: string;
+  }
+  const [instruction, setInstruction] = useState<InstructionState>({
+    instructionRef,
+    amount: 0,
+    product: '',
+    workType: '',
+    pitchedAt: undefined,
+  });
+  const [instructionCompleted, setInstructionCompleted] = useState(false);
+
+  // Uploaded files type (lightweight)
+  interface UploadedFile { file: File; uploaded: boolean; }
+
   useEffect(() => {
     if (onContactInfoChange) {
       onContactInfoChange({
@@ -447,7 +190,7 @@ const HomePage: React.FC<HomePageProps> = ({
     }
   }, [proofData.helixContact, onContactInfoChange]);
 
-  const saveInstruction = async (stage: string) => {
+  const saveInstruction = useCallback(async (stage: string) => {
     if (!instruction.instructionRef) return Promise.resolve();
     try {
       let payload: any = { instructionRef: instruction.instructionRef, stage };
@@ -482,11 +225,11 @@ const HomePage: React.FC<HomePageProps> = ({
       console.error('Failed to save instruction', err);
       throw err;
     }
-  };
+  }, [instruction.instructionRef]);
 
   useEffect(() => {
     if (instructionCompleted) {
-      goToStep(0);
+      goToStep('identity');
     }
   }, [instructionCompleted]);
 
@@ -550,7 +293,7 @@ const HomePage: React.FC<HomePageProps> = ({
   const [] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
   const [isUploadSkipped, setUploadSkipped] = useState(false);
 
-  const [instructionReady, setInstructionReady] = useState(false);
+  // instructionReady declared earlier (moved up)
   const [instructionError] = useState<string | null>(null);
 
   // Debug: log payment visibility state to help diagnose missing step 2
@@ -565,32 +308,50 @@ const HomePage: React.FC<HomePageProps> = ({
         hasDeal: instruction.amount > 0,
         prefetchPayment: !((passcode !== '20200')) && instruction.amount > 0,
         instructionReady,
-        openStep,
       });
     } catch (e) {
       // swallow logging errors
     }
-  }, [passcode, instruction.instructionRef, instruction.amount, instructionReady, openStep]);
-
-  // Debug logging for payment visibility
-  console.log('[HomePage] Payment visibility check:', {
-    passcode,
-    paymentsDisabled,
-    hasDeal,
-    instructionAmount: instruction.amount,
-    instructionReady,
-    paymentStepNumber,
-    documentsStepNumber,
-    maxStep
-  });
+  }, [passcode, instruction.instructionRef, instruction.amount, instructionReady]);
 
   const [isIdReviewDone, setIdReviewDone] = useState(false);
   const [isUploadDone, setUploadDone] = useState(false);
-  const [isPaymentDone, setPaymentDone] = useState(paymentsDisabled ? true : false);
+  const [isPaymentDone, setPaymentDone] = useState(false);
   const [expiryText, setExpiryText] = useState('');
-  const [detailsConfirmed, setDetailsConfirmed] = useState(false);
   const [showFinalBanner, setShowFinalBanner] = useState(false);
   const { summaryComplete, setSummaryComplete } = useCompletion();
+
+  // Debounce timer ref for API calls
+  const saveTimeoutRef = useRef<number | null>(null);
+
+  // Debounced save function to prevent API spam
+  const debouncedSaveInstruction = useCallback((stage: string, delay: number = 1000) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = window.setTimeout(() => {
+      saveInstruction(stage);
+    }, delay);
+  }, [saveInstruction]);
+
+  // Memoized function to check if ID info is complete
+  const isIdInfoComplete = useCallback(() => {
+    return [
+      proofData.idStatus,
+      proofData.title,
+      proofData.firstName,
+      proofData.lastName,
+      proofData.nationality,
+      proofData.idNumber,
+    ].every((f) => f && f.toString().trim());
+  }, [proofData.idStatus, proofData.title, proofData.firstName, proofData.lastName, proofData.nationality, proofData.idNumber]);
+
+  // Handle payment state when payments are disabled
+  useEffect(() => {
+    if (paymentsDisabled) {
+      setPaymentDone(true);
+    }
+  }, [paymentsDisabled]);
 
   const idExpiry = useMemo(() => {
     const d = new Date();
@@ -604,9 +365,7 @@ const HomePage: React.FC<HomePageProps> = ({
   const stepsLocked = instructionCompleted || showFinalBanner;
 
   // Track editing state and whether any changes have been made
-  const [editing, setEditing] = useState(false);
-  const [editBaseline, setEditBaseline] = useState<ProofData | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
+  // Removed editing/review state
 
   const formatAmount = (amt: number) => {
     const hasDecimals = Math.floor(amt) !== amt;
@@ -640,7 +399,6 @@ const HomePage: React.FC<HomePageProps> = ({
   useEffect(() => {
     sessionStorage.removeItem('paymentDone');
     sessionStorage.removeItem(`uploadedDocs-${passcode}-${instructionRef}`);
-    setDetailsConfirmed(false);
   }, [passcode, instructionRef]);
 
   useEffect(() => {
@@ -654,25 +412,16 @@ const HomePage: React.FC<HomePageProps> = ({
   // Once ID details are marked complete, keep the state unless the user
   // explicitly clears required fields and tries to proceed again.
   useEffect(() => {
-    if (!isIdReviewDone && isIdInfoComplete()) {
+    const isComplete = isIdInfoComplete();
+    if (!isIdReviewDone && isComplete) {
       setIdReviewDone(true);
-      // Auto-save proof of ID completion when Step 1 is complete
-      saveInstruction('proof-of-id-complete');
+      // Auto-save proof of ID completion when Step 1 is complete - debounced to prevent spam
+      debouncedSaveInstruction('proof-of-id-complete', 2000);
     }
-  }, [proofData, isIdReviewDone]);
+  }, [isIdReviewDone, isIdInfoComplete, debouncedSaveInstruction]);
 
-  const handleEdit = (startStep = 1) => {
-    setEditBaseline(proofData);
-    setEditing(true);
-    setShowReview(false);
-    goToStep(1);
-    setRestartId((r) => r + 1);
-    setProofStartStep(startStep);
-    scrollIntoViewIfNeeded(step1Ref.current);
-  };
-  const handleEditSection = (stepNum: number) => {
-    handleEdit(stepNum);
-  };
+  // handleEdit removed (legacy review)
+
   useEffect(() => {
     const isComplete = uploadedFiles.some(f => f.uploaded);
     setUploadDone(isComplete);
@@ -682,22 +431,22 @@ const HomePage: React.FC<HomePageProps> = ({
     if (
       !returning &&
       (isUploadDone || isUploadSkipped) &&
-    openStep !== documentsStepNumber &&
+      currentCheckoutStep === 'documents' &&
       !showFinalBanner
     ) {
       setShowFinalBanner(true);
     }
-  }, [isUploadDone, isUploadSkipped, showFinalBanner, openStep, returning, documentsStepNumber]);
+  }, [isUploadDone, isUploadSkipped, showFinalBanner, currentCheckoutStep, returning]);
 
   useEffect(() => {
-    if (openStep === documentsStepNumber) {
+    if (currentCheckoutStep === 'documents') {
       setShowFinalBanner(false);
     }
-  }, [openStep, documentsStepNumber]);
+  }, [currentCheckoutStep]);
 
   useEffect(() => {
     if (showFinalBanner) {
-      goToStep(0);
+      goToStep('identity');
     }
   }, [showFinalBanner]);
 
@@ -738,448 +487,67 @@ const HomePage: React.FC<HomePageProps> = ({
       setPaymentDone(true);
       setUploadDone(true);
       setSummaryComplete(true);
-      setDetailsConfirmed(true);
     }
   }, [instructionCompleted, setSummaryComplete]);
 
 
-  // Watch for changes during an edit session
-  useEffect(() => {
-    if (editing && editBaseline) {
-      const changed = JSON.stringify(proofData) !== JSON.stringify(editBaseline);
-      setHasChanges(changed);
-      if (changed) {
-        setSummaryComplete(false);
-        setDetailsConfirmed(false);
-      }
-    }
-  }, [proofData, editing, editBaseline]);
-
-  // Clear change flag once details are reconfirmed
-  useEffect(() => {
-    if (detailsConfirmed) {
-      setHasChanges(false);
-    }
-  }, [detailsConfirmed]);
-
-  const [pulse, setPulse] = useState(false);
-  const [pulseStep, setPulseStep] = useState<0 | 1 | 2 | 3>(0);
+  // edit session watcher removed
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (openStep !== 0) {
-      setPulseStep(openStep);
-      setPulse(true);
-      interval = setInterval(() => {
-        setPulse(false);
-        setTimeout(() => setPulse(true), 50);
-      }, 5000);
+    // Only auto-open Step 1 for new arrivals when steps are not locked
+    if (step1Reveal && !returning && !stepsLocked && currentCheckoutStep === 'identity') {
+      goToStep('identity');
     }
+  }, [step1Reveal, returning, currentCheckoutStep]);
+
+  useEffect(() => {
+    // Auto-scroll to current step (simplified for new checkout flow)
+    if (currentCheckoutStep === 'identity') {
+      scrollIntoViewIfNeeded(step1Ref.current);
+    }
+  }, [currentCheckoutStep]);
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
     return () => {
-      clearInterval(interval);
-      setPulse(false);
-    };
-  }, [openStep]);
-
-function getPulseClass(step: number, done: boolean, isEditing = false) {
-  return openStep === step && pulse && pulseStep === step && done && !isEditing
-    ? ' pulse-green'
-    : '';
-}
-
-  useEffect(() => {
-    // Only auto-open Step 1 for new arrivals when steps are not locked and
-    // no other step is currently open. This avoids auto-expanding a locked
-    // Step 1 (greyed out) or interrupting the user's current view.
-    if (step1Reveal && !returning && !stepsLocked && openStep === 0) {
-      goToStep(1);
-    }
-  }, [step1Reveal, returning]);
-
-  const initialStepScrollSkipped = useRef(false);
-  useEffect(() => {
-    const refs = paymentsDisabled ? [step1Ref, step3Ref] : [step1Ref, step2Ref, step3Ref];
-    if (openStep > 0) {
-      if (
-        openStep === 1 &&
-        !initialStepScrollSkipped.current &&
-        window.scrollY === 0
-      ) {
-        initialStepScrollSkipped.current = true;
-        return;
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
-      scrollIntoViewIfNeeded(refs[openStep - 1]?.current);
-    }
-  }, [openStep, paymentsDisabled]);
-
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth <= 768 : false
-  );
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  function isIdInfoComplete() {
-    return [
-      proofData.idStatus,
-      proofData.title,
-      proofData.firstName,
-      proofData.lastName,
-      proofData.nationality,
-      proofData.idNumber,
-    ].every((f) => f && f.toString().trim());
-  }
+  // Responsive state removed (isMobile no longer used)
 
-  const nameParts = [proofData.title, proofData.firstName, proofData.lastName];
-  const hasFullName = nameParts.every(p => p && p.trim());
+  // Removed summary formatting helpers (no longer rendered)
 
-  const formattedNameParts = [
-    proofData.title,
-    proofData.firstName ? toTitleCase(proofData.firstName) : undefined,
-    proofData.lastName ? toTitleCase(proofData.lastName) : undefined,
-  ];
-
-  const hasCompanyName = !!proofData.companyName && proofData.companyName.trim();
-  const hasCompanyNumber = !!proofData.companyNumber && proofData.companyNumber.trim();
-
-const proofSummary = (
-  <> 
-    {/* Info prompt always shown at the top */}
-    {(proofData.idStatus === 'first-time' || proofData.idStatus === 'renewing') && (
-      <div className="group">
-        <p>
-          {proofData.idStatus === 'first-time'
-            ? 'You are providing proof of your identity for the first time.'
-            : 'You are renewing proof of your identity.'}
-        </p>
-        <hr />
-      </div>
-    )}
-
-    {/* Company Details if applicable */}
-    <CSSTransition
-      in={!!proofData.isCompanyClient}
-      timeout={250}
-      classNames="summary-company-anim"
-      unmountOnExit
-    >
-      <div className="group" id="summary-company">
-        <div className="summary-group-header">
-          <span>Company Details</span>
-          {showReview && !detailsConfirmed && (
-            <button
-              type="button"
-              className="summary-edit-btn visible"
-              onClick={() => handleEditSection(2)}
-            >
-              <FaEdit />
-              <span>Edit</span>
-            </button>
-          )}
-        </div>
-        <FaCity className="backdrop-icon" />
-        <p>
-          <span className="field-label">Client:</span>{' '}
-          <span className="field-value">Yes</span>
-        </p>
-        <p>
-          <span className="field-label">Name:</span>{' '}
-          <span className={`field-value${!hasCompanyName ? ' empty' : ''}`}>{proofData.companyName?.trim() || '--'}</span>
-        </p>
-        <p>
-          <span className="field-label">Number:</span>{' '}
-          <span className={`field-value${!hasCompanyNumber ? ' empty' : ''}`}>{proofData.companyNumber?.trim() || '--'}</span>
-        </p>
-        <p>
-          <span className="field-label">Address:</span>
-        </p>
-        <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
-          <div>
-            <span className={!proofData.companyHouseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyHouseNumber?.trim() || 'House Number'}
-            </span>,&nbsp;
-            <span className={!proofData.companyStreet?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyStreet?.trim() ? toTitleCase(proofData.companyStreet.trim()) : 'Street'}
-            </span>
-          </div>
-          <div>
-            <span className={!proofData.companyCity?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyCity?.trim() ? toTitleCase(proofData.companyCity.trim()) : 'City'}
-            </span>,&nbsp;
-            <span className={!proofData.companyCounty?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyCounty?.trim() ? toTitleCase(proofData.companyCounty.trim()) : 'County'}
-            </span>
-          </div>
-          <div>
-            <span className={!proofData.companyPostcode?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyPostcode?.trim() || 'Postcode'}
-            </span>,&nbsp;
-            <span className={!proofData.companyCountry?.trim() ? 'summary-placeholder' : 'field-value'}>
-              {proofData.companyCountry?.trim() || 'Country'}
-            </span>
-          </div>
-        </div>
-        <hr />
-      </div>
-    </CSSTransition>
-
-      <div className="group" id="summary-personal">
-        <div className="summary-group-header">
-          <span>Personal Details</span>
-          {showReview && !detailsConfirmed && (
-            <button
-              type="button"
-              className="summary-edit-btn visible"
-              onClick={() => handleEditSection(2)}
-            >
-              <FaEdit />
-              <span>Edit</span>
-            </button>
-          )}
-        </div>
-        <FaUser className="backdrop-icon" />
-        <p>
-          <span className="field-label">Name:</span>{' '}
-          <span className={`field-value${!hasFullName ? ' empty' : ''}`}>{formattedNameParts.filter(Boolean).join(' ') || '--'}</span>
-        </p>
-        <p>
-          <span className="field-label">Gender:</span>{' '}
-          <span className={`field-value${!proofData.gender?.trim() ? ' empty' : ''}`}>{proofData.gender?.trim() || '--'}</span>
-        </p>
-        <p>
-          <span className="field-label">Date of Birth:</span>{' '}
-          <span className={`field-value${!proofData.dob?.trim() ? ' empty' : ''}`}>{proofData.dob?.trim() || '--'}</span>
-        </p>
-        <p>
-          <span className="field-label">Nationality:</span>{' '}
-          <span className={`field-value${!proofData.nationality?.trim() ? ' empty' : ''}`}>{proofData.nationality?.trim() || '--'}</span>
-        </p>
-        <hr />
-      </div>
-      <div className="group" id="summary-address">
-        <div className="summary-group-header">
-          <span>Address</span>
-          {showReview && !detailsConfirmed && (
-            <button
-              type="button"
-              className="summary-edit-btn visible"
-              onClick={() => handleEditSection(2)}
-            >
-              <FaEdit />
-              <span>Edit</span>
-            </button>
-          )}
-        </div>
-        <FaMapMarkerAlt className="backdrop-icon" />
-        <div className="data-text" style={{ color: 'inherit', lineHeight: 1.5 }}>
-          <div>
-            <span className={!proofData.houseNumber?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.houseNumber?.trim() || 'House Number'}</span>
-            ,&nbsp;
-            <span className={!proofData.street?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.street?.trim() ? toTitleCase(proofData.street.trim()) : 'Street'}</span>
-          </div>
-          <div>
-            <span className={!proofData.city?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.city?.trim() ? toTitleCase(proofData.city.trim()) : 'City'}</span>
-            ,&nbsp;
-            <span className={!proofData.county?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.county?.trim() ? toTitleCase(proofData.county.trim()) : 'County'}</span>
-          </div>
-          <div>            <span className={!proofData.city?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.city?.trim() || 'City'}</span>
-            <span className={!proofData.postcode?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.postcode?.trim() || 'Postcode'}</span>
-            ,&nbsp;
-            <span className={!proofData.country?.trim() ? 'summary-placeholder' : 'field-value'}>{proofData.country?.trim() || 'Country'}</span>
-          </div>
-        </div>
-        <hr />
-      </div>
-      <div className="group" id="summary-contact">
-        <div className="summary-group-header">
-          <span>Contact Details</span>
-          {showReview && !detailsConfirmed && (
-            <button
-              type="button"
-              className="summary-edit-btn visible"
-              onClick={() => handleEditSection(2)}
-            >
-              <FaEdit />
-              <span>Edit</span>
-            </button>
-          )}
-        </div>
-        <FaPhone className="backdrop-icon" />
-        <p>
-          <span className="field-label">Phone:</span>{' '}
-          <span className={`field-value${!proofData.phone?.trim() ? ' empty' : ''}`}>{proofData.phone?.trim() || '--'}</span>
-        </p>
-        <p>
-          <span className="field-label">Email:</span>{' '}
-          <span className={`field-value${!proofData.email?.trim() ? ' empty' : ''}`}>{proofData.email?.trim() ? proofData.email.trim().toLowerCase() : '--'}</span>
-        </p>
-        <hr />
-      </div>
-      <div className="group" id="summary-id">
-        <div className="summary-group-header">
-          <span>ID Details</span>
-          {showReview && !detailsConfirmed && (
-            <button
-              type="button"
-              className="summary-edit-btn visible"
-              onClick={() => handleEditSection(3)}
-            >
-              <FaEdit />
-              <span>Edit</span>
-            </button>
-          )}
-        </div>
-        <FaIdCard className="backdrop-icon" />
-        <p>
-          <span className="field-label">Type:</span>{' '}
-          <span className={`field-value${!proofData.idType?.trim() ? ' empty' : ''}`}>{proofData.idType?.trim() || '--'}</span>
-        </p>
-        <p>
-          <span className="field-label">Number:</span>{' '}
-          <span className={`field-value${!proofData.idNumber?.trim() ? ' empty' : ''}`}>{proofData.idNumber?.trim() || '--'}</span>
-        </p>
-        <hr />
-      </div>
-      <div className="group" id="summary-helix">
-        {/* Solicitor information */}
-      <div className="summary-group-header">
-          <span>Helix Contact</span>
-          {showReview && !detailsConfirmed && (
-            <button
-              type="button"
-              className="summary-edit-btn visible"
-              onClick={() => handleEditSection(3)}
-            >
-              <FaEdit />
-              <span>Edit</span>
-            </button>
-          )}
-        </div>
-      <FaUserTie className="backdrop-icon" />
-      <p>
-        <span className="field-label">Solicitor:</span>{' '}
-        <span className={`field-value${!proofData.helixContact?.trim() ? ' empty' : ''}`}>{proofData.helixContact?.trim() || '--'}</span>
-      </p>
-      <p className="system-info">
-        <span className="field-label">Ref:</span>{' '}
-        <span className="system-info-text">{instruction.instructionRef}</span>
-      </p>
-    </div>
-  </>
-  );
-
-  const documentsSummary = isUploadSkipped ? (
-    <span className="field-value">File upload skipped.</span>
-  ) : uploadedFiles.length ? (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      {uploadedFiles.map((f, i) => (
-        <div
-          key={i}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            flexWrap: 'nowrap',
-            overflow: 'hidden',
-            minWidth: 0,
-          }}
-        >
-          <span style={{ flexShrink: 0 }}>{getFileIcon(f.file.name)}</span>
-          <span
-            style={{
-              fontSize: '0.95rem',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              flexGrow: 1,
-            }}
-            title={f.file.name}
-          >
-            {f.file.name}
-          </span>
-          {f.uploaded ? (
-            <FaCheckCircle className="summary-file-check" />
-          ) : (
-            <FaTimesCircle className="summary-file-check" style={{ color: 'crimson' }} />
-          )}
-        </div>
-      ))}
-    </div>
-  ) : (
-    <span className="field-value">--</span>
-  );
-
-  const next = (skipReview?: boolean) => {
-    if (openStep === 1 && !showReview) {
-      if (skipReview && summaryComplete) {
-        setEditing(false);
-        const target = hasDeal
-          ? (isPaymentDone ? documentsStepNumber : (paymentStepNumber ?? documentsStepNumber))
-          : 1;
-        goToStep(target as 0 | 1 | 2 | 3);
-      } else {
-        setShowReview(true);
-      }
-      return;
-    }
-    if (openStep === 1 && showReview) {
-      setEditing(false);
-    }
-    // If the payment step exists and payment completes, jump to documents.
-    if (typeof paymentStepNumber === 'number' && openStep === paymentStepNumber && isPaymentDone) {
-      goToStep(documentsStepNumber as 0 | 1 | 2 | 3);
-      return;
-    }
-    if (openStep === documentsStepNumber) {
-      goToStep(0);
-      return;
-    }
-    goToStep(openStep < maxStep ? ((openStep + 1) as any) : openStep);
-  };
-  const back = () => {
-    if (openStep === 1 && showReview) {
-      setShowReview(false);
-      return;
-    }
-    let target = openStep > 1 ? ((openStep - 1) as 0 | 1 | 2 | 3) : openStep;
-    if (target === 2 && isPaymentDone) {
-      target = 1;
-    }
-    goToStep(target);
-  };
-
+  // Removed legacy proofSummary UI
+  // Recompute payment step flag when instruction or passcode changes
   useEffect(() => {
-    const { orderId, shaSign, paymentMethod } = paymentData;
+    setShowPaymentStep(!paymentsDisabled && instruction.amount > 0);
+  }, [paymentsDisabled, instruction.amount]);
 
-    if (
-      !instruction.instructionRef ||
-      !instruction.instructionRef.startsWith('HLX-')
-    ) return;
+  // Removed paymentData tracking effect (paymentData no longer in scope)
 
-    if (paymentMethod || orderId || shaSign) {
-      const payload: any = {
-        instructionRef: instruction.instructionRef,
-        stage: 'in_progress',
-        paymentMethod,
-        orderId,
-        shaSign,
-      };
-      fetch('/api/instruction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }).catch(err => console.error('Failed to save payment info', err));
+  // If payment step disappears (e.g. amount becomes 0) and we're on it, go back
+  useEffect(() => {
+    if (currentCheckoutStep === 'payment' && !showPaymentStep) {
+      setCurrentCheckoutStep('documents');
     }
-  }, [paymentData, instruction.instructionRef]);
+  }, [currentCheckoutStep, showPaymentStep]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="home-page">
       <main className="main-content">
-        <div className="checkout-container">
+        <div className="modern-checkout-container">
           {returning && (
             <ClientHub
               instructionRef={instructionRef}
@@ -1190,207 +558,170 @@ const proofSummary = (
               matterRef={instruction.matterId || undefined}
             />
           )}
-          <div className="steps-column">
 
-            <div ref={step1Ref} className={`step-section${openStep === 1 ? ' revealed active' : ''}`}>
-              <StepHeader
-                step={1}
-                title="Prove Your Identity"
-                complete={isIdReviewDone}
-                open={openStep === 1}
-                toggle={() => goToStep(openStep === 1 ? 0 : 1)}
-                locked={stepsLocked}
-                editable={!stepsLocked}
-                onEdit={stepsLocked ? undefined : handleEdit}
-                allowToggleWhenLocked={true}
-                dimOnLock={false}
-              />
-              <div
-                className={`step-content${openStep === 1 ? ' active' : ''}${getPulseClass(1, isIdReviewDone, editing)}`}
-              >
-                {(openStep === 1 || closingStep === 1) && (
-                  !showReview ? (
-                    <ProofOfId
-                      key={restartId}
-                      value={proofData}
-                      onUpdate={setProofData}
-                      setIsComplete={setIdReviewDone}
-                      onNext={next}
-                      editing={editing}
-                      hasChanges={hasChanges}
-                      startStep={proofStartStep}
-                    />
-                  ) : (
-                    <ReviewConfirm
-                      detailsConfirmed={detailsConfirmed}
-                      openSummaryPanel={() => {}}
-                      summaryContent={isMobile ? (
-                        <SummaryReview
-                          proofContent={proofSummary}
-                          documentsContent={documentsSummary}
-                          detailsConfirmed={detailsConfirmed}
-                          setDetailsConfirmed={setDetailsConfirmed}
-                          showConfirmation={showReview && !stepsLocked}
-                          edited={hasChanges}
-                        />
-                      ) : undefined}
-                      isMobile={isMobile}
-                      instructionRef={instruction.instructionRef}
-                      proofData={proofData}
-                      amount={instruction.amount}
-                      product={instruction.product}
-                      workType={instruction.workType}
-                      aliasId={paymentData.aliasId || undefined}
-                      orderId={paymentData.orderId || undefined}
-                      shaSign={paymentData.shaSign || undefined}
-                      onConfirmed={next}
-                      onEdit={handleEdit}
-                    />
-                  )
-                )}
-              </div>
-            </div>
+          <CheckoutHeader
+            currentIndex={getCurrentStepIndex()}
+            total={checkoutSteps.length}
+            steps={checkoutSteps}
+            instructionRef={instruction.instructionRef}
+            amount={instruction.amount}
+            contact={proofData.helixContact || undefined}
+          />
 
-            {showPaymentStep && (
-              <CSSTransition
-                in={dealStepsVisible}
-                timeout={300}
-                classNames="deal-steps-anim"
-                unmountOnExit
-              >
-                <div ref={step2Ref} className={`step-section${openStep === 2 ? ' active' : ''}`}>
-                  <StepHeader
-                    step={2}
-                    title="Pay"
-                    complete={isPaymentDone}
-                    open={openStep === 2}
-                    toggle={() => goToStep(openStep === 2 ? 0 : 2)}
-                    locked={stepsLocked}
-                    editable={!stepsLocked}
-                    allowToggleWhenLocked={true}
-                    dimOnLock={false}
+          {/* Step Content */}
+          <div className="checkout-content">
+            {/* Identity Verification */}
+            {currentCheckoutStep === 'identity' && (
+              <div className="checkout-step identity-step">
+                <div className="step-header">
+                  <h1>Verify your identity</h1>
+                  <p>We need to confirm who you are to proceed with your legal services</p>
+                </div>
+                
+                <div className="typeform-container">
+                  <ProofOfId
+                    value={proofData}
+                    onUpdate={setProofData}
+                    setIsComplete={setIdReviewDone}
+                    onNext={() => { if (isIdReviewDone) nextStep(); }}
                   />
-                  <div className={`step-content${openStep === 2 ? ' active payment-noscroll' : ''}${getPulseClass(2, isPaymentDone)}`}>
-                    {!isPaymentDone && (
-                      <div className="service-summary-box">
-                        <div className="question-banner">Service Summary</div>
-                        <div className="service-summary-grid">
-                          {proofData.helixContact && (
-                            <div className="summary-item">
-                              <div className="summary-label">Solicitor</div>
-                              <div className="summary-value">{proofData.helixContact.split(' ')[0]}</div>
-                            </div>
-                          )}
-                          <div className="summary-item">
-                            <div className="summary-label">
-                              Expires in{' '}
-                              <InfoPopover text="Please note that this fee quotation is subject to a time limit and must be accepted before the stated expiry date to remain valid." />
-                            </div>
-                            <div className="summary-value">{expiryText}</div>
-                          </div>
-                          <div className="summary-item">
-                            <div className="summary-label">
-                              Amount <span className="summary-note">(inc. VAT)</span>
-                            </div>
-                            <div className="summary-value amount-value">£{formatAmount(instruction.amount)}</div>
-                          </div>
-                        </div>
-                        {proofData.helixContact && (
-                          <p className="pitch-description">
-                            {proofData.helixContact.split(' ')[0]} will begin work on {instruction.product} once your ID is verified and your matter is open. The fee is £{formatAmount(instruction.amount)} including VAT.
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Premium Checkout - Modern single-page checkout experience */}
-                    {!paymentsDisabled && (prefetchPayment || openStep === 2 || closingStep === 2) && (
-                      <div style={{ display: openStep === 2 ? 'block' : 'none' }}>
-                        {/* Use Premium Checkout for modern experience */}
-                        <div className="premium-checkout-wrapper">
-                          <PremiumCheckout
-                            instructionRef={instruction.instructionRef}
-                            onComplete={() => {
-                              console.log('HomePage: Premium checkout completed');
-                              setPaymentDone(true);
-                              // Auto-advance to next step after successful payment
-                              setTimeout(() => next(), 1500);
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 </div>
-              </CSSTransition>
+
+                <div className="step-navigation">
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={nextStep}
+                    disabled={!isIdReviewDone}
+                  >
+                    Continue to Documents
+                  </button>
+                </div>
+              </div>
             )}
 
-            <CSSTransition
-              in={documentsStepVisible}
-              timeout={300}
-              classNames="deal-steps-anim"
-              unmountOnExit
-            >
-              <div ref={step3Ref} className={`step-section${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}`}>
-                <StepHeader
-                  step={documentsStepNumber}
-                  title={
-                    isUploadDone || isUploadSkipped
-                      ? 'Upload Files'
-                      : <>
-                          Upload Files <span className="optional">(optional)</span>
-                        </>
-                  }
-                  complete={isUploadDone || isUploadSkipped}
-                  open={openStep === (documentsStepNumber as 0 | 1 | 2 | 3)}
-                  toggle={() => goToStep(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? 0 : (documentsStepNumber as 0 | 1 | 2 | 3))}
-                  locked={false}
-                  allowToggleWhenLocked
-                  dimOnLock={false}
+            {/* Document Upload */}
+            {currentCheckoutStep === 'documents' && (
+              <div className="checkout-step documents-step">
+                <div className="step-header">
+                  <h1>Upload documents</h1>
+                  <p>Upload any supporting documents for your case (optional)</p>
+                </div>
+
+                <DocumentUpload
+                  uploadedFiles={uploadedFiles}
+                  setUploadedFiles={setUploadedFiles}
+                  setIsComplete={setUploadDone}
+                  onBack={prevStep}
+                  onNext={() => {
+                    if (showPaymentStep) {
+                      nextStep();
+                    } else {
+                      // Skip to completion if no payment needed
+                      setShowFinalBanner(true);
+                    }
+                  }}
+                  setUploadSkipped={setUploadSkipped}
+                  isUploadSkipped={isUploadSkipped}
+                  clientId={clientId}
+                  passcode={passcode}
+                  instructionRef={instruction.instructionRef}
+                  instructionReady={instructionReady}
+                  instructionError={instructionError}
                 />
-                <div className={`step-content${openStep === (documentsStepNumber as 0 | 1 | 2 | 3) ? ' active' : ''}${getPulseClass(documentsStepNumber, isUploadDone || isUploadSkipped)}`}>
-                  {(openStep === (documentsStepNumber as 0 | 1 | 2 | 3) || closingStep === (documentsStepNumber as 0 | 1 | 2 | 3)) && (
-                    <DocumentUpload
-                      uploadedFiles={uploadedFiles}
-                      setUploadedFiles={setUploadedFiles}
-                      setIsComplete={setUploadDone}
-                      onBack={back}
-                      onNext={next}
-                      setUploadSkipped={setUploadSkipped}
-                      isUploadSkipped={isUploadSkipped}
-                      clientId={clientId}
-                      passcode={passcode}
-                      instructionRef={instruction.instructionRef}
-                      instructionReady={instructionReady}
-                      instructionError={instructionError}
-                    />
-                  )}
-                </div>
-              </div>
-            </CSSTransition>
 
-            {showFinalBanner && (
-              <div className="completed-banner">
-                Thank you for confirming your instructions. We have emailed you a confirmation, and no further action is required at this time. The solicitor now has your file and will handle the next steps.
+                <div className="step-navigation">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={prevStep}
+                  >
+                    Back to Identity
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={() => {
+                      if (showPaymentStep) {
+                        nextStep();
+                      } else {
+                        setShowFinalBanner(true);
+                      }
+                    }}
+                  >
+                    {showPaymentStep ? 'Continue to Payment' : 'Complete'}
+                  </button>
+                </div>
               </div>
             )}
 
+            {/* Payment */}
+            {currentCheckoutStep === 'payment' && showPaymentStep && (
+              <div className="checkout-step payment-step">
+                <div className="step-header">
+                  <h1>Complete payment</h1>
+                  <p>Secure payment for your legal services</p>
+                </div>
+
+                {!isPaymentDone && (
+                  <div className="service-summary-box">
+                    <div className="summary-grid">
+                      {proofData.helixContact && (
+                        <div className="summary-item">
+                          <div className="summary-label">Solicitor</div>
+                          <div className="summary-value">{proofData.helixContact.split(' ')[0]}</div>
+                        </div>
+                      )}
+                      <div className="summary-item">
+                        <div className="summary-label">Amount (inc. VAT)</div>
+                        <div className="summary-value amount-value">£{formatAmount(instruction.amount)}</div>
+                      </div>
+                      <div className="summary-item">
+                        <div className="summary-label">Expires in</div>
+                        <div className="summary-value">{expiryText}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!paymentsDisabled && (
+                  <div className="premium-checkout-wrapper">
+                    <PremiumCheckout
+                      instructionRef={instruction.instructionRef}
+                      onComplete={() => {
+                        console.log('HomePage: Premium checkout completed');
+                        setPaymentDone(true);
+                        setShowFinalBanner(true);
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="step-navigation">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={prevStep}
+                  >
+                    Back to Documents
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Desktop: always show summary sidebar */}
-          {!isMobile && (
-            <aside className="summary-column">
-              <SummaryReview
-                proofContent={proofSummary}
-                documentsContent={documentsSummary}
-                detailsConfirmed={detailsConfirmed}
-                setDetailsConfirmed={setDetailsConfirmed}
-                showConfirmation={showReview && !stepsLocked}
-                edited={hasChanges}
-              />
-            </aside>
+          {/* Completion Banner */}
+          {showFinalBanner && (
+            <div className="completion-banner">
+              <div className="completion-content">
+                <h2>✅ All done!</h2>
+                <p>Thank you for confirming your instructions. We have emailed you a confirmation, and no further action is required at this time. The solicitor now has your file and will handle the next steps.</p>
+              </div>
+            </div>
           )}
         </div>
+
+  {/* Summary sidebar removed per UX simplification */}
       </main>
     </div>
   );

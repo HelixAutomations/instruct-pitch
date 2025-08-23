@@ -6,8 +6,8 @@ import "../styles/SummaryReview.css";
 interface SummaryReviewProps {
   proofContent: React.ReactNode;
   documentsContent?: React.ReactNode;
-  detailsConfirmed: boolean;
-  setDetailsConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
+  detailsConfirmed?: boolean;
+  setDetailsConfirmed?: React.Dispatch<React.SetStateAction<boolean>>;
   /**
    * Whether to show the confirmation checkbox. By default the
    * checkbox is visible, but callers can hide it until the user
@@ -20,9 +20,9 @@ interface SummaryReviewProps {
 
 const SummaryReview: React.FC<SummaryReviewProps> = ({
   proofContent,
-  detailsConfirmed,
+  detailsConfirmed = true, // Default to true since we removed the confirmation system
   setDetailsConfirmed,
-  showConfirmation = true,
+  showConfirmation = false, // Default to false since we removed the confirmation system
   edited = false,
 }) => {
   const { summaryComplete } = useCompletion();
@@ -112,7 +112,7 @@ const SummaryReview: React.FC<SummaryReviewProps> = ({
                 type="checkbox"
                 className="modern-checkbox-input"
                 checked={detailsConfirmed}
-                onChange={(e) => setDetailsConfirmed(e.target.checked)}
+                onChange={(e) => setDetailsConfirmed?.(e.target.checked)}
               />
               <span className="modern-checkbox-custom" aria-hidden="true">
                 <svg className="checkbox-tick" viewBox="0 0 24 24" width="26" height="26">

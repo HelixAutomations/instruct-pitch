@@ -1,0 +1,1 @@
+Check running processes BEFORE starting anything new: do not clobber existing Azurite or `npm run dev:all` terminals — restarting wastes time and hides earlier logs.

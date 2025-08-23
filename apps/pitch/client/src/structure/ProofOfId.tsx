@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FaBuilding, FaUser, FaMapMarkerAlt, FaPhone, FaIdCard, FaUserTie } from 'react-icons/fa';
 import { scrollIntoViewIfNeeded } from '../utils/scroll';
-import { FaUser, FaCity, FaMapMarkerAlt, FaPhone, FaUserTie, FaChevronDown } from 'react-icons/fa';
 import InfoPopover from '../components/InfoPopover';
-import '../styles/ProofOfId.css';
+import '../styles/ProofOfId-premium.css';
 import { ProofData } from '../context/ProofData';
 import { countries, titles, genders } from '../data/referenceData';
 
@@ -13,38 +13,11 @@ interface ProofOfIdProps {
   onNext: (skipReview?: boolean) => void;
   editing?: boolean;
   hasChanges?: boolean;
-  /** Which internal step to start on when mounted */
-  startStep?: number;
 }
 
-// Define the type for individual section states
-interface SectionState {
-  collapsed: boolean;
-  completed: boolean;
-}
-
-// Define the type for the entire sectionStates object
-interface SectionStates {
-  companyDetails: SectionState;
-  companyAddress: SectionState;
-  personalDetails: SectionState;
-  addressDetails: SectionState;
-  contactDetails: SectionState;
-  idDetails: SectionState;
-  helixContact: SectionState;
-}
-
-// All fields that must be completed before the entire company section collapses
-const COMPANY_SECTION_FIELDS = [
-  'companyName',
-  'companyNumber',
-  'companyHouseNumber',
-  'companyStreet',
-  'companyCity',
-  'companyCounty',
-  'companyPostcode',
-  'companyCountry',
-];
+const nonEmpty = (v: any) => !!(v && v.toString().trim());
+const isEmail = (v: string) => /.+@.+\..+/.test(v.trim());
+const isDOB = (v: string) => /^(\d{2})\/(\d{2})\/(\d{4})$/.test(v.trim());
 
 const ProofOfId: React.FC<ProofOfIdProps> = ({
   value,
@@ -53,1097 +26,609 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   onNext,
   editing = false,
   hasChanges = false,
-  startStep = 1,
 }) => {
-  const [step, setStep] = useState<number>(startStep);
   const formRef = useRef<HTMLDivElement>(null);
-  const idStatus = value.idStatus || '';
-  const isCompanyClient = value.isCompanyClient ?? null;
-  const idType = value.idType || null;
-
   const [activeTeam, setActiveTeam] = useState<string[]>([]);
+  const [currentQuestionInGroup, setCurrentQuestionInGroup] = useState(0);
 
   useEffect(() => {
     const prefill = (window as any).helixPrefillData;
-    if (Array.isArray(prefill?.activeTeam)) {
-      setActiveTeam(prefill.activeTeam);
-    }
+    if (Array.isArray(prefill?.activeTeam)) setActiveTeam(prefill.activeTeam);
   }, []);
 
-  // State to track collapsed and completed status for each section
-  const [sectionStates, setSectionStates] = useState<SectionStates>({
-    companyDetails: { collapsed: false, completed: false },
-    companyAddress: { collapsed: false, completed: false },
-    personalDetails: { collapsed: false, completed: false },
-    addressDetails: { collapsed: false, completed: false },
-    contactDetails: { collapsed: false, completed: false },
-    idDetails: { collapsed: false, completed: false },
-    helixContact: { collapsed: false, completed: false },
-  });
+  interface Question {
+    key: string;
+    label: string;
+    type: 'choice' | 'text' | 'select' | 'email' | 'dob' | 'nationality' | 'group';
+    placeholder?: string;
+    options?: { value: any; label: string }[];
+    validate?: (v: any, full: ProofData) => boolean;
+    afterChange?: (val: any, full: ProofData) => Partial<ProofData> | void;
+    questions?: Question[]; // For grouped questions
+  }
 
-  // Reset step when parent specifies a new starting step
-  useEffect(() => {
-    setStep(startStep);
-  }, [startStep]);
+  interface QuestionGroup {
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    description?: string;
+    questions: Question[];
+    hidden?: (data: ProofData) => boolean;
+  }
 
-  // Scroll to the top whenever the internal step changes
-  useEffect(() => {
-    scrollIntoViewIfNeeded(formRef.current);
-  }, [step]);
+  const questionGroups: QuestionGroup[] = [
+    {
+      icon: FaIdCard,
+      title: 'ID Confirmation',
+      questions: [
+        {
+          key: 'idStatus',
+          label: 'Are you providing ID for the first time or renewing?',
+          type: 'choice',
+          options: [
+            { value: 'first-time', label: 'First-Time ID' },
+            { value: 'renewing', label: 'Renewing ID' }
+          ],
+          validate: nonEmpty,
+        },
+        {
+          key: 'isCompanyClient',
+          label: 'Who are you proving identity for?',
+          type: 'choice',
+          options: [
+            { value: false, label: 'For Myself' },
+            { value: true, label: 'For a Company' }
+          ],
+          validate: v => v !== null && v !== undefined,
+          afterChange: v => v ? {} : {
+            companyName: '', companyNumber: '', companyHouseNumber: '',
+            companyStreet: '', companyCity: '', companyCounty: '',
+            companyPostcode: '', companyCountry: ''
+          },
+        },
+      ],
+    },
+    {
+      icon: FaBuilding,
+      title: 'Company Details',
+      hidden: (data) => !data.isCompanyClient,
+      questions: [
+        { key: 'companyName', label: 'Company Name', type: 'text', validate: nonEmpty },
+        { key: 'companyNumber', label: 'Company Number', type: 'text', validate: nonEmpty },
+        { key: 'companyAddress', label: 'Company Address', type: 'group', questions: [
+          { key: 'companyHouseNumber', label: 'House/Building Number', type: 'text', placeholder: 'House/Building Number', validate: nonEmpty },
+          { key: 'companyStreet', label: 'Street', type: 'text', placeholder: 'Street', validate: nonEmpty },
+          { key: 'companyCity', label: 'City/Town', type: 'text', placeholder: 'City/Town', validate: nonEmpty },
+          { key: 'companyCounty', label: 'County', type: 'text', placeholder: 'County', validate: nonEmpty },
+          { key: 'companyPostcode', label: 'Postcode', type: 'text', placeholder: 'Post Code', validate: nonEmpty },
+          { key: 'companyCountry', label: 'Country', type: 'select', validate: nonEmpty },
+        ]},
+      ],
+    },
+    {
+      icon: FaUser,
+      title: 'Personal Details',
+      description: value.isCompanyClient ? 'Please use your personal details if you are a director of the company.' : undefined,
+      questions: [
+        { key: 'personalInfo', label: 'Personal Information', type: 'group', questions: [
+          { key: 'title', label: 'Title', type: 'select', validate: nonEmpty },
+          { key: 'firstName', label: 'First Name', type: 'text', placeholder: 'First Name', validate: nonEmpty },
+          { key: 'lastName', label: 'Last Name', type: 'text', placeholder: 'Last Name', validate: nonEmpty },
+          { key: 'dob', label: 'Date of Birth', type: 'dob', placeholder: 'dd/mm/yyyy', validate: isDOB },
+          { key: 'gender', label: 'Gender', type: 'select', validate: nonEmpty },
+          { key: 'nationality', label: 'Nationality', type: 'nationality', validate: nonEmpty },
+        ]},
+      ],
+    },
+    {
+      icon: FaMapMarkerAlt,
+      title: 'Your Address',
+      questions: [
+        { key: 'address', label: 'Your Address', type: 'group', questions: [
+          { key: 'houseNumber', label: 'House/Building Number', type: 'text', placeholder: 'House/Building Number', validate: nonEmpty },
+          { key: 'street', label: 'Street', type: 'text', placeholder: 'Street', validate: nonEmpty },
+          { key: 'city', label: 'City/Town', type: 'text', placeholder: 'City/Town', validate: nonEmpty },
+          { key: 'county', label: 'County', type: 'text', placeholder: 'County', validate: nonEmpty },
+          { key: 'postcode', label: 'Postcode', type: 'text', placeholder: 'Post Code', validate: nonEmpty },
+          { key: 'country', label: 'Country', type: 'select', validate: nonEmpty },
+        ]},
+      ],
+    },
+    {
+      icon: FaPhone,
+      title: 'Contact Information',
+      questions: [
+        { key: 'contact', label: 'Contact Information', type: 'group', questions: [
+          { key: 'phone', label: 'Best Phone Number', type: 'text', placeholder: 'Best Phone Number', validate: nonEmpty },
+          { key: 'email', label: 'Best Email', type: 'email', placeholder: 'Best Email', validate: isEmail },
+        ]},
+      ],
+    },
+    {
+      icon: FaIdCard,
+      title: 'ID Details',
+      questions: [
+        {
+          key: 'idType',
+          label: 'Which form of ID are you providing?',
+          type: 'choice',
+          options: [
+            { value: 'passport', label: 'Passport' },
+            { value: 'driver-license', label: "Driver's License" }
+          ],
+          validate: nonEmpty,
+          afterChange: () => ({ idNumber: '' }),
+        },
+        { 
+          key: 'idNumber', 
+          label: value.idType === 'passport' ? 'Passport Number' : 
+                 value.idType === 'driver-license' ? 'Driver\'s License Number' : 
+                 'ID Number', 
+          type: 'text', 
+          placeholder: value.idType === 'passport' ? 'Enter your passport number' :
+                       value.idType === 'driver-license' ? 'Enter your driver\'s license number' :
+                       'Enter your ID number',
+          validate: nonEmpty 
+        },
+      ],
+    },
+    {
+      icon: FaUserTie,
+      title: 'Helix Contact',
+      questions: [
+        { key: 'helixContact', label: 'Person you have spoken to at Helix Law', type: 'select', validate: nonEmpty },
+      ],
+    },
+  ];
 
+  // Get visible groups and calculate totals
+  const visibleGroups = questionGroups.filter(group => !(group.hidden && group.hidden(value)));
 
-  // Ensure the start of the form remains in view on step change
-  // without forcing the entire window back to the top
-  // (which caused the page to jump away from the form).
+  // Create steps where each group is a single step/page
+  const createSteps = (groups: QuestionGroup[]) => {
+    const steps: any[] = [];
+    groups.forEach(group => {
+      // Each group becomes one step/page
+      steps.push({
+        type: 'groupPage',
+        groupTitle: group.title,
+        groupIcon: group.icon,
+        questions: group.questions,
+        description: group.description,
+      });
+    });
+    return steps;
+  };
 
-  // Effect to keep section completion in sync when fields are cleared
-  // Once a section is marked complete via blur, it stays complete
-  // until one of its required fields becomes empty again.
-  useEffect(() => {
-    const sections: { key: keyof SectionStates; fields: string[] }[] = [
-      { key: 'companyDetails', fields: COMPANY_SECTION_FIELDS },
-      {
-        key: 'companyAddress',
-        fields: [
-          'companyHouseNumber',
-          'companyStreet',
-          'companyCity',
-          'companyCounty',
-          'companyPostcode',
-          'companyCountry',
-        ],
-      },
-      {
-        key: 'personalDetails',
-        fields: ['title', 'firstName', 'lastName', 'dob', 'gender', 'nationality'],
-      },
-      {
-        key: 'addressDetails',
-        fields: ['houseNumber', 'street', 'city', 'county', 'postcode', 'country'],
-      },
-      { key: 'contactDetails', fields: ['phone', 'email'] },
-      { key: 'idDetails', fields: ['idNumber'] },
-      { key: 'helixContact', fields: ['helixContact'] },
-    ];
+  const steps = createSteps(visibleGroups);
+  const currentStep = steps[currentQuestionInGroup];
+  const totalSteps = steps.length;
 
-    setSectionStates(prev => {
-      let changed = false;
-      const updated = { ...prev };
-      sections.forEach(({ key, fields }) => {
-        const allFilled = checkSectionCompletion(fields);
-        if (!allFilled && updated[key].completed) {
-          updated[key] = { ...updated[key], completed: false };
-          changed = true;
+  const updateField = useCallback((field: string, val: any) => {
+    const next: any = { ...value, [field]: val };
+    if (field === 'country') { const f = countries.find(c => c.name === val); next.countryCode = f?.code; }
+    if (field === 'companyCountry') { const f = countries.find(c => c.name === val); next.companyCountryCode = f?.code; }
+    if (field === 'nationality') { const f = countries.find(c => c.name === val); next.nationalityCode = f?.code; }
+    if (field === 'dob') {
+      const digits = val.replace(/\D/g, '').slice(0, 8);
+      const d = digits.slice(0, 2);
+      const m = digits.slice(2, 4);
+      const y = digits.slice(4, 8);
+      let fmt = d;
+      if (m) fmt += '/' + m;
+      if (y) fmt += '/' + y;
+      next.dob = fmt;
+    }
+    onUpdate(next);
+    
+    // Handle afterChange for the specific question
+    if (currentStep?.type === 'groupPage') {
+      // Look for the question in any nested structure
+      let foundQuestion: Question | undefined;
+      currentStep.questions.forEach((q: Question) => {
+        if (q.key === field) {
+          foundQuestion = q;
+        } else if (q.type === 'group' && q.questions) {
+          const nestedQ = q.questions.find((nq: Question) => nq.key === field);
+          if (nestedQ) foundQuestion = nestedQ;
         }
       });
-      return changed ? updated : prev;
-    });
-  }, [value, idType]); // Re-run when value or idType changes
-
-  // Function to check if all fields in a section are filled
-  const checkSectionCompletion = (sectionFields: string[]) => {
-    return sectionFields.every((field) => {
-      const fieldValue = value[field as keyof ProofData];
-      return fieldValue && fieldValue.toString().trim() !== '';
-    });
-  };
-
-  // Function to handle blur event and collapse section if all fields are filled
-  const handleBlur = (
-    sectionKey: keyof SectionStates,
-    sectionFields: string[]
-  ) => {
-    const isCompleted = checkSectionCompletion(sectionFields);
-    if (isCompleted) {
-      setSectionStates((prev) => ({
-        ...prev,
-        [sectionKey]: {
-          ...prev[sectionKey],
-          // Mark the section as completed without collapsing automatically
-          completed: true,
-        },
-      }));
-    }
-  };
-
-  // Function to toggle section collapse state
-  const toggleSection = (sectionKey: keyof SectionStates) => {
-    setSectionStates((prev) => ({
-      ...prev,
-      [sectionKey]: {
-        ...prev[sectionKey],
-        collapsed: !prev[sectionKey].collapsed,
-      },
-    }));
-  };
-
-  const validateForm = () => {
-    const requiredFields = [
-      value.title,
-      value.firstName,
-      value.lastName,
-      value.nationality,
-      value.houseNumber,
-      value.street,
-      value.city,
-      value.county,
-      value.postcode,
-      value.country,
-      value.dob,
-      value.gender,
-      value.phone,
-      value.email,
-      value.idNumber,
-      value.helixContact,
-      idType,
-    ];
-    const companyFields = isCompanyClient
-      ? [
-          value.companyName,
-          value.companyNumber,
-          value.companyHouseNumber,
-          value.companyStreet,
-          value.companyCity,
-          value.companyCounty,
-          value.companyPostcode,
-          value.companyCountry,
-        ]
-      : [];
-    return [...requiredFields, ...companyFields].every((field) => field && field.trim() !== '');
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { id, value: inputValue } = e.target;
-    let newValue = inputValue;
-    const updatedData: any = { ...value, [id]: inputValue, idStatus, isCompanyClient, idType };
-
-    if (id === 'dob') {
-      const digits = inputValue.replace(/\D/g, '').slice(0, 8);
-      const day = digits.slice(0, 2);
-      const month = digits.slice(2, 4);
-      const year = digits.slice(4, 8);
-      if (digits.length >= 2) {
-        newValue = day + '/';
-      } else {
-        newValue = day;
+      if (foundQuestion?.afterChange) {
+        const extra = foundQuestion.afterChange(val, next);
+        if (extra) onUpdate({ ...next, ...extra });
       }
-      if (month) {
-        newValue += month;
-        if (digits.length >= 4) newValue += '/';
+    } else if (currentStep?.type === 'single' && currentStep.question?.afterChange) {
+      const extra = currentStep.question.afterChange(val, next);
+      if (extra) onUpdate({ ...next, ...extra });
+    } else if (currentStep?.type === 'group') {
+      const question = currentStep.questions?.find((q: Question) => q.key === field);
+      if (question?.afterChange) {
+        const extra = question.afterChange(val, next);
+        if (extra) onUpdate({ ...next, ...extra });
       }
-      if (year) newValue += year;
-      updatedData.dob = newValue;
     }
+  }, [value, onUpdate, currentStep]);
 
-    if (id === 'country') {
-      const found = countries.find(c => c.name === inputValue);
-      updatedData.countryCode = found?.code;
+  const isValid = useCallback(() => {
+    if (!currentStep) return false;
+    
+    if (currentStep.type === 'groupPage') {
+      // All questions in the group page must be valid
+      const allQuestions: Question[] = [];
+      
+      currentStep.questions.forEach((q: Question) => {
+        if (q.type === 'group' && q.questions) {
+          allQuestions.push(...q.questions);
+        } else {
+          allQuestions.push(q);
+        }
+      });
+      
+      return allQuestions.every((q: Question) => {
+        const v = (value as any)[q.key];
+        return q.validate ? q.validate(v, value) : true;
+      });
+    } else if (currentStep.type === 'single') {
+      const q = currentStep.question;
+      const v = (value as any)[q.key];
+      return q.validate ? q.validate(v, value) : true;
+    } else if (currentStep.type === 'group') {
+      // All questions in the group must be valid
+      return currentStep.questions.every((q: Question) => {
+        const v = (value as any)[q.key];
+        return q.validate ? q.validate(v, value) : true;
+      });
     }
+    return false;
+  }, [currentStep, value]);
 
-    if (id === 'companyCountry') {
-      const found = countries.find(c => c.name === inputValue);
-      updatedData.companyCountryCode = found?.code;
-    }
-
-    if (id === 'nationality') {
-      const found = countries.find(c => c.name === inputValue);
-      updatedData.nationalityCode = found?.code;
-    }
-
-    onUpdate(updatedData);
-  };
-
-  const handleIdStatusChange = (status: string) => {
-    const updatedData = { ...value, idStatus: status };
-    onUpdate(updatedData);
-  };
-
-  const handleCompanyClientChange = (val: boolean) => {
-    const updatedData = { ...value, isCompanyClient: val };
-    onUpdate(updatedData);
-  };
-
-  const handleIdTypeChange = (type: string) => {
-    const updatedData = { ...value, idType: type, idNumber: '' };
-    onUpdate(updatedData);
-    // Auto-expand the section when picking an ID type
-    setSectionStates((prev) => ({
-      ...prev,
-      idDetails: { ...prev.idDetails, collapsed: false },
-    }));
-  };
-
-  const handleNextStep = () => {
-    if (validateForm()) {
+  const goNext = useCallback(() => {
+    if (!isValid()) return;
+    
+    if (currentQuestionInGroup < totalSteps - 1) {
+      // Move to next step
+      setCurrentQuestionInGroup(q => q + 1);
+    } else {
+      // Complete
       setIsComplete(true);
-    } else {
-      setIsComplete(false);
-    }
-    if (editing && !hasChanges) {
-      onNext(true);
-    } else {
       onNext();
     }
+  }, [isValid, currentQuestionInGroup, totalSteps, setIsComplete, onNext]);
+
+  const goPrev = useCallback(() => {
+    if (currentQuestionInGroup > 0) {
+      // Go back to previous step
+      setCurrentQuestionInGroup(q => q - 1);
+    }
+  }, [currentQuestionInGroup]);
+
+  useEffect(() => {
+    scrollIntoViewIfNeeded(formRef.current);
+  }, [currentQuestionInGroup]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        if (isValid()) {
+          e.preventDefault();
+          goNext();
+        }
+      } else if (e.key === 'Escape') {
+        goPrev();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [goNext, goPrev, isValid]);
+
+  useEffect(() => {
+    const isLastStep = currentQuestionInGroup === totalSteps - 1;
+    setIsComplete(isLastStep && isValid());
+  }, [currentQuestionInGroup, totalSteps, isValid, setIsComplete]);
+
+  const renderInput = (question: Question) => {
+    const val: any = (value as any)[question.key] ?? '';
+    
+    switch (question.type) {
+      case 'choice':
+        // Don't auto-advance for key identity questions to allow switching between options
+        const shouldAutoAdvance = !['idStatus', 'isCompanyClient', 'idType'].includes(question.key);
+        
+        return (
+          <div className="premium-choice-group" role="radiogroup" aria-label={question.label}>
+            {question.options!.map(option => (
+              <button
+                type="button"
+                key={String(option.value)}
+                className={`premium-choice-button ${val === option.value ? 'active' : ''}`}
+                onClick={() => {
+                  updateField(question.key, option.value);
+                  if (shouldAutoAdvance) {
+                    setTimeout(() => goNext(), 150);
+                  }
+                }}
+                aria-pressed={val === option.value}
+                role="radio"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        );
+      
+      case 'select':
+        if (question.key === 'title') {
+          return (
+            <select
+              className={`premium-select ${val ? 'filled' : ''}`}
+              value={val}
+              onChange={e => updateField(question.key, e.target.value)}
+            >
+              <option value="">Select title</option>
+              {titles.map(t => (
+                <option key={t.id} value={t.name}>{t.name}</option>
+              ))}
+            </select>
+          );
+        }
+        if (question.key === 'gender') {
+          return (
+            <select
+              className={`premium-select ${val ? 'filled' : ''}`}
+              value={val}
+              onChange={e => updateField(question.key, e.target.value)}
+            >
+              <option value="">Select gender</option>
+              {genders.map(g => (
+                <option key={g.id} value={g.name}>{g.name}</option>
+              ))}
+            </select>
+          );
+        }
+        if (question.key === 'helixContact') {
+          const list = activeTeam.length > 0 ? ['Unsure', ...activeTeam] : ['Unsure', 'John Doe', 'Jane Smith'];
+          return (
+            <select
+              className={`premium-select ${val ? 'filled' : ''}`}
+              value={val}
+              onChange={e => updateField(question.key, e.target.value)}
+            >
+              <option value="">Select contact</option>
+              {list.map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          );
+        }
+        if (question.key === 'companyCountry' || question.key === 'country') {
+          return (
+            <select
+              className={`premium-select ${val ? 'filled' : ''}`}
+              value={val}
+              onChange={e => updateField(question.key, e.target.value)}
+            >
+              <option value="">Select country</option>
+              {countries.map(c => (
+                <option key={c.id} value={c.name}>{c.name} ({c.code})</option>
+              ))}
+            </select>
+          );
+        }
+        return null;
+      
+      case 'nationality':
+        return (
+          <select
+            className={`premium-select ${val ? 'filled' : ''}`}
+            value={val}
+            onChange={e => updateField(question.key, e.target.value)}
+          >
+            <option value="">Select nationality</option>
+            {countries.map(c => (
+              <option key={c.id} value={c.name}>{c.name} ({c.code})</option>
+            ))}
+          </select>
+        );
+      
+      case 'dob':
+        return (
+          <input
+            type="text"
+            className={`premium-input ${val ? 'filled' : ''}`}
+            value={val}
+            placeholder={question.placeholder || 'dd/mm/yyyy'}
+            onChange={e => updateField(question.key, e.target.value)}
+            maxLength={10}
+          />
+        );
+      
+      case 'email':
+        return (
+          <input
+            type="email"
+            className={`premium-input ${val ? 'filled' : ''}`}
+            value={val}
+            placeholder={question.placeholder || 'you@example.com'}
+            onChange={e => updateField(question.key, e.target.value)}
+          />
+        );
+      
+      default:
+        return (
+          <input
+            type="text"
+            className={`premium-input ${val ? 'filled' : ''}`}
+            value={val}
+            placeholder={question.placeholder || ''}
+            onChange={e => updateField(question.key, e.target.value)}
+          />
+        );
+    }
   };
 
-  const handleBack = () => {
-    setStep((prev) => Math.max(1, prev - 1));
-  };
-
-  const validateBasicDetails = () => {
-    const baseFields = [
-      value.title,
-      value.firstName,
-      value.lastName,
-      value.nationality,
-      value.houseNumber,
-      value.street,
-      value.city,
-      value.county,
-      value.postcode,
-      value.country,
-      value.dob,
-      value.gender,
-      value.phone,
-      value.email,
-    ];
-    const companyFields = isCompanyClient
-      ? [
-          value.companyName,
-          value.companyNumber,
-          value.companyHouseNumber,
-          value.companyStreet,
-          value.companyCity,
-          value.companyCounty,
-          value.companyPostcode,
-          value.companyCountry,
-        ]
-      : [];
-    return [...baseFields, ...companyFields].every(
-      (field) => field && field.toString().trim() !== ''
+  const renderGroupQuestions = (questions: Question[], groupTitle?: string) => {
+    // Check if this is contact information to apply vertical stacking
+    const isContactGroup = groupTitle === 'Contact Information' || 
+                          questions.some(q => q.key === 'phone' || q.key === 'email');
+    
+    const containerClass = isContactGroup ? 'premium-form-stack' : 'premium-form-grid';
+    
+    return (
+      <div className={containerClass}>
+        {questions.map((question) => (
+          <div key={question.key} className="premium-form-group">
+            <label className="premium-form-label">
+              {question.label}
+            </label>
+            {renderInput(question)}
+          </div>
+        ))}
+      </div>
     );
   };
 
+  if (!currentStep) {
+    return <div>Loading...</div>;
+  }
+
+  const IconComponent = currentStep.groupIcon;
+
   return (
-    <div className="form-container apple-form" ref={formRef}>
-      {step === 1 && (
-        <>
-          {/* BOTH Step 1 questions, always visible */}
-          <div className="form-group step1-centered question-container">
-            <label id="id-status-label" className="question-banner">
-              Are you providing ID for the first time or have you been asked to renew ID?
-              <InfoPopover text="Select 'First-Time ID' if this is your initial identity proof. Choose 'Renewing ID' if you are updating an existing ID." />
-            </label>
-            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="id-status-label">
-              <button
-                type="button"
-                className={`modern-toggle-button ${idStatus === 'first-time' ? 'active' : ''}`}
-                onClick={() => handleIdStatusChange('first-time')}
-              >
-                First-Time ID
-              </button>
-              <button
-                type="button"
-                className={`modern-toggle-button ${idStatus === 'renewing' ? 'active' : ''}`}
-                onClick={() => handleIdStatusChange('renewing')}
-              >
-                Renewing ID
-              </button>
-            </div>
+    <div className="premium-identity-container">
+      <div className="premium-identity-card premium-fade-in">
+        {/* Progress indicator */}
+        <div className="premium-progress">
+          <div className={`premium-progress-step ${currentQuestionInGroup + 1 <= 1 ? 'active' : ''}`}>
+            {currentQuestionInGroup + 1}
           </div>
-
-          <hr className="step1-separator" />
-
-          <div className="form-group step1-centered question-container">
-            <label id="company-client-label" className="question-banner">
-              Who are you proving identity for?
-              <InfoPopover text="Select 'For Myself' if you are proving your own identity. Choose 'For a Company' if you are acting on behalf of a business." />
-            </label>
-            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="company-client-label">
-              <button
-                type="button"
-                className={`modern-toggle-button ${isCompanyClient === false ? 'active' : ''}`}
-                onClick={() => handleCompanyClientChange(false)}
-              >
-                <FaUser className="button-icon" />
-                For Myself
-              </button>
-              <button
-                type="button"
-                className={`modern-toggle-button ${isCompanyClient === true ? 'active' : ''}`}
-                onClick={() => handleCompanyClientChange(true)}
-              >
-                <FaCity className="button-icon" />
-                For a Company
-              </button>
-            </div>
-          </div>
-
-          {/* Next button at bottom */}
-          <div className="button-group">
-            <button
-              type="button"
-              className="btn primary"
-              disabled={!(idStatus && isCompanyClient !== null)}
-              onClick={() => setStep(2)}
-              aria-label="Proceed to next step"
-            >
-              Next
-            </button>
-          </div>
-        </>
-      )}
-
-      {step === 2 && (
-        <div className="form-content">
-          {isCompanyClient && (
-            <>
-              <div
-                className={`form-group-section ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''} ${sectionStates.companyDetails.completed ? 'completed' : ''}`}
-              >
-                <div className="group-header" onClick={() => toggleSection('companyDetails')}>
-                  <FaCity className="section-icon" />
-                  <span>Company Details</span>
-                  {sectionStates.companyDetails.completed &&
-                    sectionStates.companyDetails.collapsed && (
-                    <span className="completion-tick visible">
-                      <svg viewBox="0 0 24 24">
-                        <polyline
-                          points="5,13 10,18 19,7"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  )}
-                  <FaChevronDown
-                    className={`dropdown-icon ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''}`}
-                  />
-                </div>
-                <hr className="section-divider" />
-                <div
-                  className={`collapsible-content ${sectionStates.companyDetails.collapsed ? 'collapsed' : ''}`}
-                >
-                  <div className="form-grid two-col-grid">
-                    <div className="form-group">
-                      <input
-                        type="text"
-                        id="companyName"
-                        className={`paper-input ${value.companyName ? 'filled' : ''}`}
-                        value={value.companyName}
-                        onChange={handleInputChange}
-                        placeholder="Company Name"
-                        onBlur={() =>
-                          handleBlur('companyDetails', COMPANY_SECTION_FIELDS)
-                        }
-                      />
-                    </div>
-                    <div className="form-group">
-                      <input
-                        type="text"
-                        id="companyNumber"
-                        className={`paper-input ${value.companyNumber ? 'filled' : ''}`}
-                        value={value.companyNumber}
-                        onChange={handleInputChange}
-                        placeholder="Company Number"
-                        onBlur={() =>
-                          handleBlur('companyDetails', COMPANY_SECTION_FIELDS)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="form-section address-section">
-                    <div
-                      className="group-header"
-                      onClick={() => toggleSection('companyAddress')}
-                    >
-                      <FaMapMarkerAlt className="section-icon" />
-                      <span>Company Address</span>
-                  {sectionStates.companyAddress.completed &&
-                        sectionStates.companyAddress.collapsed && (
-                        <span className="completion-tick visible">✔</span>
-                      )}
-                      <FaChevronDown
-                        className={`dropdown-icon ${sectionStates.companyAddress.collapsed ? 'collapsed' : ''}`}
-                      />
-                    </div>
-                    <hr className="section-divider" />
-                    <div
-                      className={`collapsible-content ${sectionStates.companyAddress.collapsed ? 'collapsed' : ''}`}
-                    >
-                      <div className="form-grid two-col-grid">
-                        <div className="form-group">
-                          <input
-                            type="text"
-                            id="companyHouseNumber"
-                            className={`paper-input ${value.companyHouseNumber ? 'filled' : ''}`}
-                            value={value.companyHouseNumber}
-                            onChange={handleInputChange}
-                            placeholder="House/Building Number"
-                            onBlur={() => {
-                              handleBlur('companyAddress', [
-                                'companyHouseNumber',
-                                'companyStreet',
-                                'companyCity',
-                                'companyCounty',
-                                'companyPostcode',
-                                'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <input
-                            type="text"
-                            id="companyStreet"
-                            className={`paper-input ${value.companyStreet ? 'filled' : ''}`}
-                            value={value.companyStreet}
-                            onChange={handleInputChange}
-                            placeholder="Street"
-                            onBlur={() => {
-                              handleBlur('companyAddress', [
-                                'companyHouseNumber',
-                                'companyStreet',
-                                'companyCity',
-                                'companyCounty',
-                                'companyPostcode',
-                                'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <input
-                            type="text"
-                            id="companyCity"
-                            className={`paper-input ${value.companyCity ? 'filled' : ''}`}
-                            value={value.companyCity}
-                            onChange={handleInputChange}
-                            placeholder="City/Town"
-                            onBlur={() => {
-                              handleBlur('companyAddress', [
-                                'companyHouseNumber',
-                                'companyStreet',
-                                'companyCity',
-                                'companyCounty',
-                                'companyPostcode',
-                                'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <input
-                            type="text"
-                            id="companyCounty"
-                            className={`paper-input ${value.companyCounty ? 'filled' : ''}`}
-                            value={value.companyCounty}
-                            onChange={handleInputChange}
-                            placeholder="County"
-                            onBlur={() => {
-                              handleBlur('companyAddress', [
-                                'companyHouseNumber',
-                                'companyStreet',
-                                'companyCity',
-                                'companyCounty',
-                                'companyPostcode',
-                                'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <input
-                            type="text"
-                            id="companyPostcode"
-                            className={`paper-input ${value.companyPostcode ? 'filled' : ''}`}
-                            value={value.companyPostcode}
-                            onChange={handleInputChange}
-                            placeholder="Post Code"
-                            onBlur={() => {
-                              handleBlur('companyAddress', [
-                                'companyHouseNumber',
-                                'companyStreet',
-                                'companyCity',
-                                'companyCounty',
-                                'companyPostcode',
-                                'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <select
-                            id="companyCountry"
-                            className={`paper-input-select ${value.companyCountry ? 'filled' : ''}`}
-                            value={value.companyCountry}
-                            onChange={handleInputChange}
-                            onBlur={() => {
-                              handleBlur('companyAddress', [
-                                'companyHouseNumber',
-                                'companyStreet',
-                                'companyCity',
-                                'companyCounty',
-                                'companyPostcode',
-                                'companyCountry',
-                              ]);
-                              handleBlur('companyDetails', COMPANY_SECTION_FIELDS);
-                            }}
-                          >
-                            <option value="">Country</option>
-                            {countries.map(c => (
-                              <option key={c.id} value={c.name}>
-                                {c.name} ({c.code})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <hr />
-            </>
-          )}
-
-          <div
-            className={`form-group-section ${sectionStates.personalDetails.collapsed ? 'collapsed' : ''} ${sectionStates.personalDetails.completed ? 'completed' : ''}`}
-          >
-            <div className="group-header" onClick={() => toggleSection('personalDetails')}>
-              <FaUser className="section-icon" />
-              <span>Personal Details</span>
-              {sectionStates.personalDetails.completed &&
-                sectionStates.personalDetails.collapsed && (
-                <span className="completion-tick visible">
-                  <svg viewBox="0 0 24 24">
-                    <polyline
-                      points="5,13 10,18 19,7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              )}
-              <FaChevronDown
-                className={`dropdown-icon ${sectionStates.personalDetails.collapsed ? 'collapsed' : ''}`}
-              />
-            </div>
-            <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.personalDetails.collapsed ? 'collapsed' : ''}`}
-            >
-              {isCompanyClient && (
-                <p className="disclaimer">
-                  Please use your personal details if you are a director of the company.
-                </p>
-              )}
-              <div className="form-grid personal-grid names-row">
-                <div className="form-group name-title">
-                  <select
-                    id="title"
-                    className={`paper-input-select ${value.title ? 'filled' : ''}`}
-                    value={value.title}
-                    onChange={handleInputChange}
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'dob',
-                        'gender',
-                        'nationality',
-                      ])
-                    }
-                  >
-                    <option value="">Title</option>
-                    {titles.map(t => (
-                      <option key={t.id} value={t.name}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group name-first">
-                  <input
-                    type="text"
-                    id="firstName"
-                    className={`paper-input ${value.firstName ? 'filled' : ''}`}
-                    value={value.firstName}
-                    onChange={handleInputChange}
-                    placeholder="First Name"
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'dob',
-                        'gender',
-                        'nationality',
-                      ])
-                    }
-                  />
-                </div>
-                <div className="form-group name-last">
-                  <input
-                    type="text"
-                    id="lastName"
-                    className={`paper-input ${value.lastName ? 'filled' : ''}`}
-                    value={value.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Last Name"
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'dob',
-                        'gender',
-                        'nationality',
-                      ])
-                    }
-                  />
-                </div>
-              </div>
-              <div className="form-grid personal-grid">
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="dob"
-                    className={`paper-input ${value.dob ? 'filled' : ''}`}
-                    value={value.dob}
-                    onChange={handleInputChange}
-                    placeholder="DoB (dd/mm/yyyy)"
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'dob',
-                        'gender',
-                        'nationality',
-                      ])
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <select
-                    id="gender"
-                    className={`paper-input-select ${value.gender ? 'filled' : ''}`}
-                    value={value.gender}
-                    onChange={handleInputChange}
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'dob',
-                        'gender',
-                        'nationality',
-                      ])
-                    }
-                  >
-                    <option value="">Gender</option>
-                    {genders.map(g => (
-                      <option key={g.id} value={g.name}>{g.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <select
-                    id="nationality"
-                    className={`paper-input-select ${value.nationality ? 'filled' : ''}`}
-                    value={value.nationality}
-                    onChange={handleInputChange}
-                    onBlur={() =>
-                      handleBlur('personalDetails', [
-                        'title',
-                        'firstName',
-                        'lastName',
-                        'dob',
-                        'gender',
-                        'nationality',
-                      ])
-                    }
-                  >
-                    <option value="">Nationality</option>
-                    {countries.map(c => (
-                      <option key={c.id} value={c.name}>
-                        {c.name} ({c.code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <hr />
-
-          <div
-            className={`form-group-section ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''} ${sectionStates.addressDetails.completed ? 'completed' : ''}`}
-          >
-            <div className="group-header" onClick={() => toggleSection('addressDetails')}>
-              <FaMapMarkerAlt className="section-icon" />
-              <span>Address Details</span>
-              {sectionStates.addressDetails.completed &&
-                sectionStates.addressDetails.collapsed && (
-                <span className="completion-tick visible">
-                  <svg viewBox="0 0 24 24">
-                    <polyline
-                      points="5,13 10,18 19,7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              )}
-              <FaChevronDown
-                className={`dropdown-icon ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''}`}
-              />
-            </div>
-            <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.addressDetails.collapsed ? 'collapsed' : ''}`}
-            >
-              <div className="form-grid two-col-grid">
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="houseNumber"
-                    className={`paper-input ${value.houseNumber ? 'filled' : ''}`}
-                    value={value.houseNumber}
-                    onChange={handleInputChange}
-                    placeholder="House/Building Number"
-                    onBlur={() =>
-                      handleBlur('addressDetails', [
-                        'houseNumber',
-                        'street',
-                        'city',
-                        'county',
-                        'postcode',
-                        'country',
-                      ])
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="street"
-                    className={`paper-input ${value.street ? 'filled' : ''}`}
-                    value={value.street}
-                    onChange={handleInputChange}
-                    placeholder="Street"
-                    onBlur={() =>
-                      handleBlur('addressDetails', [
-                        'houseNumber',
-                        'street',
-                        'city',
-                        'county',
-                        'postcode',
-                        'country',
-                      ])
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="city"
-                    className={`paper-input ${value.city ? 'filled' : ''}`}
-                    value={value.city}
-                    onChange={handleInputChange}
-                    placeholder="City/Town"
-                    onBlur={() =>
-                      handleBlur('addressDetails', [
-                        'houseNumber',
-                        'street',
-                        'city',
-                        'county',
-                        'postcode',
-                        'country',
-                      ])
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="county"
-                    className={`paper-input ${value.county ? 'filled' : ''}`}
-                    value={value.county}
-                    onChange={handleInputChange}
-                    placeholder="County"
-                    onBlur={() =>
-                      handleBlur('addressDetails', [
-                        'houseNumber',
-                        'street',
-                        'city',
-                        'county',
-                        'postcode',
-                        'country',
-                      ])
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="postcode"
-                    className={`paper-input ${value.postcode ? 'filled' : ''}`}
-                    value={value.postcode}
-                    onChange={handleInputChange}
-                    placeholder="Post Code"
-                    onBlur={() =>
-                      handleBlur('addressDetails', [
-                        'houseNumber',
-                        'street',
-                        'city',
-                        'county',
-                        'postcode',
-                        'country',
-                      ])
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <select
-                    id="country"
-                    className={`paper-input-select ${value.country ? 'filled' : ''}`}
-                    value={value.country}
-                    onChange={handleInputChange}
-                    onBlur={() =>
-                      handleBlur('addressDetails', [
-                        'houseNumber',
-                        'street',
-                        'city',
-                        'county',
-                        'postcode',
-                        'country',
-                      ])
-                    }
-                  >
-                    <option value="">Country</option>
-                    {countries.map(c => (
-                      <option key={c.id} value={c.name}>
-                        {c.name} ({c.code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <hr />
-
-          <div
-            className={`form-group-section ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''} ${sectionStates.contactDetails.completed ? 'completed' : ''}`}
-          >
-            <div className="group-header" onClick={() => toggleSection('contactDetails')}>
-              <FaPhone className="section-icon" />
-              <span>Contact Details</span>
-              {sectionStates.contactDetails.completed &&
-                sectionStates.contactDetails.collapsed && (
-                <span className="completion-tick visible">
-                  <svg viewBox="0 0 24 24">
-                    <polyline
-                      points="5,13 10,18 19,7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              )}
-              <FaChevronDown
-                className={`dropdown-icon ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''}`}
-              />
-            </div>
-            <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.contactDetails.collapsed ? 'collapsed' : ''}`}
-            >
-              <div className="form-grid two-col-grid">
-                <div className="form-group">
-                  <input
-                    type="tel"
-                    id="phone"
-                    className={`paper-input ${value.phone ? 'filled' : ''}`}
-                    value={value.phone}
-                    onChange={handleInputChange}
-                    placeholder="Best Phone Number"
-                    onBlur={() => handleBlur('contactDetails', ['phone', 'email'])}
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    type="email"
-                    id="email"
-                    className={`paper-input ${value.email ? 'filled' : ''}`}
-                    value={value.email}
-                    onChange={handleInputChange}
-                    placeholder="Best Email"
-                    onBlur={() => handleBlur('contactDetails', ['phone', 'email'])}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="button-group">
-            <button
-              type="button"
-              className="btn secondary"
-              onClick={handleBack}
-              aria-label="Go back to ID confirmation"
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              className="btn primary"
-              onClick={() => setStep(3)}
-              aria-label="Proceed to ID details"
-              disabled={!validateBasicDetails()}
-            >
-              Next
-            </button>
+          <div className={`premium-progress-line ${currentQuestionInGroup > 0 ? 'completed' : ''}`} />
+          <div className="premium-progress-step">
+            {totalSteps}
           </div>
         </div>
-      )}
-      {step === 3 && (
-        <div className="form-content">
 
-          <div className="form-group step1-centered question-container">
-            <label id="id-type-label" className="question-banner">
-              Which form of ID are you providing?
-              <InfoPopover text="Choose one" />
-            </label>
-            <div className="modern-toggle-group" role="radiogroup" aria-labelledby="id-type-label">
-                  <button
-                    type="button"
-                    className={`modern-toggle-button ${idType === 'passport' ? 'active' : ''}`}
-                    onClick={() => handleIdTypeChange('passport')}
-                    aria-pressed={idType === 'passport'}
-                    role="radio"
-                  >
-                    Passport
-                  </button>
-                  <button
-                    type="button"
-                    className={`modern-toggle-button ${idType === 'driver-license' ? 'active' : ''}`}
-                    onClick={() => handleIdTypeChange('driver-license')}
-                    aria-pressed={idType === 'driver-license'}
-                    role="radio"
-                  >
-                    Driver's License
-                  </button>
-                </div>
-            {(idType === 'passport' || idType === 'driver-license') && (
-              <div className="form-group">
-                <input
-                  type="text"
-                  id="idNumber"
-                  className={`paper-input ${value.idNumber ? 'filled' : ''}`}
-                  value={value.idNumber}
-                  onChange={handleInputChange}
-                  placeholder={idType === 'passport' ? 'Passport Number' : "Driver's License Number"}
-                  onBlur={() => handleBlur('idDetails', ['idNumber'])}
-                />
+        {/* Section with premium styling */}
+        <div className="premium-section premium-slide-up">
+          <div className="premium-section-header">
+            <IconComponent className="premium-section-icon" />
+            <h2 className="premium-section-title">{currentStep.groupTitle}</h2>
+          </div>
+          
+          <div className="premium-section-content">
+            {currentStep.description && (
+              <div className="premium-question-description premium-scale-in">
+                {currentStep.description}
               </div>
             )}
-          </div>
-          <hr />
-
-          <div
-            className={`form-group-section ${sectionStates.helixContact.collapsed ? 'collapsed' : ''} ${sectionStates.helixContact.completed ? 'completed' : ''}`}
-          >
-            <div className="group-header" onClick={() => toggleSection('helixContact')}>
-              <FaUserTie className="section-icon" />
-              <span>Helix Contact</span>
-              {sectionStates.helixContact.completed &&
-                sectionStates.helixContact.collapsed && (
-                <span className="completion-tick visible">
-                  <svg viewBox="0 0 24 24">
-                    <polyline
-                      points="5,13 10,18 19,7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              )}
-              <FaChevronDown
-                className={`dropdown-icon ${sectionStates.helixContact.collapsed ? 'collapsed' : ''}`}
-              />
-            </div>
-            <hr className="section-divider" />
-            <div
-              className={`collapsible-content ${sectionStates.helixContact.collapsed ? 'collapsed' : ''}`}
-            >
-              <div className="form-group">
-                <select
-                  id="helixContact"
-                  className={`paper-input-select ${value.helixContact ? 'filled' : ''}`}
-                  value={value.helixContact}
-                  onChange={handleInputChange}
-                  onBlur={() => handleBlur('helixContact', ['helixContact'])}
-                >
-                  <option value="" disabled hidden>
-                    Person you have spoken to at Helix Law
-                  </option>
-                  <option value="Unsure">Unsure</option>
-                  {(activeTeam.length > 0 ? activeTeam : ['John Doe', 'Jane Smith']).map(name => (
-                    <option key={name} value={name}>{name}</option>
+            
+            <div className="premium-question-container">
+              {currentStep.type === 'groupPage' && (
+                <div className="premium-group-content">
+                  {currentStep.questions.map((question: Question, index: number) => (
+                    <div key={question.key || index} className="premium-question">
+                      {question.type === 'group' && question.questions ? (
+                        <div className="premium-subgroup">
+                          <div className="premium-question-banner">
+                            <h4 className="premium-question-label">{question.label}</h4>
+                          </div>
+                          {renderGroupQuestions(question.questions, currentStep.groupTitle)}
+                        </div>
+                      ) : (
+                        <div className="premium-single-question">
+                          <div className="premium-question-banner">
+                            <div className="premium-question-label">
+                              {question.label}
+                              {question.key === 'idStatus' && (
+                                <InfoPopover text="If this is your first time supplying ID choose First-Time." />
+                              )}
+                              {question.key === 'isCompanyClient' && (
+                                <InfoPopover text="Choose company if you act for a business." />
+                              )}
+                              {question.key === 'idType' && (
+                                <InfoPopover text="Choose one" />
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="premium-form-group">
+                            {renderInput(question)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ))}
-                </select>
-              </div>
+                </div>
+              )}
+              
+              {currentStep.type === 'single' ? (
+                <>
+                  <div className="premium-question-banner">
+                    <div className="premium-question-label">
+                      {currentStep.question.label}
+                      {currentStep.question.key === 'idStatus' && (
+                        <InfoPopover text="If this is your first time supplying ID choose First-Time." />
+                      )}
+                      {currentStep.question.key === 'isCompanyClient' && (
+                        <InfoPopover text="Choose company if you act for a business." />
+                      )}
+                      {currentStep.question.key === 'idType' && (
+                        <InfoPopover text="Choose one" />
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="premium-form-group">
+                    {renderInput(currentStep.question)}
+                  </div>
+                </>
+              ) : currentStep.type === 'group' ? (
+                renderGroupQuestions(currentStep.questions, currentStep.groupTitle)
+              ) : null}
             </div>
-          </div>
-          <hr />
-
-          <div className="button-group">
-            <button
-              type="button"
-              className="btn secondary"
-              onClick={handleBack}
-              aria-label="Go back to previous step"
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              className="btn primary"
-              onClick={handleNextStep}
-              aria-label="Proceed to next step"
-              disabled={!validateForm()}
-            >
-              Next
-            </button>
           </div>
         </div>
-      )}
+
+        {/* Premium Navigation */}
+        <div className="premium-navigation">
+          {currentQuestionInGroup > 0 && (
+            <button
+              type="button"
+              className="premium-button-secondary"
+              onClick={goPrev}
+              aria-label="Go back to previous step"
+            >
+              ← Back
+            </button>
+          )}
+          
+          {(currentStep.type !== 'single' || currentStep.question.type !== 'choice') && (
+            <button
+              type="button"
+              className="premium-button"
+              disabled={!isValid()}
+              onClick={goNext}
+              aria-label={
+                currentQuestionInGroup === totalSteps - 1
+                  ? "Complete identity proof"
+                  : "Continue to next step"
+              }
+            >
+              {currentQuestionInGroup === totalSteps - 1
+                ? "Complete"
+                : "Continue →"
+              }
+            </button>
+          )}
+        </div>
+
+        {editing && hasChanges && (
+          <div className="premium-trust-indicator">
+            <span>✓</span>
+            Editing – unsaved changes
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-const ProofOfIdComponent = ProofOfId;
-export default ProofOfIdComponent;
+export default ProofOfId;

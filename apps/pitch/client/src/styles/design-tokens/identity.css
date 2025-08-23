@@ -1,0 +1,138 @@
+/**
+ * Identity Verification Design Tokens
+ * 
+ * Premium design tokens for the Proof of Identity flow
+ * Emphasizing trust, security, and professional legal service
+ */
+
+:root {
+  /* === Identity Flow Colors === */
+  --identity-primary: var(--helix-navy);
+  --identity-secondary: var(--helix-blue);
+  --identity-accent: #2563eb;
+  --identity-success: var(--helix-success);
+  --identity-surface: var(--white);
+  --identity-surface-elevated: #fafbfe;
+  --identity-surface-card: #f8fafc;
+  --identity-border: var(--helix-border);
+  --identity-border-focus: var(--helix-blue);
+  --identity-text-primary: var(--grey-900);
+  --identity-text-secondary: var(--grey-600);
+  --identity-text-muted: var(--grey-500);
+  
+  /* === Step Flow Colors === */
+  --step-background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  --step-background-active: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  --step-border: var(--identity-border);
+  --step-border-active: var(--identity-border-focus);
+  --step-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --step-shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* === Choice Button Design === */
+  --choice-button-background: var(--identity-surface);
+  --choice-button-background-hover: #f1f5f9;
+  --choice-button-background-active: var(--identity-primary);
+  --choice-button-text: var(--identity-text-primary);
+  --choice-button-text-active: var(--white);
+  --choice-button-border: 2px solid var(--identity-border);
+  --choice-button-border-hover: 2px solid var(--identity-border-focus);
+  --choice-button-border-active: 2px solid var(--identity-primary);
+  --choice-button-shadow: var(--shadow-sm);
+  --choice-button-shadow-hover: var(--shadow-md);
+  --choice-button-shadow-active: 0 8px 25px -8px rgba(6, 23, 51, 0.3);
+  
+  /* === Form Input Design === */
+  --input-background: var(--identity-surface);
+  --input-background-focus: var(--identity-surface-elevated);
+  --input-border: 1px solid var(--identity-border);
+  --input-border-focus: 2px solid var(--identity-border-focus);
+  --input-text: var(--identity-text-primary);
+  --input-placeholder: var(--identity-text-muted);
+  --input-label: var(--identity-text-secondary);
+  --input-shadow: var(--shadow-xs);
+  --input-shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  
+  /* === Progress Indicator === */
+  --progress-background: var(--grey-200);
+  --progress-active: var(--identity-primary);
+  --progress-completed: var(--identity-success);
+  --progress-text: var(--identity-text-muted);
+  --progress-text-active: var(--white);
+  
+  /* === Animation Timings === */
+  --identity-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --identity-transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --identity-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --identity-transition-bounce: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* === Spacing for Identity Flow === */
+  --identity-spacing-xs: var(--space-2);
+  --identity-spacing-sm: var(--space-4);
+  --identity-spacing-md: var(--space-6);
+  --identity-spacing-lg: var(--space-8);
+  --identity-spacing-xl: var(--space-12);
+  --identity-spacing-2xl: var(--space-16);
+  
+  /* === Typography Scale === */
+  --identity-text-xs: var(--text-xs);
+  --identity-text-sm: var(--text-sm);
+  --identity-text-base: var(--text-base);
+  --identity-text-lg: var(--text-lg);
+  --identity-text-xl: var(--text-xl);
+  --identity-text-2xl: var(--text-2xl);
+  --identity-text-3xl: var(--text-3xl);
+  
+  /* === Question Typography === */
+  --question-title-size: clamp(1.5rem, 3vw, 1.75rem);
+  --question-label-size: var(--text-lg);
+  --question-description-size: var(--text-base);
+  
+  /* === Card Design === */
+  --identity-card-background: var(--identity-surface);
+  --identity-card-border: 1px solid var(--identity-border);
+  --identity-card-border-radius: var(--radius-2xl);
+  --identity-card-shadow: var(--step-shadow);
+  --identity-card-padding: var(--identity-spacing-lg);
+  
+  /* === Section Headers === */
+  --section-header-background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  --section-header-border: 1px solid var(--identity-border);
+  --section-header-text: var(--identity-primary);
+  --section-header-icon: var(--identity-secondary);
+  
+  /* === Trust Elements === */
+  --trust-background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  --trust-border: 1px solid #bbf7d0;
+  --trust-text: #065f46;
+  --trust-icon: var(--helix-success);
+}
+
+/* === Responsive Breakpoints for Identity === */
+@media (max-width: 640px) {
+  :root {
+    --identity-card-padding: var(--identity-spacing-md);
+    --question-title-size: clamp(1.25rem, 4vw, 1.5rem);
+    --question-label-size: var(--text-base);
+  }
+}
+
+/* === High Contrast Mode Support === */
+@media (prefers-contrast: high) {
+  :root {
+    --identity-border: var(--black);
+    --identity-border-focus: #0066cc;
+    --choice-button-border: 3px solid var(--black);
+    --choice-button-border-hover: 3px solid #0066cc;
+    --choice-button-border-active: 3px solid var(--black);
+  }
+}
+
+/* === Reduced Motion Support === */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --identity-transition-fast: 0ms;
+    --identity-transition-base: 0ms;
+    --identity-transition-slow: 0ms;
+    --identity-transition-bounce: 0ms;
+  }
+}
