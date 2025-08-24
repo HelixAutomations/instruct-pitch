@@ -360,7 +360,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
         const shouldAutoAdvance = !['idStatus', 'isCompanyClient', 'idType'].includes(question.key);
         
         // For specific questions, use professional card-style choices instead of unified layout
-        if (question.key === 'idStatus' || question.key === 'isCompanyClient') {
+        if (question.key === 'idStatus' || question.key === 'isCompanyClient' || question.key === 'idType') {
           return (
             <div className="premium-professional-choice-group">
               <div className="premium-choice-grid" role="radiogroup" aria-label={question.label}>
@@ -393,6 +393,14 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                           {option.value === false
                             ? 'Personal legal matter or individual representation'
                             : 'Business legal matter or corporate representation'
+                          }
+                        </div>
+                      )}
+                      {question.key === 'idType' && (
+                        <div className="premium-choice-description">
+                          {option.value === 'passport'
+                            ? 'International travel document with photo identification'
+                            : 'Government-issued driving license with photo identification'
                           }
                         </div>
                       )}
@@ -570,12 +578,6 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
 
   return (
     <>
-      {/* Clean header without section nesting */}
-      <div className="premium-identity-header">
-        <IconComponent className="premium-identity-icon" />
-        <h2 className="premium-identity-title">{currentStep.groupTitle}</h2>
-      </div>
-      
       {/* Content area */}
       <div className="premium-identity-content">
         {currentStep.description && (
@@ -592,6 +594,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                       {question.type === 'group' && question.questions ? (
                         <div className="premium-subgroup">
                           <div className="premium-question-banner">
+                            <IconComponent className="premium-identity-icon" />
                             <h4 className="premium-question-label">{question.label}</h4>
                           </div>
                           {renderGroupQuestions(question.questions, currentStep.groupTitle, true)}

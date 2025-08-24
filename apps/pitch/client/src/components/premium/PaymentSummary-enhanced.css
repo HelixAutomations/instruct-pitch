@@ -29,7 +29,7 @@
 /* Enhanced Payment Summary Container */
 .payment-summary-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--premium-gray-50) 0%, var(--premium-white) 100%);
+  background: transparent;
   padding: 2rem 1rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }

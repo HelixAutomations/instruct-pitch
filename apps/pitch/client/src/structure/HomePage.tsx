@@ -110,10 +110,10 @@ const HomePage: React.FC<HomePageProps> = ({
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const checkoutSteps = useMemo(() => {
     const base: { key: 'identity'|'documents'|'payment'; label: string }[] = [
-      { key: 'identity', label: 'Identity Verification' },
-      { key: 'documents', label: 'Document Upload' },
+      { key: 'identity', label: 'Prove Your Identity' },
     ];
-    if (showPaymentStep) base.push({ key: 'payment', label: 'Payment' });
+    if (showPaymentStep) base.push({ key: 'payment', label: 'Pay' });
+    base.push({ key: 'documents', label: 'Upload Documents' });
     return base;
   }, [showPaymentStep]);
 
@@ -661,7 +661,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 onClick={nextStep}
                 disabled={!isIdReviewDone}
               >
-                Continue to Documents
+                {showPaymentStep ? 'Continue to Payment' : 'Continue to Documents'}
               </button>
 
               {/* Development Skip to Payment Button - Next to Continue Button */}
@@ -761,7 +761,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="btn btn-secondary"
                 onClick={prevStep}
               >
-                Back to Identity
+                Back to Payment
               </button>
               <button 
                 type="button" 
@@ -836,16 +836,14 @@ const HomePage: React.FC<HomePageProps> = ({
             )}
 
             {!paymentsDisabled && (
-              <div className="premium-checkout-wrapper">
-                <PremiumCheckout
-                  instructionRef={instruction.instructionRef}
-                  onComplete={() => {
-                    console.log('HomePage: Premium checkout completed');
-                    setPaymentDone(true);
-                    setShowFinalBanner(true);
-                  }}
-                />
-              </div>
+              <PremiumCheckout
+                instructionRef={instruction.instructionRef}
+                onComplete={() => {
+                  console.log('HomePage: Premium checkout completed');
+                  setPaymentDone(true);
+                  setShowFinalBanner(true);
+                }}
+              />
             )}
 
             <div className="step-navigation">
@@ -854,7 +852,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="btn btn-secondary"
                 onClick={prevStep}
               >
-                Back to Documents
+                Back to Identity
               </button>
             </div>
           </>

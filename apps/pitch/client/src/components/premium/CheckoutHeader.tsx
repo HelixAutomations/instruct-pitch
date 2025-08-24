@@ -26,29 +26,29 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
     switch (currentStep) {
       case 'identity':
         return {
-          title: 'Prove Your Identity and Open a Matter',
-          description: 'This process should take no longer than 3 minutes and is step 1 in instructing us.',
+          title: 'Prove Your Identity',
+          description: 'Electronic identity verification for compliance with Money Laundering Regulations - avoids the need for physical documents where successful. If verification fails, additional documents may be requested.',
           classification: 'AML/KYC Compliant',
           urgency: 'Standard Processing'
         };
       case 'documents':
         return {
-          title: 'Confidential Document Review',
-          description: 'Secure transmission and assessment of privileged materials',
+          title: 'Upload Documents',
+          description: 'Upload your documents securely using our encrypted system. All files are legally privileged and stored confidentially.',
           classification: 'Legally Privileged',
           urgency: 'Expedited Review'
         };
       case 'payment':
         return {
-          title: 'Professional Fees Settlement',
-          description: 'Secure payment processing for retained legal counsel',
+          title: 'Pay',
+          description: 'Secure payment processing for your legal services. Your matter will be opened immediately upon payment completion.',
           classification: 'Client Account',
           urgency: 'Immediate Processing'
         };
       default:
         return {
-          title: 'Premium Legal Advisory Services',
-          description: 'High-value commercial litigation and advisory matters',
+          title: 'Instruct Helix Law',
+          description: 'Complete your instruction with our secure, three-step process: identity verification, document upload, and payment.',
           classification: 'Commercial Litigation',
           urgency: 'Priority Handling'
         };
@@ -68,7 +68,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
           
           <div className="header-support">
             <span className="support-text">Need help?</span>
-            <a href="mailto:support@helix.legal" className="support-email">support@helix.legal</a>
+            <a href="mailto:support@helix-law.com" className="support-email">support@helix-law.com</a>
           </div>
         </div>
       </div>
@@ -91,7 +91,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                 <div className="amount-value">
                   £{amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                <div className="amount-note">inc. VAT where applicable</div>
+                <div className="amount-note">inc. VAT</div>
               </div>
             </div>
           )}

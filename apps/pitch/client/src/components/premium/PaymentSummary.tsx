@@ -55,8 +55,8 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
               <span className="ref-value">{instructionRef}</span>
             </div>
             <div className="security-indicators">
-              <span className="security-badge-header">🔒 SSL Encrypted</span>
-              <span className="security-badge-header">⚖️ SRA Regulated</span>
+              <span className="security-badge-header">SSL Encrypted</span>
+              <span className="security-badge-header">SRA Regulated</span>
             </div>
           </div>
         </div>
@@ -133,7 +133,6 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           
           <div className="trust-items-enhanced">
             <div className="trust-item-enhanced security">
-              <div className="trust-icon-enhanced">🛡️</div>
               <div className="trust-content-enhanced">
                 <h4>Bank-Level Security</h4>
                 <p>256-bit SSL encryption and PCI DSS compliance</p>
@@ -142,7 +141,6 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             </div>
             
             <div className="trust-item-enhanced regulation">
-              <div className="trust-icon-enhanced">⚖️</div>
               <div className="trust-content-enhanced">
                 <h4>SRA Regulated Firm</h4>
                 <p>Fully regulated by the Solicitors Regulation Authority</p>
@@ -151,7 +149,6 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             </div>
             
             <div className="trust-item-enhanced expertise">
-              <div className="trust-icon-enhanced">🏆</div>
               <div className="trust-content-enhanced">
                 <h4>Expert Legal Team</h4>
                 <p>Qualified solicitors with specialist expertise</p>
@@ -160,7 +157,6 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             </div>
             
             <div className="trust-item-enhanced support">
-              <div className="trust-icon-enhanced">📞</div>
               <div className="trust-content-enhanced">
                 <h4>Dedicated Support</h4>
                 <p>Professional support throughout your matter</p>
@@ -222,28 +218,24 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             <h4>Payment Security</h4>
             <div className="security-badges-enhanced">
               <div className="security-badge-detailed">
-                <span className="badge-icon">🔒</span>
                 <div className="badge-content">
                   <span className="badge-title">SSL Encryption</span>
                   <span className="badge-subtitle">256-bit security</span>
                 </div>
               </div>
               <div className="security-badge-detailed">
-                <span className="badge-icon">💳</span>
                 <div className="badge-content">
                   <span className="badge-title">PCI DSS Compliant</span>
                   <span className="badge-subtitle">Secure processing</span>
                 </div>
               </div>
               <div className="security-badge-detailed">
-                <span className="badge-icon">✅</span>
                 <div className="badge-content">
                   <span className="badge-title">SRA Regulated</span>
                   <span className="badge-subtitle">Professional standards</span>
                 </div>
               </div>
               <div className="security-badge-detailed">
-                <span className="badge-icon">🛡️</span>
                 <div className="badge-content">
                   <span className="badge-title">Data Protection</span>
                   <span className="badge-subtitle">GDPR compliant</span>
