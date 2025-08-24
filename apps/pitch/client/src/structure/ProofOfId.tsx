@@ -36,6 +36,26 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     if (Array.isArray(prefill?.activeTeam)) setActiveTeam(prefill.activeTeam);
   }, []);
 
+  // Also check for prefill data updates (in case it loads after component mount)
+  useEffect(() => {
+    const checkForPrefillData = () => {
+      const prefill = (window as any).helixPrefillData;
+      if (Array.isArray(prefill?.activeTeam) && activeTeam.length === 0) {
+        setActiveTeam(prefill.activeTeam);
+      }
+    };
+    
+    // Check immediately and then periodically for a short time
+    checkForPrefillData();
+    const interval = setInterval(checkForPrefillData, 500);
+    const timeout = setTimeout(() => clearInterval(interval), 5000);
+    
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [activeTeam.length]);
+
   interface Question {
     key: string;
     label: string;
@@ -58,25 +78,31 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   const questionGroups: QuestionGroup[] = [
     {
       icon: FaIdCard,
-      title: 'ID Confirmation',
+      title: 'Identity Verification Type',
       questions: [
         {
           key: 'idStatus',
           label: 'Are you providing ID for the first time or renewing?',
           type: 'choice',
           options: [
-            { value: 'first-time', label: 'First-Time ID' },
-            { value: 'renewing', label: 'Renewing ID' }
+            { value: 'first-time', label: 'First-Time Identity Verification' },
+            { value: 'renewing', label: 'Renewing Previous Verification' }
           ],
           validate: nonEmpty,
         },
+      ],
+    },
+    {
+      icon: FaUserTie,
+      title: 'Client Type',
+      questions: [
         {
           key: 'isCompanyClient',
           label: 'Who are you proving identity for?',
           type: 'choice',
           options: [
-            { value: false, label: 'For Myself' },
-            { value: true, label: 'For a Company' }
+            { value: false, label: 'Individual Client' },
+            { value: true, label: 'Company/Corporate Client' }
           ],
           validate: v => v !== null && v !== undefined,
           afterChange: v => v ? {} : {
@@ -333,6 +359,54 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
         // Don't auto-advance for key identity questions to allow switching between options
         const shouldAutoAdvance = !['idStatus', 'isCompanyClient', 'idType'].includes(question.key);
         
+        // For specific questions, use professional card-style choices instead of unified layout
+        if (question.key === 'idStatus' || question.key === 'isCompanyClient') {
+          return (
+            <div className="premium-professional-choice-group">
+              <div className="premium-choice-grid" role="radiogroup" aria-label={question.label}>
+                {question.options!.map(option => (
+                  <button
+                    type="button"
+                    key={String(option.value)}
+                    className={`premium-professional-choice-card ${val === option.value ? 'active' : ''}`}
+                    onClick={() => {
+                      updateField(question.key, option.value);
+                      if (shouldAutoAdvance) {
+                        setTimeout(() => goNext(), 250);
+                      }
+                    }}
+                    aria-pressed={val === option.value}
+                    role="radio"
+                  >
+                    <div className="premium-choice-content">
+                      <div className="premium-choice-title">{option.label}</div>
+                      {question.key === 'idStatus' && (
+                        <div className="premium-choice-description">
+                          {option.value === 'first-time' 
+                            ? 'Complete identity verification for the first time'
+                            : 'Update or renew existing identity verification'
+                          }
+                        </div>
+                      )}
+                      {question.key === 'isCompanyClient' && (
+                        <div className="premium-choice-description">
+                          {option.value === false
+                            ? 'Personal legal matter or individual representation'
+                            : 'Business legal matter or corporate representation'
+                          }
+                        </div>
+                      )}
+                    </div>
+                    <div className="premium-choice-indicator">
+                      <div className="premium-choice-radio"></div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <div className="premium-choice-group" role="radiogroup" aria-label={question.label}>
             {question.options!.map(option => (
@@ -465,7 +539,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     }
   };
 
-  const renderGroupQuestions = (questions: Question[], groupTitle?: string) => {
+  const renderGroupQuestions = (questions: Question[], groupTitle?: string, skipLabels = false) => {
     // Check if this is contact information to apply vertical stacking
     const isContactGroup = groupTitle === 'Contact Information' || 
                           questions.some(q => q.key === 'phone' || q.key === 'email');
@@ -476,9 +550,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
       <div className={containerClass}>
         {questions.map((question) => (
           <div key={question.key} className="premium-form-group">
-            <label className="premium-form-label">
-              {question.label}
-            </label>
+            {!skipLabels && (
+              <label className="premium-form-label">
+                {question.label}
+              </label>
+            )}
             {renderInput(question)}
           </div>
         ))}
@@ -493,32 +569,20 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   const IconComponent = currentStep.groupIcon;
 
   return (
-    <div className="premium-identity-container">
-      <div className="premium-identity-card premium-fade-in">
-        {/* Progress indicator */}
-        <div className="premium-progress">
-          <div className={`premium-progress-step ${currentQuestionInGroup + 1 <= 1 ? 'active' : ''}`}>
-            {currentQuestionInGroup + 1}
+    <>
+      {/* Clean header without section nesting */}
+      <div className="premium-identity-header">
+        <IconComponent className="premium-identity-icon" />
+        <h2 className="premium-identity-title">{currentStep.groupTitle}</h2>
+      </div>
+      
+      {/* Content area */}
+      <div className="premium-identity-content">
+        {currentStep.description && (
+          <div className="premium-question-description premium-scale-in">
+            {currentStep.description}
           </div>
-          <div className={`premium-progress-line ${currentQuestionInGroup > 0 ? 'completed' : ''}`} />
-          <div className="premium-progress-step">
-            {totalSteps}
-          </div>
-        </div>
-
-        {/* Section with premium styling */}
-        <div className="premium-section premium-slide-up">
-          <div className="premium-section-header">
-            <IconComponent className="premium-section-icon" />
-            <h2 className="premium-section-title">{currentStep.groupTitle}</h2>
-          </div>
-          
-          <div className="premium-section-content">
-            {currentStep.description && (
-              <div className="premium-question-description premium-scale-in">
-                {currentStep.description}
-              </div>
-            )}
+        )}
             
             <div className="premium-question-container">
               {currentStep.type === 'groupPage' && (
@@ -530,24 +594,21 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                           <div className="premium-question-banner">
                             <h4 className="premium-question-label">{question.label}</h4>
                           </div>
-                          {renderGroupQuestions(question.questions, currentStep.groupTitle)}
+                          {renderGroupQuestions(question.questions, currentStep.groupTitle, true)}
                         </div>
                       ) : (
                         <div className="premium-single-question">
-                          <div className="premium-question-banner">
-                            <div className="premium-question-label">
-                              {question.label}
-                              {question.key === 'idStatus' && (
-                                <InfoPopover text="If this is your first time supplying ID choose First-Time." />
-                              )}
-                              {question.key === 'isCompanyClient' && (
-                                <InfoPopover text="Choose company if you act for a business." />
-                              )}
-                              {question.key === 'idType' && (
-                                <InfoPopover text="Choose one" />
-                              )}
+                          {/* Show question banner for all non-choice questions */}
+                          {question.type !== 'choice' && (
+                            <div className="premium-question-banner">
+                              <div className="premium-question-label">
+                                {question.label}
+                                {question.key === 'idType' && (
+                                  <InfoPopover text="Choose one" />
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
                           
                           <div className="premium-form-group">
                             {renderInput(question)}
@@ -561,20 +622,17 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               
               {currentStep.type === 'single' ? (
                 <>
-                  <div className="premium-question-banner">
-                    <div className="premium-question-label">
-                      {currentStep.question.label}
-                      {currentStep.question.key === 'idStatus' && (
-                        <InfoPopover text="If this is your first time supplying ID choose First-Time." />
-                      )}
-                      {currentStep.question.key === 'isCompanyClient' && (
-                        <InfoPopover text="Choose company if you act for a business." />
-                      )}
-                      {currentStep.question.key === 'idType' && (
-                        <InfoPopover text="Choose one" />
-                      )}
+                  {/* Show question banner for non-choice questions */}
+                  {currentStep.question.type !== 'choice' && (
+                    <div className="premium-question-banner">
+                      <div className="premium-question-label">
+                        {currentStep.question.label}
+                        {currentStep.question.key === 'idType' && (
+                          <InfoPopover text="Choose one" />
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div className="premium-form-group">
                     {renderInput(currentStep.question)}
@@ -583,12 +641,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
               ) : currentStep.type === 'group' ? (
                 renderGroupQuestions(currentStep.questions, currentStep.groupTitle)
               ) : null}
-            </div>
-          </div>
         </div>
+      </div>
 
-        {/* Premium Navigation */}
-        <div className="premium-navigation">
+      {/* Premium Navigation */}
+      <div className="premium-navigation">
           {currentQuestionInGroup > 0 && (
             <button
               type="button"
@@ -600,22 +657,71 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             </button>
           )}
           
-          {(currentStep.type !== 'single' || currentStep.question.type !== 'choice') && (
+          {/* Only show continue button for non-auto-advancing questions */}
+          {(() => {
+            // For single questions that are choice type with auto-advance, don't show button
+            if (currentStep.type === 'single' && currentStep.question.type === 'choice') {
+              const shouldAutoAdvance = !['idType'].includes(currentStep.question.key);
+              if (shouldAutoAdvance) return null;
+            }
+            
+            // For group pages with only choice questions that auto-advance, don't show button
+            if (currentStep.type === 'groupPage') {
+              const allQuestionsAutoAdvance = currentStep.questions.every((q: Question) => {
+                if (q.type === 'choice') {
+                  return !['idStatus', 'isCompanyClient', 'idType'].includes(q.key);
+                }
+                return false;
+              });
+              if (allQuestionsAutoAdvance && currentStep.questions.length === 1) return null;
+            }
+            
+            return (
+              <button
+                type="button"
+                className="premium-button"
+                disabled={!isValid()}
+                onClick={goNext}
+                aria-label={
+                  currentQuestionInGroup === totalSteps - 1
+                    ? "Complete identity proof"
+                    : "Continue to next step"
+                }
+              >
+                {currentQuestionInGroup === totalSteps - 1
+                  ? "Complete"
+                  : "Continue →"
+                }
+              </button>
+            );
+          })()}
+
+          {/* Development Skip to Payment Button */}
+          {(import.meta.env.DEV || window.location.hostname === 'localhost') && (
             <button
               type="button"
-              className="premium-button"
-              disabled={!isValid()}
-              onClick={goNext}
-              aria-label={
-                currentQuestionInGroup === totalSteps - 1
-                  ? "Complete identity proof"
-                  : "Continue to next step"
-              }
+              className="premium-button-dev"
+              onClick={() => {
+                console.log('🚀 DEV: Skipping directly to payment from ID form...');
+                // Complete the form and trigger parent callback to skip to payment
+                setIsComplete(true);
+                onNext(true); // Skip parameter to indicate dev skip
+              }}
+              style={{
+                marginLeft: '1rem',
+                background: '#059669',
+                color: 'white',
+                border: '2px dashed #fbbf24',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.5rem',
+                fontWeight: 'bold',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+              }}
+              title="Development only - Skip directly to payment"
             >
-              {currentQuestionInGroup === totalSteps - 1
-                ? "Complete"
-                : "Continue →"
-              }
+              💳 DEV: Skip to Payment
             </button>
           )}
         </div>
@@ -626,8 +732,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             Editing – unsaved changes
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 };
 

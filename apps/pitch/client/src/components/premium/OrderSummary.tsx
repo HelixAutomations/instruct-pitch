@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiShield, FiClock, FiCheck } from 'react-icons/fi';
+import { FiShield, FiClock, FiCheck, FiAward, FiUsers, FiStar, FiMapPin } from 'react-icons/fi';
 
 interface OrderSummaryProps {
   dealData: {
@@ -62,19 +62,69 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           </div>
         </div>
 
-        {/* Security Features */}
+        {/* Company Information */}
+        <div className="company-info">
+          <div className="company-header">
+            <h4>Harcus Parker</h4>
+            <div className="company-badges">
+              <span className="badge-verified">
+                <FiCheck className="badge-icon" />
+                Verified
+              </span>
+              <span className="badge-rating">
+                <FiStar className="badge-icon" />
+                4.9/5
+              </span>
+            </div>
+          </div>
+          <div className="company-details">
+            <div className="company-stat">
+              <FiAward className="stat-icon" />
+              <span>Award-winning legal firm</span>
+            </div>
+            <div className="company-stat">
+              <FiUsers className="stat-icon" />
+              <span>10,000+ clients served</span>
+            </div>
+            <div className="company-stat">
+              <FiMapPin className="stat-icon" />
+              <span>London & Manchester offices</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Security Features */}
         <div className="security-features">
-          <div className="security-item">
-            <FiShield className="security-icon" />
-            <span>Secure SSL encryption</span>
-          </div>
-          <div className="security-item">
-            <FiClock className="security-icon" />
-            <span>Instant confirmation</span>
-          </div>
-          <div className="security-item">
-            <FiCheck className="security-icon" />
-            <span>Money-back guarantee</span>
+          <h5>Your payment is secure</h5>
+          <div className="security-grid">
+            <div className="security-item">
+              <FiShield className="security-icon" />
+              <div className="security-text">
+                <span className="security-title">Bank-level security</span>
+                <span className="security-desc">256-bit SSL encryption</span>
+              </div>
+            </div>
+            <div className="security-item">
+              <FiClock className="security-icon" />
+              <div className="security-text">
+                <span className="security-title">Instant confirmation</span>
+                <span className="security-desc">Immediate receipt & updates</span>
+              </div>
+            </div>
+            <div className="security-item">
+              <FiCheck className="security-icon" />
+              <div className="security-text">
+                <span className="security-title">SRA Regulated</span>
+                <span className="security-desc">Professional standards</span>
+              </div>
+            </div>
+            <div className="security-item">
+              <FiAward className="security-icon" />
+              <div className="security-text">
+                <span className="security-title">PCI DSS compliant</span>
+                <span className="security-desc">Industry-standard security</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -87,7 +137,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         )}
       </div>
 
-      {/* Trust Badges */}
+      {/* Enhanced Trust Badges */}
       <div className="trust-badges">
         <div className="trust-badge">
           <span className="badge-text">Stripe</span>
@@ -96,6 +146,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         <div className="trust-badge">
           <span className="badge-text">SSL</span>
           <span className="badge-subtext">256-bit encryption</span>
+        </div>
+        <div className="trust-badge">
+          <span className="badge-text">PCI DSS</span>
+          <span className="badge-subtext">Compliant</span>
+        </div>
+        <div className="trust-badge">
+          <span className="badge-text">Verified</span>
+          <span className="badge-subtext">Legal firm</span>
         </div>
       </div>
     </div>

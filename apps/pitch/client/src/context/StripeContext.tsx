@@ -55,6 +55,29 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
 
         // Fetch Stripe configuration from backend
         const response = await fetch('/api/payments/config');
+        
+        // If server is still initializing, retry once after a short delay
+        if (response.status === 404 || response.status === 503) {
+          console.log('Payment system initializing, retrying in 3s...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          const retryResponse = await fetch('/api/payments/config');
+          if (!retryResponse.ok) {
+            throw new Error(`Retry failed: ${retryResponse.status} ${retryResponse.statusText}`);
+          }
+          
+          const configData: StripeConfig = await retryResponse.json();
+          if (!configData.publishableKey) {
+            throw new Error('Stripe publishable key not configured');
+          }
+
+          setConfig(configData);
+          const stripe = loadStripe(configData.publishableKey);
+          setStripePromise(stripe);
+          console.log('✅ Stripe configuration loaded successfully');
+          return;
+        }
+        
         if (!response.ok) {
           throw new Error(`Failed to load Stripe config: ${response.statusText}`);
         }

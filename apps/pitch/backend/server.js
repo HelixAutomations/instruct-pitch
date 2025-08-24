@@ -760,7 +760,14 @@ app.get('/api/internal/fetch-instruction-data', async (req, res) => {
 
   const fnUrl  = 'https://legacy-fetch-v2.azurewebsites.net/api/fetchInstructionData';
   const fnCode = cachedFetchInstructionDataCode;
-  if (!fnCode) return res.status(500).json({ ok: false, error: 'Server not ready' });
+  if (!fnCode) {
+    return res.status(503).json({ 
+      ok: false, 
+      error: 'Service temporarily unavailable', 
+      detail: 'Server still initializing - please retry in a moment',
+      retryAfter: 5
+    });
+  }
 
   try {
     const { data } = await axios.get(

@@ -4,6 +4,28 @@
  * Modern, trust-first checkout experience
  */
 
+:root {
+  /* Professional Color Palette */
+  --helix-navy: #061733;
+  --helix-blue: #3690CE;
+  --helix-dark-blue: #054b87;
+  
+  /* Premium Gray Scale */
+  --premium-gray-50: #f9fafb;
+  --premium-gray-100: #f3f4f6;
+  --premium-gray-200: #e5e7eb;
+  --premium-gray-300: #d1d5db;
+  --premium-gray-400: #9ca3af;
+  --premium-gray-500: #6b7280;
+  --premium-gray-600: #4b5563;
+  --premium-gray-700: #374151;
+  --premium-gray-800: #1f2937;
+  --premium-gray-900: #111827;
+  
+  /* Base Colors */
+  --premium-white: #ffffff;
+}
+
 .premium-checkout {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -50,7 +72,7 @@
 }
 
 .progress-step.completed:not(:last-child)::after {
-  background: #10b981;
+  background: var(--helix-navy);
 }
 
 .step-number {
@@ -73,7 +95,7 @@
 }
 
 .progress-step.completed .step-number {
-  background: #10b981;
+  background: var(--helix-navy);
   color: white;
 }
 
@@ -90,7 +112,7 @@
 }
 
 .progress-step.completed .step-label {
-  color: #10b981;
+  color: var(--helix-navy);
 }
 
 /* Step Container */
@@ -236,7 +258,7 @@
   content: '✓';
   position: absolute;
   left: -1.25rem;
-  color: #10b981;
+  color: var(--helix-navy);
   font-weight: 600;
 }
 
@@ -376,7 +398,7 @@
 }
 
 .security-icon {
-  color: #10b981;
+  color: var(--helix-navy);
 }
 
 .support-notice {

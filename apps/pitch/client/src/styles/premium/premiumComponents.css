@@ -8,6 +8,8 @@
   min-height: 100vh;
   background: #FFFFFF;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .premium-payment-header {
@@ -50,6 +52,7 @@
   margin: 0 auto;
   padding: clamp(24px, 6vw, 64px) clamp(16px, 4vw, 32px);
   width: 100%;
+  flex: 1;
 }
 
 /* === CARD LAYOUTS === */
@@ -358,7 +361,7 @@
   border-top: 1px solid #F3F4F6;
   background: #FAFAFA;
   padding: clamp(16px, 4vw, 32px) 0;
-  margin-top: clamp(32px, 8vw, 80px);
+  margin-top: auto;
 }
 
 .premium-trust-footer {
@@ -367,6 +370,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: clamp(12px, 3vw, 20px);
+}
+
+.premium-trust-indicators {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
 }
 
 .premium-company-info {
@@ -381,6 +390,11 @@
     flex-direction: column;
     text-align: center;
     gap: 16px;
+  }
+  
+  .premium-trust-indicators {
+    flex-direction: column;
+    gap: 1rem;
   }
   
   .premium-company-info {

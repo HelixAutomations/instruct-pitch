@@ -30,6 +30,14 @@ body {
   background-color: var(--helix-grey);
   color: var(--helix-dark-blue);
   line-height: 1.6;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Root element overflow prevention */
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  min-height: 100vh;
 }
 
 /* Links */

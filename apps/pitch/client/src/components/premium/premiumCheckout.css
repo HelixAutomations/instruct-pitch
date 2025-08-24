@@ -5,6 +5,12 @@
 
 /* CSS Variables for Premium Theme */
 :root {
+  /* Premium brand colors - litigation grade */
+  --helix-navy: #061733;
+  --helix-blue: #3690CE;
+  --helix-dark-blue: #0D2F60;
+  
+  /* Professional color palette */
   --premium-white: #ffffff;
   --premium-gray-50: #f9fafb;
   --premium-gray-100: #f3f4f6;
@@ -22,9 +28,11 @@
   --premium-blue-600: #2563eb;
   --premium-blue-700: #1d4ed8;
   
-  --premium-green-50: #f0fdf4;
-  --premium-green-500: #22c55e;
-  --premium-green-600: #16a34a;
+  /* Success states in professional navy instead of green */
+  --premium-success-50: #f8fafc;
+  --premium-success-500: var(--helix-navy);
+  --premium-success-600: var(--helix-dark-blue);
+  --premium-success-700: #051222;
   
   --premium-red-50: #fef2f2;
   --premium-red-500: #ef4444;
@@ -204,23 +212,195 @@
   margin-bottom: 24px;
 }
 
-.security-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: var(--premium-gray-600);
+.security-features h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--premium-gray-700);
+  margin: 0 0 16px 0;
 }
 
-.security-item:last-child {
-  margin-bottom: 0;
+.security-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.security-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
 }
 
 .security-icon {
   width: 16px;
   height: 16px;
-  margin-right: 8px;
-  color: var(--premium-green-500);
+  margin-top: 2px;
+  color: var(--premium-success-500);
+  flex-shrink: 0;
+}
+
+.security-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.security-title {
+  font-weight: 500;
+  color: var(--premium-gray-700);
+  line-height: 1.3;
+}
+
+.security-desc {
+  color: var(--premium-gray-500);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+/* Company Information */
+.company-info {
+  border-top: 1px solid var(--premium-gray-200);
+  padding-top: 20px;
+  margin-bottom: 24px;
+}
+
+.company-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.company-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--premium-gray-900);
+  margin: 0;
+}
+
+.company-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.badge-verified,
+.badge-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge-verified {
+  background: var(--premium-success-50);
+  color: var(--premium-success-600);
+  border: 1px solid var(--premium-gray-300);
+}
+
+.badge-rating {
+  background: var(--premium-blue-50);
+  color: var(--premium-blue-600);
+  border: 1px solid var(--premium-blue-200);
+}
+
+.badge-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.company-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.company-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--premium-gray-600);
+}
+
+.stat-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--premium-gray-400);
+}
+
+/* Trust Badges */
+.trust-badges {
+  border-top: 1px solid var(--premium-gray-200);
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  background: var(--premium-gray-50);
+}
+
+.trust-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.badge-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--premium-gray-700);
+  margin-bottom: 2px;
+}
+
+.badge-subtext {
+  font-size: 9px;
+  color: var(--premium-gray-500);
+  line-height: 1.2;
+}
+
+/* Satisfaction Guarantee */
+.satisfaction-guarantee {
+  border-top: 1px solid var(--premium-gray-200);
+  padding: 20px 24px;
+  background: var(--premium-gray-50);
+  margin: 0 -24px -24px -24px;
+}
+
+.guarantee-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.guarantee-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--premium-success-500);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.guarantee-text {
+  flex: 1;
+}
+
+.guarantee-text strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--premium-success-700);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.guarantee-text p {
+  font-size: 12px;
+  color: var(--premium-success-600);
+  margin: 0;
+  line-height: 1.4;
 }
 
 /* Processing Indicator */
@@ -250,8 +430,9 @@
 .trust-badges {
   border-top: 1px solid var(--premium-gray-200);
   padding: 20px 24px;
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
   background: var(--premium-gray-50);
 }
 
@@ -259,19 +440,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
+  text-align: center;
 }
 
 .badge-text {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--premium-gray-700);
   margin-bottom: 2px;
 }
 
 .badge-subtext {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--premium-gray-500);
+  line-height: 1.2;
 }
 
 /* ============================================================================
@@ -364,7 +546,7 @@
 .security-badge {
   width: 32px;
   height: 32px;
-  background: var(--premium-green-500);
+  background: var(--premium-success-500);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -477,7 +659,7 @@
 .success-icon {
   width: 64px;
   height: 64px;
-  background: var(--premium-green-500);
+  background: var(--premium-success-500);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -678,9 +860,9 @@
 }
 
 .receipt-button.sent {
-  background: var(--premium-green-50);
-  color: var(--premium-green-600);
-  border-color: var(--premium-green-200);
+  background: var(--premium-success-50);
+  color: var(--premium-success-600);
+  border-color: var(--premium-gray-300);
 }
 
 /* Thank You Section */
@@ -761,6 +943,34 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   DEVELOPMENT HELPERS
+   ============================================================================ */
+
+/* Development Skip Buttons - Only visible in DEV mode */
+.dev-skip-preflight {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: #ffd700;
+  border: 2px dashed #ffd700;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.dev-skip-preflight:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
 }
 
 /* ============================================================================

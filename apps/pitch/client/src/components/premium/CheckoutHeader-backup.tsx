@@ -26,8 +26,8 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
     switch (currentStep) {
       case 'identity':
         return {
-          title: 'Prove Your Identity and Open a Matter',
-          description: 'This process should take no longer than 3 minutes and is step 1 in instructing us.',
+          title: 'Client Identity Verification',
+          description: 'Regulatory compliance verification for professional legal services',
           classification: 'AML/KYC Compliant',
           urgency: 'Standard Processing'
         };
@@ -87,6 +87,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
               <div className="amount-card">
                 <div className="amount-header">
                   <span className="amount-label">Total Amount</span>
+                  <span className="amount-classification">{stepContent.classification}</span>
                 </div>
                 <div className="amount-value">
                   £{amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -125,6 +126,11 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                 );
               })}
             </div>
+          </div>
+          
+          <div className="progress-meta">
+            <span className="progress-text">Step {currentIndex + 1} of {steps.length}</span>
+            <span className="progress-ref">Ref: {instructionRef}</span>
           </div>
         </div>
       </div>

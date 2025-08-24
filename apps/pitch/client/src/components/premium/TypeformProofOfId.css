@@ -1,0 +1,525 @@
+/* Typeform-Style Proof of Identity Component */
+
+.typeform-proof-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0d2f60 0%, #061733 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  z-index: 1000;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Progress Bar */
+.typeform-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: rgba(13, 47, 96, 0.9);
+  backdrop-filter: blur(20px);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progress-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-right: 1.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3690ce, #87f3f3);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(54, 144, 206, 0.5);
+}
+
+.progress-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 100px;
+  text-align: right;
+  letter-spacing: 0.025em;
+}
+
+/* Main Content */
+.typeform-content {
+  max-width: 700px;
+  width: 100%;
+  text-align: center;
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.typeform-content.transitioning {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+/* Header */
+.typeform-header {
+  margin-bottom: 3.5rem;
+  position: relative;
+}
+
+.field-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #3690ce, #87f3f3);
+  border-radius: 12px;
+  color: #061733;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 32px rgba(54, 144, 206, 0.3);
+}
+
+.field-group {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.typeform-question {
+  font-size: clamp(1.875rem, 5vw, 2.75rem);
+  font-weight: 700;
+  color: white;
+  line-height: 1.1;
+  margin: 0;
+  animation: slideInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.required-indicator {
+  color: #ef4444;
+  font-size: 1.5rem;
+  margin-left: 0.5rem;
+}
+
+/* Field Container */
+.typeform-field {
+  margin-bottom: 2.5rem;
+  animation: slideInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+
+/* Input Styles */
+.typeform-input {
+  width: 100%;
+  max-width: 450px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  font-size: 1.375rem;
+  color: white;
+  text-align: center;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  font-weight: 500;
+}
+
+.typeform-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.typeform-input:focus {
+  border-color: #3690ce;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 4px rgba(54, 144, 206, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Select Options */
+.typeform-select-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 550px;
+  margin: 0 auto;
+}
+
+.typeform-option {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  opacity: 0;
+  transform: translateY(30px);
+  animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.typeform-option:hover {
+  border-color: rgba(54, 144, 206, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(54, 144, 206, 0.2);
+}
+
+.typeform-option.selected {
+  border-color: #3690ce;
+  background: rgba(54, 144, 206, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(54, 144, 206, 0.3);
+}
+
+.option-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.typeform-option.selected .option-letter {
+  background: #3690ce;
+  color: white;
+  box-shadow: 0 4px 16px rgba(54, 144, 206, 0.4);
+}
+
+.option-text {
+  flex: 1;
+}
+
+.option-check {
+  color: #87f3f3;
+  font-size: 1.375rem;
+  animation: checkmark 0.3s ease-out;
+}
+
+/* Error State */
+.typeform-error {
+  margin-top: 1.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: #fecaca;
+  font-size: 0.9rem;
+  font-weight: 500;
+  backdrop-filter: blur(20px);
+  animation: shake 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Instructions */
+.typeform-instructions {
+  margin-top: 2.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  font-weight: 500;
+  animation: slideInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+}
+
+.typeform-instructions kbd {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0.25rem;
+}
+
+/* Navigation */
+.typeform-navigation {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  right: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.nav-button {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 1rem 2rem;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  letter-spacing: 0.025em;
+}
+
+.nav-button:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.back-button {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.next-button {
+  background: linear-gradient(135deg, #3690ce, #87f3f3);
+  border-color: transparent;
+  color: #061733;
+  font-weight: 700;
+}
+
+.next-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2e7bb8, #75e3e3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(54, 144, 206, 0.4);
+}
+
+/* Background Animation */
+.typeform-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.background-shapes {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(54, 144, 206, 0.08) 0%, transparent 70%);
+  animation: float 25s infinite linear;
+}
+
+.shape-1 {
+  width: 400px;
+  height: 400px;
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.shape-2 {
+  width: 300px;
+  height: 300px;
+  top: 60%;
+  right: 15%;
+  animation-delay: -8s;
+}
+
+.shape-3 {
+  width: 250px;
+  height: 250px;
+  top: 40%;
+  right: 40%;
+  animation-delay: -16s;
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+@keyframes float {
+  from {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.1;
+  }
+  to {
+    transform: translateY(-120vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .typeform-proof-container {
+    padding: 1.5rem;
+  }
+  
+  .typeform-progress {
+    padding: 1rem 1.5rem;
+  }
+  
+  .typeform-question {
+    font-size: 1.75rem;
+  }
+  
+  .typeform-input {
+    font-size: 1.25rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .typeform-option {
+    padding: 1rem 1.5rem;
+    font-size: 1.125rem;
+  }
+  
+  .typeform-navigation {
+    bottom: 1.5rem;
+    left: 1.5rem;
+    right: 1.5rem;
+  }
+  
+  .nav-button {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .typeform-proof-container {
+    padding: 1rem;
+  }
+  
+  .typeform-progress {
+    padding: 0.875rem 1rem;
+  }
+  
+  .typeform-question {
+    font-size: 1.5rem;
+  }
+  
+  .typeform-select-container {
+    gap: 0.75rem;
+  }
+  
+  .typeform-option {
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+  }
+  
+  .option-letter {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+  
+  .typeform-navigation {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    gap: 1rem;
+  }
+  
+  .nav-button {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus states for accessibility */
+.typeform-option:focus,
+.nav-button:focus,
+.typeform-input:focus {
+  outline: 2px solid #87f3f3;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .typeform-proof-container {
+    background: #000;
+  }
+  
+  .typeform-input,
+  .typeform-option {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .typeform-question,
+  .option-text,
+  .progress-text {
+    color: #fff;
+  }
+}

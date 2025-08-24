@@ -1,0 +1,723 @@
+/* Elite Litigation-Grade Checkout Header Styles */
+
+:root {
+  /* Elite Professional Color Palette */
+  --chambers-navy: #0B1426;
+  --chambers-dark-blue: #1B2B4A;
+  --chambers-royal-blue: #2C4A8C;
+  --chambers-accent-blue: #3690CE;
+  --chambers-gold: #D4AF37;
+  --chambers-silver: #C0C0C0;
+  
+  /* Premium Gray Scale */
+  --elite-gray-50: #FAFBFC;
+  --elite-gray-100: #F4F6F8;
+  --elite-gray-200: #E8ECEF;
+  --elite-gray-300: #D2D9E0;
+  --elite-gray-400: #9AA5B1;
+  --elite-gray-500: #6B7684;
+  --elite-gray-600: #4A5568;
+  --elite-gray-700: #2D3748;
+  --elite-gray-800: #1A202C;
+  --elite-gray-900: #0F1419;
+  
+  /* Elite Typography */
+  --elite-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', system-ui, sans-serif;
+  --elite-font-family-serif: 'Times New Roman', serif;
+  --elite-font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  
+  /* Elite Spacing & Layout */
+  --elite-radius: 16px;
+  --elite-radius-lg: 20px;
+  --elite-radius-xl: 24px;
+  --elite-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --elite-shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+  --elite-shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 12px 24px -4px rgba(0, 0, 0, 0.12);
+}
+
+/* Elite Checkout Header Container */
+.elite-checkout-header {
+  background: linear-gradient(135deg, var(--elite-gray-50) 0%, #ffffff 50%, var(--elite-gray-50) 100%);
+  border-bottom: 3px solid var(--chambers-navy);
+  box-shadow: var(--elite-shadow-lg);
+  font-family: var(--elite-font-family);
+  position: relative;
+  overflow: hidden;
+}
+
+.elite-checkout-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--chambers-gold) 0%, var(--chambers-royal-blue) 50%, var(--chambers-gold) 100%);
+  z-index: 10;
+}
+
+/* Executive Firm Identity Bar */
+.executive-identity-bar {
+  background: linear-gradient(135deg, var(--chambers-navy) 0%, var(--chambers-dark-blue) 100%);
+  color: #ffffff;
+  padding: 2.5rem 3rem;
+  position: relative;
+}
+
+.chambers-identity {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3rem;
+}
+
+.chambers-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.chambers-crest {
+  font-size: 3.5rem;
+  color: var(--chambers-gold);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+}
+
+.chambers-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chambers-name {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.chambers-establishment {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  font-family: var(--elite-font-family-serif);
+  font-style: italic;
+}
+
+.professional-credentials {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.credential-badge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--elite-radius);
+  padding: 1rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.credential-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.credential-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.credential-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.credential-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.credential-ref {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--elite-font-family-mono);
+  font-weight: 500;
+}
+
+/* Matter Classification Header */
+.matter-classification-header {
+  background: #ffffff;
+  padding: 3rem;
+  border-bottom: 1px solid var(--elite-gray-200);
+}
+
+.classification-primary {
+  max-width: 1400px;
+  margin: 0 auto 2.5rem auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 3rem;
+}
+
+.matter-title-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.matter-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--chambers-navy);
+  margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.matter-description {
+  font-size: 1.25rem;
+  color: var(--elite-gray-700);
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.matter-classifications {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.classification-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--elite-radius);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border: 2px solid;
+  transition: all 0.3s ease;
+}
+
+.classification-tag.priority-matter {
+  background: linear-gradient(135deg, #FFF3CD 0%, #FFE69C 100%);
+  color: #8B5CF6;
+  border-color: var(--chambers-gold);
+}
+
+.classification-tag.confidential-matter {
+  background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+  color: #DC2626;
+  border-color: #DC2626;
+}
+
+.classification-tag.regulated-service {
+  background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+  color: var(--chambers-royal-blue);
+  border-color: var(--chambers-royal-blue);
+}
+
+.classification-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--elite-shadow);
+}
+
+.tag-icon {
+  font-size: 1rem;
+}
+
+.matter-metadata-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.metadata-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: var(--elite-gray-50);
+  border: 1px solid var(--elite-gray-200);
+  border-radius: var(--elite-radius);
+  transition: all 0.3s ease;
+}
+
+.metadata-group:hover {
+  background: #ffffff;
+  box-shadow: var(--elite-shadow);
+  transform: translateY(-2px);
+}
+
+.metadata-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--elite-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metadata-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--chambers-navy);
+}
+
+.metadata-value.reference-code {
+  font-family: var(--elite-font-family-mono);
+  background: var(--elite-gray-200);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--elite-gray-300);
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
+/* Professional Progress Tracking System */
+.professional-progress-system {
+  background: linear-gradient(135deg, var(--elite-gray-50) 0%, #ffffff 100%);
+  padding: 3rem;
+  border-bottom: 1px solid var(--elite-gray-200);
+}
+
+.progress-executive-summary {
+  max-width: 1400px;
+  margin: 0 auto 3rem auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 3rem;
+}
+
+.progress-status-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.progress-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--chambers-navy);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.status-metrics {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--elite-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--chambers-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-value.secured {
+  color: #059669;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.metric-value.secured::before {
+  content: '🔒';
+  font-size: 1rem;
+}
+
+.fee-summary-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--chambers-navy) 0%, var(--chambers-dark-blue) 100%);
+  color: #ffffff;
+  border-radius: var(--elite-radius-lg);
+  box-shadow: var(--elite-shadow-lg);
+}
+
+.fee-classification {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.fee-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.fee-note {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+
+.fee-amount-display {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--chambers-gold);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Elite Progress Visualization */
+.elite-progress-visualization {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.progress-track-container {
+  position: relative;
+  height: 8px;
+  margin: 1rem 0;
+}
+
+.progress-track-background {
+  width: 100%;
+  height: 100%;
+  background: var(--elite-gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-track-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--chambers-royal-blue) 0%, var(--chambers-accent-blue) 100%);
+  border-radius: 4px;
+  position: relative;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-milestone-markers {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.milestone-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  position: relative;
+}
+
+.milestone-indicator {
+  position: relative;
+  z-index: 5;
+}
+
+.indicator-core {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.milestone-marker.pending .indicator-core {
+  background: var(--elite-gray-200);
+  color: var(--elite-gray-500);
+  border: 3px solid var(--elite-gray-300);
+}
+
+.milestone-marker.active .indicator-core {
+  background: linear-gradient(135deg, var(--chambers-royal-blue) 0%, var(--chambers-accent-blue) 100%);
+  color: #ffffff;
+  border: 3px solid var(--chambers-gold);
+  box-shadow: 0 0 20px rgba(54, 144, 206, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.milestone-marker.completed .indicator-core {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  color: #ffffff;
+  border: 3px solid #059669;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.completion-check {
+  width: 24px;
+  height: 24px;
+}
+
+.step-number-display {
+  font-variant-numeric: tabular-nums;
+}
+
+.milestone-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.milestone-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--chambers-navy);
+}
+
+.milestone-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+}
+
+.milestone-marker.pending .milestone-status {
+  background: var(--elite-gray-200);
+  color: var(--elite-gray-600);
+}
+
+.milestone-marker.active .milestone-status {
+  background: var(--chambers-accent-blue);
+  color: #ffffff;
+}
+
+.milestone-marker.completed .milestone-status {
+  background: #10B981;
+  color: #ffffff;
+}
+
+/* Security & Compliance Assurance Bar */
+.security-compliance-assurance {
+  background: linear-gradient(135deg, #ffffff 0%, var(--elite-gray-50) 100%);
+  padding: 3rem;
+}
+
+.assurance-grid {
+  max-width: 1400px;
+  margin: 0 auto 2rem auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.assurance-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: #ffffff;
+  border: 1px solid var(--elite-gray-200);
+  border-radius: var(--elite-radius-lg);
+  box-shadow: var(--elite-shadow);
+  transition: all 0.3s ease;
+}
+
+.assurance-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--elite-shadow-lg);
+  border-color: var(--chambers-accent-blue);
+}
+
+.assurance-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.assurance-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.assurance-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--chambers-navy);
+}
+
+.assurance-detail {
+  font-size: 0.875rem;
+  color: var(--elite-gray-600);
+  font-weight: 500;
+}
+
+.regulatory-compliance-notice {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--elite-gray-50);
+  border: 1px solid var(--elite-gray-200);
+  border-radius: var(--elite-radius);
+  text-align: center;
+}
+
+.regulatory-compliance-notice p {
+  font-size: 0.875rem;
+  color: var(--elite-gray-700);
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .chambers-identity {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .professional-credentials {
+    justify-content: center;
+  }
+  
+  .classification-primary {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .matter-classifications {
+    justify-content: center;
+  }
+  
+  .progress-executive-summary {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .fee-summary-section {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .executive-identity-bar {
+    padding: 2rem 1.5rem;
+  }
+  
+  .chambers-name {
+    font-size: 2rem;
+  }
+  
+  .professional-credentials {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .matter-classification-header {
+    padding: 2rem 1.5rem;
+  }
+  
+  .matter-title {
+    font-size: 1.75rem;
+  }
+  
+  .matter-metadata-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .professional-progress-system {
+    padding: 2rem 1.5rem;
+  }
+  
+  .status-metrics {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .progress-milestone-markers {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .security-compliance-assurance {
+    padding: 2rem 1.5rem;
+  }
+  
+  .assurance-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .assurance-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+}

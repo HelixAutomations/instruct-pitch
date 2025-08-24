@@ -2,7 +2,15 @@
  * Premium Identity Verification Styles
  * 
  * Elevating the identity verification flow to match a premium legal service
- * Following the principle that trust is built through every visual detail
+ * Following the principle that trust is built through every visual .premium-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--identity-spacing-md);
+  margin-bottom: var(--identity-spacing-md);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
  */
 
 @import './design-tokens/identity.css';
@@ -294,6 +302,8 @@
   transition: all var(--identity-transition-base);
   box-shadow: var(--input-shadow);
   min-height: 48px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .premium-form-input::placeholder {
@@ -561,9 +571,11 @@
     font-size: var(--identity-text-base);
   }
 
-  .premium-choice-group {
+  .premium-choice-grid {
     grid-template-columns: 1fr;
     gap: var(--identity-spacing-sm);
+    width: 100%;
+    max-width: 100%;
   }
 
   .premium-choice-button {
@@ -607,8 +619,39 @@
     padding: var(--identity-spacing-md);
   }
 
+  .premium-choice-grid {
+    grid-template-columns: 1fr;
+    gap: var(--identity-spacing-xs);
+  }
+
+  .premium-choice-button {
+    min-height: 56px;
+    padding: var(--identity-spacing-sm);
+    font-size: var(--identity-text-sm);
+  }
+
   .info-modal {
     min-width: 240px;
+  }
+}
+
+/* === Extra responsive handling for high zoom levels === */
+@media (max-width: 360px) {
+  .premium-identity-card {
+    padding: var(--identity-spacing-md);
+    margin: 0 8px;
+    max-width: calc(100vw - 16px);
+  }
+
+  .premium-choice-grid {
+    grid-template-columns: 1fr;
+    gap: var(--identity-spacing-xs);
+  }
+
+  .premium-form-input,
+  .premium-form-select {
+    padding: var(--identity-spacing-sm);
+    font-size: var(--identity-text-sm);
   }
 }
 
