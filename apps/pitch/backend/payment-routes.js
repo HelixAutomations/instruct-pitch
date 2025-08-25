@@ -33,14 +33,31 @@ const rawBodyMiddleware = (req, res, next) => {
  */
 router.get('/config', async (req, res) => {
   try {
+    // Check if Stripe service is initialized
+    if (!stripeService.initialized) {
+      console.log('⚠️ Stripe service not yet initialized, returning 503');
+      return res.status(503).json({
+        error: 'Payment system still initializing',
+        retryAfter: 3
+      });
+    }
+
     const publishableKey = stripeService.getPublishableKey();
     
+    console.log('🔍 Config endpoint called:');
+    console.log('  - STRIPE_PUBLISHABLE_KEY:', process.env.STRIPE_PUBLISHABLE_KEY ? 'SET' : 'NOT SET');
+    console.log('  - INSTRUCTIONS_SANDBOX_PK:', process.env.INSTRUCTIONS_SANDBOX_PK ? 'SET' : 'NOT SET');
+    console.log('  - publishableKey result:', publishableKey ? 'VALID' : 'EMPTY');
+    console.log('  - publishableKey length:', publishableKey ? publishableKey.length : 0);
+    
     if (!publishableKey) {
+      console.error('❌ No publishable key available!');
       return res.status(500).json({
         error: 'Stripe configuration not available'
       });
     }
 
+    console.log('✅ Returning Stripe config successfully');
     res.json({
       publishableKey,
       currency: 'gbp' // Default currency

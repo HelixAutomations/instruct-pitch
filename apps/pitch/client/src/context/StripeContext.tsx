@@ -59,6 +59,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
         // If server is still initializing, retry once after a short delay
         if (response.status === 404 || response.status === 503) {
           console.log('Payment system initializing, retrying in 3s...');
+          // Don't show any special message to user - keep showing "Loading payment system..."
           await new Promise(resolve => setTimeout(resolve, 3000));
           
           const retryResponse = await fetch('/api/payments/config');

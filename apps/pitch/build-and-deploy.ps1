@@ -13,7 +13,8 @@ Remove-Item -Recurse -Force ..\..\utilities -ErrorAction SilentlyContinue
 
 # Build frontend
 Push-Location .\client
-npm ci
+# Use npm install instead of npm ci to avoid Windows file locking issues
+npm install
 npm run build
 Pop-Location
 
@@ -146,7 +147,7 @@ Pop-Location
 # Restore client dependencies removed during packaging so the
 # workspace remains ready for local development after deployment.
 Push-Location .\client
-npm ci
+npm install
 Pop-Location
 
 # ✅ Play sound to indicate deployment is complete

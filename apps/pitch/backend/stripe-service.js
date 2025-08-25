@@ -67,10 +67,13 @@ class StripeService {
           paymentId,
           ...metadata,
         },
-        // Enable automatic payment methods for future expansion
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        // Specify exact payment methods for legal services
+        payment_method_types: ['card'], // Only cards allowed
+        // Alternative: Enable automatic but exclude redirects
+        // automatic_payment_methods: {
+        //   enabled: true,
+        //   allow_redirects: 'never', // Prevents redirect-based methods like Revolut
+        // },
       }, { idempotencyKey: paymentId });
 
       console.log(`✅ Created PaymentIntent: ${paymentIntent.id} for payment: ${paymentId}`);

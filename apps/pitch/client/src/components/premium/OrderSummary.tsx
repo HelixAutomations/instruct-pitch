@@ -8,13 +8,11 @@ interface OrderSummaryProps {
     InstructionRef?: string;
     ProspectId?: number;
   };
-  instructionRef: string;
   isProcessing?: boolean;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   dealData,
-  instructionRef,
   isProcessing = false
 }) => {
   const formatAmount = (amount: number) => {
@@ -29,8 +27,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   return (
     <div className="order-summary">
       <div className="summary-header">
-        <h3>Order Summary</h3>
-        <span className="instruction-ref">{instructionRef}</span>
+        <h3>Service Summary</h3>
       </div>
 
       <div className="summary-content">
@@ -39,7 +36,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <div className="service-details">
             <h4 className="service-title">Legal Services</h4>
             <p className="service-description">{dealData.ServiceDescription}</p>
-            <span className="service-ref">Ref: {instructionRef}</span>
           </div>
           <div className="service-amount">
             {formatAmount(dealData.Amount)}
@@ -65,7 +61,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         {/* Company Information */}
         <div className="company-info">
           <div className="company-header">
-            <h4>Harcus Parker</h4>
+            <h4>Helix Law Ltd</h4>
             <div className="company-badges">
               <span className="badge-verified">
                 <FiCheck className="badge-icon" />
@@ -88,7 +84,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             </div>
             <div className="company-stat">
               <FiMapPin className="stat-icon" />
-              <span>London & Manchester offices</span>
+              <span>Brighton office</span>
             </div>
           </div>
         </div>

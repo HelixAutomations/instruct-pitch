@@ -7,7 +7,7 @@
  * - Payment history
  */
 
-const { getSqlClient } = require('./sqlClient');
+const { getSqlPool } = require('./sqlClient');
 
 class PaymentDatabase {
   /**

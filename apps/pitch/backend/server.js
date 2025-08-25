@@ -299,14 +299,21 @@ app.get('/api/generate-instruction-ref', async (req, res) => {
 app.get('/api/getDealByPasscodeIncludingLinked', async (req, res) => {
   try {
     const { passcode } = req.query;
+    console.log('🔍 getDealByPasscodeIncludingLinked called with passcode:', passcode);
+    
     if (!passcode) {
+      console.log('❌ No passcode provided');
       return res.status(400).json({ error: 'Passcode is required' });
     }
     
     const deal = await getDealByPasscodeIncludingLinked(String(passcode));
+    console.log('🎯 Deal lookup result:', deal ? `Found deal ${deal.DealId} with Amount: ${deal.Amount}` : 'No deal found');
+    
     if (deal) {
+      console.log('✅ Returning deal to frontend:', { DealId: deal.DealId, ProspectId: deal.ProspectId, Amount: deal.Amount });
       res.json(deal);
     } else {
+      console.log('❌ Deal not found for passcode:', passcode);
       res.status(404).json({ error: 'Deal not found' });
     }
   } catch (err) {

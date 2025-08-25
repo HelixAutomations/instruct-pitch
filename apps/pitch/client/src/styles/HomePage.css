@@ -1,3 +1,6 @@
+/* Import premium theme variables */
+@import './premium/premiumComponents.css';
+
 /* ─────────────────────────────────────────────
    HELIX - HomePage.css - Premium Enhanced
    Premium styling with trust-first design
@@ -8,9 +11,6 @@
 *, *::before, *::after {
   box-sizing: border-box;
 }
-
-/* Import premium theme variables */
-@import './premium/premiumComponents.css';
 
 /* Premium Checkout Integration */
 .premium-checkout-wrapper {

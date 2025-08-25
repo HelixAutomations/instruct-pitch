@@ -77,11 +77,50 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
 
       {/* Step 3: Main Checkout Flow */}
       {(currentStep === 'payment' || currentStep === 'processing' || currentStep === 'receipt') && (
-        <div className="checkout-container">
-          
-          {/* Left Panel - Order Summary */}
-          <div className="checkout-sidebar">
-            <OrderSummary
+        <>
+          {/* Order Summary - Direct child of premium-checkout */}
+          <OrderSummary
+            dealData={{
+              Amount: dealData.Amount || 0,
+              ServiceDescription: dealData.ServiceDescription || 'Legal Services',
+              InstructionRef: dealData.InstructionRef,
+              ProspectId: dealData.ProspectId
+            }}
+            isProcessing={currentStep === 'processing'}
+          />
+
+          {/* Payment Details - Direct child of premium-checkout */}
+          {currentStep === 'payment' && (
+            <div className="payment-section">
+              <div className="section-header">
+                <h2>Payment Details</h2>
+                <p>Complete your secure payment to proceed</p>
+              </div>
+              
+              <ModernPaymentForm
+                amount={dealData.Amount || 0}
+                currency="gbp"
+                instructionRef={instructionRef}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+                onProcessingChange={() => {}}
+              />
+            </div>
+          )}
+
+          {currentStep === 'processing' && (
+            <div className="processing-section">
+              <div className="processing-content">
+                <div className="processing-spinner" />
+                <h3>Processing Payment</h3>
+                <p>Please wait while we process your payment securely...</p>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'receipt' && paymentId && (
+            <PaymentReceipt
+              paymentId={paymentId}
               dealData={{
                 Amount: dealData.Amount || 0,
                 ServiceDescription: dealData.ServiceDescription || 'Legal Services',
@@ -89,55 +128,10 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
                 ProspectId: dealData.ProspectId
               }}
               instructionRef={instructionRef}
-              isProcessing={currentStep === 'processing'}
+              onNewPayment={handleReturnToPayment}
             />
-          </div>
-
-          {/* Right Panel - Payment Form or Receipt */}
-          <div className="checkout-main">
-            {currentStep === 'payment' && (
-              <div className="payment-section">
-                <div className="section-header">
-                  <h2>Payment Details</h2>
-                  <p>Complete your secure payment to proceed</p>
-                </div>
-                
-                <ModernPaymentForm
-                  amount={dealData.Amount || 0}
-                  currency="gbp"
-                  instructionRef={instructionRef}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                  onProcessingChange={() => {}}
-                />
-              </div>
-            )}
-
-            {currentStep === 'processing' && (
-              <div className="processing-section">
-                <div className="processing-content">
-                  <div className="processing-spinner" />
-                  <h3>Processing Payment</h3>
-                  <p>Please wait while we process your payment securely...</p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 'receipt' && paymentId && (
-              <PaymentReceipt
-                paymentId={paymentId}
-                dealData={{
-                  Amount: dealData.Amount || 0,
-                  ServiceDescription: dealData.ServiceDescription || 'Legal Services',
-                  InstructionRef: dealData.InstructionRef,
-                  ProspectId: dealData.ProspectId
-                }}
-                instructionRef={instructionRef}
-                onNewPayment={handleReturnToPayment}
-              />
-            )}
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );

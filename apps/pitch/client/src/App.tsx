@@ -54,6 +54,20 @@ const App: React.FC = () => {
       // Hide the ID/passcode modal when the server has injected a passcode
       // (we'll still attempt to auto-generate an instructionRef below).
       setShowIdAuth(false);
+      
+      // Fetch deal data for Stripe using the injected passcode
+      fetch(`/api/getDealByPasscodeIncludingLinked?passcode=${encodeURIComponent(String(injectedPasscode))}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.ProspectId) {
+            console.log('🎯 Setting deal data for Stripe from injected path:', data);
+            setDealData(data);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching deal data for injected path:', error);
+        });
+      
       // attempt to auto-generate instructionRef
       fetch(`/api/generate-instruction-ref?cid=${encodeURIComponent(String(injectedCid))}&passcode=${encodeURIComponent(String(injectedPasscode))}`)
         .then(res => res.json())

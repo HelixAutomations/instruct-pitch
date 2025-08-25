@@ -652,6 +652,21 @@ const HomePage: React.FC<HomePageProps> = ({
                   nextStep();
                 }
               }}
+              onSkipToStep={(step) => {
+                console.log(`🚀 DEV: Skipping from ProofOfId to ${step} step...`);
+                setIdReviewDone(true);
+                if (step === 'payment') {
+                  setUploadDone(true);
+                  setShowPaymentStep(true);
+                  setTimeout(() => {
+                    goToStep('payment');
+                  }, 100);
+                } else if (step === 'documents') {
+                  setTimeout(() => {
+                    goToStep('documents');
+                  }, 100);
+                }
+              }}
             />
 
             <div className="step-navigation">
@@ -666,65 +681,63 @@ const HomePage: React.FC<HomePageProps> = ({
 
               {/* Development Skip to Payment Button - Next to Continue Button */}
               {(import.meta.env.DEV || window.location.hostname === 'localhost') && (
-                <button 
-                  type="button"
-                  className="btn btn-dev-skip"
-                  onClick={() => {
-                    console.log('🚀 DEV: Skipping directly to payment...');
-                    // Complete all prerequisite steps
-                    setIdReviewDone(true);
-                    setUploadDone(true);
-                    setShowPaymentStep(true);
-                    // Jump directly to payment step
-                    setTimeout(() => {
-                      goToStep('payment');
-                    }, 100);
-                  }}
-                  title="Development only - Skip directly to payment"
-                  style={{
-                    marginLeft: '1rem',
-                    background: '#059669',
-                    color: 'white', 
-                    border: '3px dashed #fbbf24',
-                    opacity: 1,
-                    fontWeight: 'bold',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '0.375rem',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                    fontSize: '1rem'
-                  }}
-                >
-                  � DEV: Skip to Payment
-                </button>
-              )}
-              
-              {/* Development Skip Button */}
-              {(import.meta.env.DEV || window.location.hostname === 'localhost') && (
-                <button 
-                  type="button"
-                  className="btn btn-dev-skip"
-                  onClick={() => {
-                    console.log('🚀 DEV: Skipping identity verification...');
-                    // Mock completion of ID verification
-                    setIdReviewDone(true);
-                    // Auto-proceed to next step
-                    setTimeout(() => nextStep(), 100);
-                  }}
-                  title="Development only - Skip identity verification"
-                  style={{
-                    marginLeft: '1rem',
-                    background: '#374151',
-                    color: 'white',
-                    border: '2px dashed #fbbf24',
-                    opacity: 1,
-                    fontWeight: 'bold',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '0.375rem',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  � DEV: Skip ID Check
-                </button>
+                <div style={{ marginLeft: '1rem', display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    type="button"
+                    className="btn btn-dev-skip"
+                    onClick={() => {
+                      console.log('🚀 DEV: Skipping directly to payment...');
+                      // Complete all prerequisite steps
+                      setIdReviewDone(true);
+                      setUploadDone(true);
+                      setShowPaymentStep(true);
+                      // Jump directly to payment step
+                      setTimeout(() => {
+                        goToStep('payment');
+                      }, 100);
+                    }}
+                    title="Development only - Skip directly to payment"
+                    style={{
+                      background: '#059669',
+                      color: 'white', 
+                      border: '2px dashed #fbbf24',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '0.375rem',
+                      fontWeight: 'bold',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    💳 Payment
+                  </button>
+                  <button 
+                    type="button"
+                    className="btn btn-dev-skip"
+                    onClick={() => {
+                      console.log('🚀 DEV: Skipping to documents...');
+                      // Complete ID verification and go to documents
+                      setIdReviewDone(true);
+                      setTimeout(() => {
+                        goToStep('documents');
+                      }, 100);
+                    }}
+                    title="Development only - Skip to documents"
+                    style={{
+                      background: '#7c3aed',
+                      color: 'white',
+                      border: '2px dashed #fbbf24',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '0.375rem',
+                      fontWeight: 'bold',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    📄 Documents
+                  </button>
+                </div>
               )}
             </div>
           </>
@@ -776,37 +789,6 @@ const HomePage: React.FC<HomePageProps> = ({
               >
                 {showPaymentStep ? 'Continue to Payment' : 'Complete'}
               </button>
-              
-              {/* Development Skip Button */}
-              {(import.meta.env.DEV || window.location.hostname === 'localhost') && (
-                <button 
-                  type="button"
-                  className="btn btn-dev-skip"
-                  onClick={() => {
-                    console.log('🚀 DEV: Skipping document upload...');
-                    setUploadDone(true);
-                    if (showPaymentStep) {
-                      setTimeout(() => nextStep(), 100);
-                    } else {
-                      setShowFinalBanner(true);
-                    }
-                  }}
-                  title="Development only - Skip document upload"
-                  style={{
-                    marginLeft: '1rem',
-                    background: '#374151',
-                    color: 'white',
-                    border: '2px dashed #fbbf24',
-                    opacity: 1,
-                    fontWeight: 'bold',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '0.375rem',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  🚀 DEV: Skip Docs
-                </button>
-              )}
             </div>
           </>
         )}

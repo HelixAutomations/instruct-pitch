@@ -264,41 +264,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           </button>
           
           {/* Premium Navigation Section */}
-          <div className="premium-navigation">
-            {/* Development Only - Skip to Payment */}
-            {(import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
-              <button 
-                className="premium-button-dev"
-                onClick={() => {
-                  console.log('🚀 DEV: Skipping to payment...');
-                  // Skip preflight and go directly to payment
-                  setTimeout(() => {
-                    onProceedToPayment();
-                    // Trigger another skip to bypass preflight
-                    setTimeout(() => {
-                      const event = new CustomEvent('dev-skip-to-payment');
-                      window.dispatchEvent(event);
-                    }, 100);
-                  }, 100);
-                }}
-                title="Development only - Skip directly to payment"
-                style={{
-                  marginLeft: '1rem',
-                  background: 'rgb(5, 150, 105)',
-                  color: 'white',
-                  border: '2px dashed rgb(251, 191, 36)',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.5rem',
-                  fontWeight: 'bold',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  boxShadow: 'rgba(0, 0, 0, 0.2) 0px 2px 8px'
-                }}
-              >
-                � DEV: Skip to Payment
-              </button>
-            )}
-            
+          <div className="premium-navigation">            
             {/* Step Counter */}
             <div className="navigation-step-counter">
               <span className="nav-step-text">Step 1 of 3</span>

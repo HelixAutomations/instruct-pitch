@@ -11,6 +11,7 @@ interface ProofOfIdProps {
   onUpdate: (data: ProofData) => void;
   setIsComplete: (complete: boolean) => void;
   onNext: (skipReview?: boolean) => void;
+  onSkipToStep?: (step: 'documents' | 'payment') => void;
   editing?: boolean;
   hasChanges?: boolean;
 }
@@ -24,6 +25,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
   onUpdate,
   setIsComplete,
   onNext,
+  onSkipToStep,
   editing = false,
   hasChanges = false,
 }) => {
@@ -699,34 +701,58 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             );
           })()}
 
-          {/* Development Skip to Payment Button */}
-          {(import.meta.env.DEV || window.location.hostname === 'localhost') && (
-            <button
-              type="button"
-              className="premium-button-dev"
-              onClick={() => {
-                console.log('🚀 DEV: Skipping directly to payment from ID form...');
-                // Complete the form and trigger parent callback to skip to payment
-                setIsComplete(true);
-                onNext(true); // Skip parameter to indicate dev skip
-              }}
-              style={{
-                marginLeft: '1rem',
-                background: '#059669',
-                color: 'white',
-                border: '2px dashed #fbbf24',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '0.5rem',
-                fontWeight: 'bold',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-              }}
-              title="Development only - Skip directly to payment"
-            >
-              💳 DEV: Skip to Payment
-            </button>
+          {/* Development Skip Buttons - Step 2 and 3 */}
+          {(import.meta.env.DEV || window.location.hostname === 'localhost') && onSkipToStep && (
+            <div style={{ marginLeft: '1rem', display: 'flex', gap: '0.5rem' }}>
+              <button
+                type="button"
+                className="premium-button-dev"
+                onClick={() => {
+                  console.log('🚀 DEV: Skipping to documents step...');
+                  setIsComplete(true);
+                  onSkipToStep('documents');
+                }}
+                style={{
+                  background: '#7c3aed',
+                  color: 'white',
+                  border: '2px dashed #fbbf24',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.375rem',
+                  fontWeight: 'bold',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                }}
+                title="Development only - Skip to documents step"
+              >
+                📄 Documents
+              </button>
+              <button
+                type="button"
+                className="premium-button-dev"
+                onClick={() => {
+                  console.log('🚀 DEV: Skipping to payment step...');
+                  setIsComplete(true);
+                  onSkipToStep('payment');
+                }}
+                style={{
+                  background: '#059669',
+                  color: 'white',
+                  border: '2px dashed #fbbf24',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.375rem',
+                  fontWeight: 'bold',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                }}
+                title="Development only - Skip to payment step"
+              >
+                💳 Payment
+              </button>
+            </div>
           )}
+
         </div>
 
         {editing && hasChanges && (
