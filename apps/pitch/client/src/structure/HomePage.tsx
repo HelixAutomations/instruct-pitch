@@ -698,18 +698,21 @@ const HomePage: React.FC<HomePageProps> = ({
                     }}
                     title="Development only - Skip directly to payment"
                     style={{
-                      background: '#059669',
-                      color: 'white', 
-                      border: '2px dashed #fbbf24',
-                      padding: '0.75rem 1rem',
+                      background: 'rgba(156, 163, 175, 0.1)',
+                      color: '#6b7280', 
+                      border: '1px solid rgba(156, 163, 175, 0.3)',
+                      padding: '0.5rem',
                       borderRadius: '0.375rem',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
+                      fontSize: '1rem',
                       cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    💳 Payment
+                    💳
                   </button>
                   <button 
                     type="button"
@@ -724,18 +727,21 @@ const HomePage: React.FC<HomePageProps> = ({
                     }}
                     title="Development only - Skip to documents"
                     style={{
-                      background: '#7c3aed',
-                      color: 'white',
-                      border: '2px dashed #fbbf24',
-                      padding: '0.75rem 1rem',
+                      background: 'rgba(156, 163, 175, 0.1)',
+                      color: '#6b7280',
+                      border: '1px solid rgba(156, 163, 175, 0.3)',
+                      padding: '0.5rem',
                       borderRadius: '0.375rem',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
+                      fontSize: '1rem',
                       cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    📄 Documents
+                    📄
                   </button>
                 </div>
               )}

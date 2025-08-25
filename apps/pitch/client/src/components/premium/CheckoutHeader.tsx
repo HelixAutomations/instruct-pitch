@@ -5,7 +5,6 @@ interface CheckoutHeaderProps {
   currentIndex: number;
   steps: { key: string; label: string }[];
   instructionRef: string;
-  amount: number;
   contact?: string;
   currentStep?: string; // Add current step key for header content
 }
@@ -18,7 +17,6 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
   currentIndex,
   steps,
   instructionRef,
-  amount,
   currentStep,
 }) => {
   // Elite step content mapping
@@ -63,7 +61,8 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
       <div className="professional-header-bar">
         <div className="header-content">
           <div className="firm-identity">
-            <img src="/assets/logowhite.svg" alt="Helix Law" className="helix-logo" />
+            <img src="/assets/logowhite.svg" alt="Helix Law" className="helix-logo helix-logo-desktop" />
+            <img src="/assets/markwhite.svg" alt="Helix Law" className="helix-logo helix-logo-mobile" />
           </div>
           
           <div className="header-support">
@@ -73,58 +72,26 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
         </div>
       </div>
 
-      {/* Hero Section */}
+      {/* Hero Section with Integrated Progress */}
       <div className="hero-section">
         <div className="hero-content">
           <div className="hero-main">
-            <h1 className="hero-title">{stepContent.title}</h1>
-            <p className="hero-description">{stepContent.description}</p>
-          </div>
-
-          {/* Hero Sidebar */}
-          {amount > 0 && (
-            <div className="hero-sidebar">
-              <div className="amount-card">
-                <div className="amount-header">
-                  <span className="amount-label">Total Amount</span>
-                </div>
-                <div className="amount-value">
-                  £{amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className="amount-note">inc. VAT</div>
+            <div className="hero-progress-meta">
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${((currentIndex + 1) / steps.length) * 100}%` }}
+                />
               </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Timeline Footer - Replacing Security Items */}
-      <div className="security-footer">
-        <div className="timeline-footer">
-          <div className="progress-track">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${(currentIndex / (steps.length - 1)) * 100}%` }}
-            />
-            
-            <div className="timeline-steps">
-              {steps.map((step, index) => {
-                const isCompleted = index < currentIndex;
-                const isCurrent = index === currentIndex;
-                const position = (index / (steps.length - 1)) * 100;
-                
-                return (
-                  <div 
-                    key={step.key} 
-                    className={`timeline-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}
-                    style={{ left: `${position}%` }}
-                  >
-                    <div className="step-marker"></div>
-                    <span className="step-label">{step.label}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <h1 className="hero-title">{stepContent.title}</h1>
+            <p className="hero-description">{stepContent.description}</p>
+            {instructionRef && (
+              <div className="instruction-ref">
+                <span className="ref-label">Reference:</span>
+                <span className="ref-value">{instructionRef}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

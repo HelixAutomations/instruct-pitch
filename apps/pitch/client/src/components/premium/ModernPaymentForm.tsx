@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
-import { FiLock, FiCreditCard, FiAlertCircle, FiShield } from 'react-icons/fi';
+import { FiLock, FiAlertCircle } from 'react-icons/fi';
 import { paymentService } from '../../utils/paymentService';
 
 interface ModernPaymentFormProps {
@@ -130,20 +130,6 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
     <div className="modern-payment-form">
       <form onSubmit={handleSubmit} className="payment-form">
         
-        {/* Payment Method Header */}
-        <div className="payment-method-header">
-          <div className="payment-icon">
-            <FiCreditCard />
-          </div>
-          <div className="payment-title">
-            <h4>Payment Method</h4>
-            <p>Your payment information is secure and encrypted</p>
-          </div>
-          <div className="security-badge">
-            <FiLock />
-          </div>
-        </div>
-
         {/* Stripe Payment Element */}
         {clientSecret && (
           <div className="payment-element-container">
@@ -190,12 +176,6 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
             </>
           )}
         </button>
-
-        {/* Security Notice */}
-        <div className="security-notice">
-          <FiShield />
-          <span>Your payment is protected by 256-bit SSL encryption</span>
-        </div>
       </form>
     </div>
   );

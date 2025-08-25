@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useClient } from '../../context/ClientContext';
-import PaymentSummary from './PaymentSummary';
-import OrderSummary from './OrderSummary';
+import PaymentSummaryMinimal from './PaymentSummaryMinimal';
+import OrderSummaryMinimal from './OrderSummaryMinimal';
 import ModernPaymentForm from './ModernPaymentForm';
 import PaymentReceipt from './PaymentReceipt';
 import PreflightExperience from './PreflightExperience';
@@ -54,7 +54,7 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
     <div className="premium-checkout">
       {/* Step 1: Payment Summary */}
       {currentStep === 'summary' && (
-        <PaymentSummary
+        <PaymentSummaryMinimal
           dealData={{
             Amount: dealData.Amount || 0,
             ServiceDescription: dealData.ServiceDescription || 'Legal Services',
@@ -79,7 +79,7 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
       {(currentStep === 'payment' || currentStep === 'processing' || currentStep === 'receipt') && (
         <>
           {/* Order Summary - Direct child of premium-checkout */}
-          <OrderSummary
+          <OrderSummaryMinimal
             dealData={{
               Amount: dealData.Amount || 0,
               ServiceDescription: dealData.ServiceDescription || 'Legal Services',
@@ -91,12 +91,7 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
 
           {/* Payment Details - Direct child of premium-checkout */}
           {currentStep === 'payment' && (
-            <div className="payment-section">
-              <div className="section-header">
-                <h2>Payment Details</h2>
-                <p>Complete your secure payment to proceed</p>
-              </div>
-              
+            <div className="payment-section-minimal">
               <ModernPaymentForm
                 amount={dealData.Amount || 0}
                 currency="gbp"

@@ -1,0 +1,157 @@
+/* OrderSummaryMinimal.css - Compact order summary */
+
+.order-summary-minimal {
+  max-width: 400px;
+  margin: 0 auto 1.5rem auto;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  height: fit-content; /* Prevents stretching in flexbox */
+}
+
+/* Service Line */
+.service-line {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
+}
+
+.service-info {
+  flex: 1;
+}
+
+.service-title {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.service-desc {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.service-amount {
+  font-weight: 700;
+  color: #111827;
+  font-size: 1.25rem;
+}
+
+/* Price Breakdown */
+.price-breakdown {
+  margin-bottom: 1rem;
+}
+
+.breakdown-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 0;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.total-line {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #111827;
+}
+
+/* Processing Indicator */
+.processing-minimal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.spinner-minimal {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Security Badge */
+.security-minimal {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Desktop Layout Enhancements */
+@media (min-width: 1024px) {
+  .premium-checkout > .order-summary-minimal {
+    position: sticky !important;
+    top: 2rem !important; /* Sticky positioning for better UX */
+    margin: 0 !important;
+  }
+  
+  .order-summary-minimal .summary-card {
+    padding: 2rem;
+  }
+  
+  .order-summary-minimal .service-amount {
+    font-size: 1.375rem;
+  }
+}
+
+/* Tablet Layout - Full Width Stacked */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .order-summary-minimal {
+    max-width: none !important;
+    margin: 0 auto 2rem auto !important;
+  }
+  
+  .order-summary-minimal .summary-card {
+    padding: 1.75rem;
+  }
+  
+  .order-summary-minimal .service-amount {
+    font-size: 1.25rem;
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 767px) {
+  .order-summary-minimal {
+    margin: 0 1rem 1rem 1rem;
+    max-width: none;
+  }
+  
+  .summary-card {
+    padding: 1rem;
+  }
+  
+  .service-line {
+    gap: 0.75rem;
+  }
+  
+  .service-amount {
+    font-size: 1.125rem;
+  }
+}

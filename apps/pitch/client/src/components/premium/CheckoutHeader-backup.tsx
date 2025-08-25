@@ -63,7 +63,8 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
       <div className="professional-header-bar">
         <div className="header-content">
           <div className="firm-identity">
-            <img src="/assets/logowhite.svg" alt="Helix Law" className="helix-logo" />
+            <img src="/assets/logowhite.svg" alt="Helix Law" className="helix-logo helix-logo-desktop" />
+            <img src="/assets/markwhite.svg" alt="Helix Law" className="helix-logo helix-logo-mobile" />
           </div>
           
           <div className="header-support">
