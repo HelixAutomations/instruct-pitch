@@ -22,7 +22,7 @@ import {
 // (Icons removed with old summary/review UI)
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
-import DocumentUpload from './DocumentUpload';
+import DocumentUploadPremium from '../components/premium/DocumentUploadPremium';
 import '../styles/HomePage.css';
 import '../styles/modern-checkout.css';
 import { ProofData } from '../context/ProofData';
@@ -746,7 +746,7 @@ const HomePage: React.FC<HomePageProps> = ({
         {/* Document Upload */}
         {currentCheckoutStep === 'documents' && (
           <>
-            <DocumentUpload
+            <DocumentUploadPremium
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}
               setIsComplete={setUploadDone}

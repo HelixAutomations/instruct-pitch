@@ -37,7 +37,6 @@ export const PaymentLayout: React.FC<PaymentLayoutProps> = ({
             currentIndex={checkoutHeader.currentIndex}
             steps={checkoutHeader.steps}
             instructionRef={checkoutHeader.instructionRef}
-            amount={checkoutHeader.amount}
             contact={checkoutHeader.contact}
             currentStep={checkoutHeader.currentStep}
           />
@@ -51,7 +50,7 @@ export const PaymentLayout: React.FC<PaymentLayoutProps> = ({
 
       {/* Optional footer with trust indicators */}
       <footer className="premium-payment-footer">
-        <div className="premium-payment-container">
+        <div className="premium-footer-container">
           <div className="premium-trust-footer">
             <div className="premium-trust-indicators">
               <div className="premium-trust-indicator">
@@ -69,10 +68,36 @@ export const PaymentLayout: React.FC<PaymentLayoutProps> = ({
               </div>
             </div>
             
-            <div className="premium-company-info">
-              <span className="premium-caption">
-                Helix Law Ltd. Regulated by the Solicitors Regulation Authority
-              </span>
+            <div className="premium-footer-legal">
+              <div className="premium-footer-copyright">
+                All copyright is reserved entirely on behalf of Helix Law Limited. Helix Law
+                and applicable logo are exclusively owned trademarks registered with the
+                Intellectual Property Office under numbers UK00003984532 and
+                UK00003984535. The trademarks should not be used, copied or replicated
+                without consent. Helix Law Limited is regulated by the SRA, our SRA ID is
+                565557.
+              </div>
+              
+              <div className="premium-footer-links">
+                <ul className="premium-legal-menu">
+                  <li>
+                    <a href="https://helix-law.co.uk/transparency/">
+                      Transparency, Complaints, Timescales and VAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://helix-law.co.uk/cookies-policy/">Cookies Policy</a>
+                  </li>
+                  <li>
+                    <a href="https://helix-law.co.uk/privacy-policy/">Privacy Policy</a>
+                  </li>
+                  <li>
+                    <a href="https://helix-law.co.uk/terms-and-conditions/">
+                      Terms and Conditions
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

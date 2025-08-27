@@ -355,7 +355,8 @@ const App: React.FC = () => {
           )}
         </main>
 
-        <Footer />
+        {/* Only show Footer for non-premium layouts */}
+        {!usePremiumLayout && <Footer />}
       </div>
     </StripeProvider>
   );

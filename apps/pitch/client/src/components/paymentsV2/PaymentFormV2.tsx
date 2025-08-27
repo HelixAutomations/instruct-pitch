@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
-import { FiLock, FiCreditCard, FiAlertCircle, FiShield, FiCheckCircle } from 'react-icons/fi';
+import { FiLock, FiAlertCircle, FiShield, FiCheckCircle } from 'react-icons/fi';
 import { paymentTelemetry } from '../../utils/paymentTelemetry';
 import { PaymentErrorHandler } from '../../utils/paymentErrorHandler';
 
@@ -37,7 +37,6 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [paymentReady, setPaymentReady] = useState(false);
   const [formValid, setFormValid] = useState(false);
-  const [attemptStartTime, setAttemptStartTime] = useState<number>(0);
 
   // Track component mount and form readiness
   useEffect(() => {
@@ -80,7 +79,6 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
 
     // Track payment attempt start
     const startTime = Date.now();
-    setAttemptStartTime(startTime);
     setIsProcessing(true);
     setErrorMessage('');
 
@@ -293,7 +291,7 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
         </div>
       </form>
 
-      <style jsx>{`
+      <style>{`
         .payment-form-v2 {
           width: 100%;
           max-width: 500px;
@@ -314,6 +312,7 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
           background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
           border: 1px solid #e2e8f0;
           border-radius: 8px;
+          flex-wrap: wrap;
         }
 
         .payment-header-icon {
@@ -386,45 +385,54 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
         }
 
         .payment-button {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-height: 50px;
-          padding: 0.75rem 1.5rem;
-          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-          color: white;
+          gap: clamp(6px, 2vw, 10px);
+          padding: clamp(14px, 4vw, 18px) clamp(20px, 6vw, 40px);
           border: none;
-          border-radius: 8px;
-          font-size: 1rem;
+          border-radius: clamp(8px, 2.5vw, 14px);
+          font-size: clamp(0.875rem, 3.5vw, 1rem);
           font-weight: 600;
+          text-decoration: none;
           cursor: pointer;
-          transition: all 0.2s ease;
-          position: relative;
-          overflow: hidden;
+          transition: all 150ms ease;
+          min-height: clamp(48px, 12vw, 56px);
+          touch-action: manipulation;
+          width: 100%;
+          -webkit-tap-highlight-color: transparent;
+          background: #0D2F60;
+          color: #FFFFFF;
+          font-family: 'Raleway', sans-serif;
         }
 
         .payment-button:hover:not(:disabled) {
-          background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+          background: #061733;
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .payment-button:active {
+          transform: translateY(0);
         }
 
         .payment-button:disabled {
           opacity: 0.6;
           cursor: not-allowed;
-          transform: none;
+          transform: none !important;
         }
 
         .payment-button.processing {
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+          background: #0D2F60;
+          opacity: 0.8;
         }
 
         .payment-button.ready {
-          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          background: #059669;
         }
 
         .payment-button.ready:hover:not(:disabled) {
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          background: #047857;
+          transform: translateY(-1px);
         }
 
         .processing-content,
@@ -462,6 +470,8 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
           border: 1px solid #e2e8f0;
           font-size: 0.75rem;
           color: #64748b;
+          flex-wrap: wrap;
+          gap: 1rem;
         }
 
         .security-item {
@@ -482,10 +492,10 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
           color: #94a3b8;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 480px) {
           .payment-security-footer {
             flex-direction: column;
-            gap: 0.5rem;
+            justify-content: center;
             text-align: center;
           }
 

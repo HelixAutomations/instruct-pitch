@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap');
+
 /* Professional checkout header */
 .lite-header {
   display: grid;
@@ -10,7 +12,7 @@
   background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   border-bottom: 2px solid #e5e7eb;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   position: relative;
 }
 
@@ -775,43 +777,58 @@
 }
 
 .step-navigation .btn {
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 2vw, 10px);
+  padding: clamp(14px, 4vw, 18px) clamp(20px, 6vw, 40px);
+  border: none;
+  border-radius: clamp(8px, 2.5vw, 14px);
+  font-size: clamp(0.875rem, 3.5vw, 1rem);
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s ease;
-  border: none;
   cursor: pointer;
-  font-size: 1rem;
+  transition: all 150ms ease;
+  min-height: clamp(48px, 12vw, 56px);
+  touch-action: manipulation;
+  max-width: 200px;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Raleway', sans-serif;
+}
+
+.step-navigation .btn:focus {
+  outline: 2px solid #3690CE;
+  outline-offset: 2px;
 }
 
 .step-navigation .btn-primary {
-  background: #3b82f6;
-  color: white;
+  background: #0D2F60;
+  color: #FFFFFF;
 }
 
-.step-navigation .btn-primary:hover {
-  background: #2563eb;
+.step-navigation .btn-primary:hover:not(:disabled) {
+  background: #061733;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.step-navigation .btn-primary:active {
+  transform: translateY(0);
 }
 
 .step-navigation .btn-primary:disabled {
-  background: #9ca3af;
+  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  transform: none !important;
 }
 
 .step-navigation .btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: #F4F4F6;
+  color: #061733;
+  border: 1px solid #E5E7EB;
 }
 
-.step-navigation .btn-secondary:hover {
-  background: #e5e7eb;
-  transform: translateY(-1px);
+.step-navigation .btn-secondary:hover:not(:disabled) {
+  background: #E5E7EB;
 }
 
 /* Service Summary Box */

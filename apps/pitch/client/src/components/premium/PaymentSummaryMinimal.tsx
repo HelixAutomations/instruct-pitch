@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './PaymentSummaryMinimal.css';
 import PreflightExperience from './PreflightExperience';
 
@@ -22,8 +22,12 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
   showPreflight = false,
   onPreflightComplete
 }) => {
-  // Calculate amounts
-  const subtotal = dealData.Amount;
+  // State for editable amount
+  const [editableAmount, setEditableAmount] = useState(dealData.Amount);
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
+
+  // Calculate amounts based on editable amount
+  const subtotal = editableAmount;
   const vatAmount = subtotal * 0.20;
   const totalAmount = subtotal + vatAmount;
 
@@ -58,13 +62,142 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
       </div>
 
       <div className="receipt-content">
-        {/* Service Card */}
+        {/* Service Card with Editable Amount */}
         <div className="service-card">
           <div className="service-header">
             <div className="service-details">
               <h2 className="service-name">{dealData.ServiceDescription}</h2>
             </div>
-            <div className="service-price">{formatAmount(subtotal)}</div>
+          </div>
+          
+          <div className="amount-section">
+            <div className="amount-display-container">
+              {!isEditingAmount ? (
+                <div className="amount-display" onClick={() => setIsEditingAmount(true)}>
+                  <span className="amount-value">{formatAmount(editableAmount)}</span>
+                  <button className="edit-amount-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25a1.75 1.75 0 01.445-.758L11.013 1.427z" fill="currentColor"/>
+                    </svg>
+                    Edit amount
+                  </button>
+                </div>
+              ) : (
+                <div className="amount-edit-container">
+                  <div className="service-price-editable">
+                    <span className="currency-symbol">£</span>
+                    <input
+                      type="number"
+                      value={editableAmount.toFixed(2)}
+                      onChange={(e) => setEditableAmount(parseFloat(e.target.value) || 0)}
+                      onBlur={() => {
+                        // Small delay to allow click on confirm button
+                        setTimeout(() => setIsEditingAmount(false), 150);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setIsEditingAmount(false);
+                        }
+                        if (e.key === 'Escape') {
+                          setEditableAmount(dealData.Amount); // Reset to original
+                          setIsEditingAmount(false);
+                        }
+                      }}
+                      className="amount-input"
+                      step="0.01"
+                      min="0"
+                      autoFocus
+                    />
+                    <button 
+                      className="confirm-amount-btn"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsEditingAmount(false);
+                      }}
+                      type="button"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="currentColor"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="amount-explanation-info">
+              <p>This amount represents our estimate based on the information provided. You may adjust this payment on account to reflect your preferred contribution at this time.</p>
+            </div>
+            
+            {editableAmount !== dealData.Amount && (
+              <div className="amount-change-note">
+                <span className="original-amount">Original estimate: {formatAmount(dealData.Amount)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Solicitor Card */}
+        <div className="solicitor-card">
+          <div className="solicitor-header">
+            <div className="solicitor-avatar">
+              <img 
+                src="/assets/solicitor-placeholder.jpg" 
+                alt="Your Solicitor"
+                style={{ display: 'none' }}
+                onError={(e) => {
+                  // Fallback to person icon if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="solicitor-person-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div className="solicitor-info">
+              <h3 className="solicitor-name">Jamie Smith</h3>
+              <p className="solicitor-title">Senior Associate Solicitor</p>
+              <div className="solicitor-qualifications">
+                <span className="qualification-badge">LLB (Hons)</span>
+                <span className="qualification-badge">SRA Qualified</span>
+                <span className="qualification-badge experience-tag">8+ Years Experience</span>
+              </div>
+            </div>
+            <div className="trust-indicators">
+              {/* Experience now moved to qualifications */}
+            </div>
+          </div>
+          
+          <div className="solicitor-details">
+            <div className="fee-earner-description">
+              <p>
+                Specialist in commercial litigation with extensive experience in contract disputes, 
+                professional negligence claims, and debt recovery. Jamie has successfully handled 
+                cases ranging from £5,000 to £2M+ and maintains a 95% success rate.
+              </p>
+            </div>
+            
+            <div className="contact-methods">
+              <div className="contact-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                  <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                <span>jamie.smith@helixlaw.co.uk</span>
+              </div>
+              <div className="contact-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                </svg>
+                <span>+44 (0) 20 7946 0958</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -116,45 +249,13 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
           </div>
         </div>
 
-        {/* Trust Signals */}
-        <div className="trust-section">
-          <div className="trust-logos">
-            <div className="trust-logo">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <rect width="48" height="48" rx="8" fill="#1f2937"/>
-                <circle cx="24" cy="20" r="8" stroke="white" strokeWidth="2" fill="none"/>
-                <path d="M16 36c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" strokeWidth="2" fill="none"/>
-              </svg>
-            </div>
-            <div className="trust-logo">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <rect width="48" height="48" rx="8" fill="#059669"/>
-                <path d="M12 24l8 8 16-16" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <div className="trust-logo">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <rect width="48" height="48" rx="8" fill="#3b82f6"/>
-                <path d="M24 8l4 8h8l-6 6 2 8-8-4-8 4 2-8-6-6h8z" fill="white"/>
-              </svg>
-            </div>
-            <div className="trust-logo">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <rect width="48" height="48" rx="8" fill="#dc2626"/>
-                <rect x="16" y="16" width="16" height="16" rx="2" fill="white"/>
-                <path d="M20 20h8M20 24h8M20 28h6" stroke="#dc2626" strokeWidth="1.5"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
         {/* Enhanced Proceed Button */}
         <button 
           className="proceed-button-minimal"
           onClick={onProceedToPayment}
         >
           <div className="button-content">
-            <span className="button-text">Continue</span>
+            <span className="button-text">Proceed to Payment</span>
             <span className="button-amount">{formatAmount(totalAmount)}</span>
           </div>
           <div className="button-icon">
@@ -163,6 +264,24 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
             </svg>
           </div>
         </button>
+
+        {/* Trust Signals */}
+        <div className="trust-section">
+          <div className="trust-logos">
+            <div className="trust-logo">
+              <img src="/assets/dark blue mark.svg" alt="Trust Badge 1" width="18" height="18" />
+            </div>
+            <div className="trust-logo">
+              <img src="/assets/dark blue mark.svg" alt="Trust Badge 2" width="18" height="18" />
+            </div>
+            <div className="trust-logo">
+              <img src="/assets/dark blue mark.svg" alt="Trust Badge 3" width="18" height="18" />
+            </div>
+            <div className="trust-logo">
+              <img src="/assets/dark blue mark.svg" alt="Trust Badge 4" width="18" height="18" />
+            </div>
+          </div>
+        </div>
 
         {/* Footer */}
         <div className="order-footer">
