@@ -6,15 +6,18 @@ interface PreflightExperienceProps {
   amount: number;
   instructionRef: string;
   onComplete: () => void;
+  isVisible: boolean;
 }
 
 const PreflightExperience: React.FC<PreflightExperienceProps> = ({
   amount,
   instructionRef,
-  onComplete
+  onComplete,
+  isVisible
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isDevFrozen, setIsDevFrozen] = useState(false);
 
   // Listen for dev skip events
   useEffect(() => {
@@ -25,52 +28,75 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
       }
     };
 
+    const handleDevFreeze = () => {
+      if (import.meta.env.DEV) {
+        setIsDevFrozen(prev => !prev);
+        console.log('🧊 DEV: Toggled preflight freeze:', !isDevFrozen);
+      }
+    };
+
     window.addEventListener('dev-skip-to-payment', handleDevSkip);
-    return () => window.removeEventListener('dev-skip-to-payment', handleDevSkip);
-  }, [onComplete]);
+    window.addEventListener('dev-freeze-preflight', handleDevFreeze);
+    
+    return () => {
+      window.removeEventListener('dev-skip-to-payment', handleDevSkip);
+      window.removeEventListener('dev-freeze-preflight', handleDevFreeze);
+    };
+  }, [onComplete, isDevFrozen]);
 
   const steps = [
     {
-      title: "Securing Your Payment",
-      description: "Preparing encrypted connection...",
-      duration: 500
+      title: "Initializing Secure Session",
+      description: "Establishing encrypted connection with our secure payment gateway",
+      duration: 800
     },
     {
       title: "Verifying Service Details", 
-      description: "Confirming your instruction...",
-      duration: 400
+      description: "Confirming instruction details and service parameters",
+      duration: 600
     },
     {
-      title: "Loading Payment Gateway",
-      description: "Connecting to secure processor...",
-      duration: 600
+      title: "Preparing Payment Interface",
+      description: "Loading secure payment form with PCI DSS compliance",
+      duration: 700
+    },
+    {
+      title: "Ready for Payment",
+      description: "All security checks complete - redirecting to payment",
+      duration: 300
     }
   ];
 
   useEffect(() => {
+    if (isDevFrozen) return; // Don't progress if frozen
+
     let timeoutId: number;
     let progressInterval: number;
 
     const runStep = (stepIndex: number) => {
       if (stepIndex >= steps.length) {
         // All steps complete
-        setTimeout(() => onComplete(), 200);
+        setTimeout(() => onComplete(), 400);
         return;
       }
 
       setCurrentStep(stepIndex);
       const step = steps[stepIndex];
       
-      // Animate progress for this step
+      // Smooth progress animation for this step
       let stepProgress = 0;
+      const startProgress = (stepIndex / steps.length) * 100;
+      const stepWidth = 100 / steps.length;
+      
       progressInterval = setInterval(() => {
-        stepProgress += 2;
-        setProgress((stepIndex / steps.length) * 100 + (stepProgress / steps.length));
+        stepProgress += 1.5;
+        const newProgress = startProgress + (stepProgress / 100) * stepWidth;
+        setProgress(Math.min(newProgress, 100));
         
         if (stepProgress >= 100) {
           clearInterval(progressInterval);
         }
-      }, step.duration / 50) as unknown as number;
+      }, step.duration / 70) as unknown as number;
 
       // Move to next step
       timeoutId = setTimeout(() => {
@@ -86,93 +112,118 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
       clearTimeout(timeoutId);
       clearInterval(progressInterval);
     };
-  }, [onComplete]);
+  }, [onComplete, isDevFrozen]);
 
   return (
-    <div className="preflight-container">
+    <div className={`preflight-overlay ${isVisible ? 'visible' : ''}`}>
       <div className="preflight-content">
         
-        {/* Helix Branding */}
+        {/* Enhanced Helix Branding */}
         <div className="preflight-brand">
-          <div className="preflight-logo">⚖️</div>
-          <h1>Helix Law</h1>
+          <div className="brand-tagline">
+            <span className="brand-name">Helix Law</span>
+            <span className="brand-subtitle">Premium Legal Services</span>
+          </div>
         </div>
 
-        {/* Main Message */}
+        {/* Current Step Display */}
         <div className="preflight-main">
           <h2>{steps[currentStep]?.title || "Preparing Payment"}</h2>
           <p>{steps[currentStep]?.description || "Setting up secure connection..."}</p>
         </div>
 
-        {/* Progress Bar */}
+        {/* Enhanced Progress Bar */}
         <div className="preflight-progress">
           <div className="preflight-progress-bar">
             <div 
               className="preflight-progress-fill"
               style={{ width: `${progress}%` }}
             />
+            <div className="preflight-progress-glow" />
           </div>
           <div className="preflight-progress-text">
-            {Math.round(progress)}%
+            <span className="progress-percentage">{Math.round(progress)}%</span>
+            <span className="progress-status">
+              {isDevFrozen ? 'FROZEN (Dev Mode)' : `Step ${currentStep + 1} of ${steps.length}`}
+            </span>
           </div>
         </div>
 
-        {/* Payment Summary */}
+        {/* Service Summary */}
         <div className="preflight-summary">
-          <div className="preflight-summary-item">
-            <span className="preflight-label">Instruction:</span>
-            <span className="preflight-value">{instructionRef}</span>
+          <div className="summary-header">
+            <span className="summary-title">Instruction Summary</span>
           </div>
-          <div className="preflight-summary-item">
-            <span className="preflight-label">Amount:</span>
-            <span className="preflight-value">£{amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}</span>
+          <div className="summary-details">
+            <div className="preflight-summary-item">
+              <span className="preflight-label">Reference:</span>
+              <span className="preflight-value">{instructionRef}</span>
+            </div>
+            <div className="preflight-summary-item">
+              <span className="preflight-label">Total Amount:</span>
+              <span className="preflight-value amount-highlight">
+                £{amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="preflight-summary-item">
+              <span className="preflight-label">Payment Method:</span>
+              <span className="preflight-value">Secure Card Payment</span>
+            </div>
           </div>
         </div>
 
-        {/* Security Indicators */}
+        {/* Enhanced Security Indicators */}
         <div className="preflight-security">
-          <div className="security-indicator">
-            <span className="security-icon">🔒</span>
-            <span>256-bit SSL Encryption</span>
+          <div className="security-header">
+            <span className="security-title">Security & Compliance</span>
           </div>
-          <div className="security-indicator">
-            <span className="security-icon">🛡️</span>
-            <span>PCI DSS Compliant</span>
-          </div>
-          <div className="security-indicator">
-            <span className="security-icon">✅</span>
-            <span>SRA Regulated</span>
+          <div className="security-grid">
+            <div className="security-indicator">
+              <div className="security-text">
+                <span className="security-title">SSL Encryption</span>
+                <span className="security-subtitle">256-bit secure</span>
+              </div>
+            </div>
+            <div className="security-indicator">
+              <span className="security-icon">�</span>
+              <div className="security-text">
+                <span className="security-title">PCI Compliant</span>
+                <span className="security-subtitle">Level 1 certified</span>
+              </div>
+            </div>
+            <div className="security-indicator">
+              <div className="security-text">
+                <span className="security-title">SRA Regulated</span>
+                <span className="security-subtitle">ID: 565557</span>
+              </div>
+            </div>
+            <div className="security-indicator">
+              <div className="security-text">
+                <span className="security-title">Stripe Secure</span>
+                <span className="security-subtitle">Trusted globally</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Trust Message */}
-        <div className="preflight-trust">
-          <p>Your payment is processed securely by Stripe, trusted by millions of businesses worldwide.</p>
-        </div>
-
-        {/* Development Skip Button */}
+        {/* Development Controls */}
         {import.meta.env.DEV && (
-          <button 
-            className="dev-skip-preflight"
-            onClick={onComplete}
-            title="Development only - Skip preflight animation"
-            style={{
-              position: 'fixed',
-              top: '2rem',
-              right: '2rem',
-              background: '#374151',
-              color: 'white',
-              border: '2px dashed #fbbf24',
-              opacity: 1,
-              fontWeight: 'bold',
-              padding: '0.75rem 1rem',
-              borderRadius: '0.375rem',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              zIndex: 1000
-            }}
-          >
-            ⚡ DEV: Skip Preflight
-          </button>
+          <div className="dev-controls">
+            <button 
+              className={`dev-button dev-freeze ${isDevFrozen ? 'frozen' : ''}`}
+              onClick={() => setIsDevFrozen(!isDevFrozen)}
+              title="Freeze/unfreeze preflight for development"
+            >
+              {isDevFrozen ? 'Unfreeze' : 'Freeze'}
+            </button>
+            <button 
+              className="dev-button dev-skip"
+              onClick={onComplete}
+              title="Skip preflight animation"
+            >
+              Skip
+            </button>
+          </div>
         )}
 
       </div>

@@ -4,7 +4,6 @@ import PaymentSummaryMinimal from './PaymentSummaryMinimal';
 import OrderSummaryMinimal from './OrderSummaryMinimal';
 import ModernPaymentForm from './ModernPaymentForm';
 import PaymentReceipt from './PaymentReceipt';
-import PreflightExperience from './PreflightExperience';
 import './premiumCheckout.css';
 
 interface PremiumCheckoutProps {
@@ -52,8 +51,8 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
 
   return (
     <div className="premium-checkout">
-      {/* Step 1: Payment Summary */}
-      {currentStep === 'summary' && (
+      {/* Step 1: Payment Summary with Morphing Preflight */}
+      {(currentStep === 'summary' || currentStep === 'preflight') && (
         <PaymentSummaryMinimal
           dealData={{
             Amount: dealData.Amount || 0,
@@ -61,21 +60,13 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
             InstructionRef: dealData.InstructionRef,
             ProspectId: dealData.ProspectId
           }}
-          instructionRef={instructionRef}
           onProceedToPayment={() => setCurrentStep('preflight')}
+          showPreflight={currentStep === 'preflight'}
+          onPreflightComplete={() => setCurrentStep('payment')}
         />
       )}
 
-      {/* Step 2: Preflight Experience */}
-      {currentStep === 'preflight' && (
-        <PreflightExperience
-          amount={dealData.Amount || 0}
-          instructionRef={instructionRef}
-          onComplete={() => setCurrentStep('payment')}
-        />
-      )}
-
-      {/* Step 3: Main Checkout Flow */}
+      {/* Step 2: Main Checkout Flow */}
       {(currentStep === 'payment' || currentStep === 'processing' || currentStep === 'receipt') && (
         <>
           {/* Order Summary - Direct child of premium-checkout */}

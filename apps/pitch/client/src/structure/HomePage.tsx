@@ -146,21 +146,21 @@ const HomePage: React.FC<HomePageProps> = ({
     companyCity: '',
     companyCounty: '',
     companyPostcode: '',
-    companyCountry: '',
-    companyCountryCode: undefined,
+    companyCountry: 'United Kingdom',
+    companyCountryCode: 'GB',
     title: '',
     titleId: undefined,
     firstName: '',
     lastName: '',
-    nationality: '',
-    nationalityCode: undefined,
+    nationality: 'United Kingdom',
+    nationalityCode: 'GB',
     houseNumber: '',
     street: '',
     city: '',
     county: '',
     postcode: '',
-    country: '',
-    countryCode: undefined,
+    country: 'United Kingdom',
+    countryCode: 'GB',
     dob: '',
     gender: '',
     genderId: undefined,
@@ -698,21 +698,18 @@ const HomePage: React.FC<HomePageProps> = ({
                     }}
                     title="Development only - Skip directly to payment"
                     style={{
-                      background: 'rgba(156, 163, 175, 0.1)',
-                      color: '#6b7280', 
-                      border: '1px solid rgba(156, 163, 175, 0.3)',
-                      padding: '0.5rem',
+                      background: '#059669',
+                      color: 'white', 
+                      border: '2px dashed #fbbf24',
+                      padding: '0.75rem 1rem',
                       borderRadius: '0.375rem',
-                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      fontSize: '0.875rem',
                       cursor: 'pointer',
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                     }}
                   >
-                    💳
+                    💳 Payment
                   </button>
                   <button 
                     type="button"
@@ -727,21 +724,18 @@ const HomePage: React.FC<HomePageProps> = ({
                     }}
                     title="Development only - Skip to documents"
                     style={{
-                      background: 'rgba(156, 163, 175, 0.1)',
-                      color: '#6b7280',
-                      border: '1px solid rgba(156, 163, 175, 0.3)',
-                      padding: '0.5rem',
+                      background: '#7c3aed',
+                      color: 'white',
+                      border: '2px dashed #fbbf24',
+                      padding: '0.75rem 1rem',
                       borderRadius: '0.375rem',
-                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      fontSize: '0.875rem',
                       cursor: 'pointer',
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                     }}
                   >
-                    📄
+                    📄 Documents
                   </button>
                 </div>
               )}
