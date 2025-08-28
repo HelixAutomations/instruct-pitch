@@ -6,7 +6,7 @@ import Footer from './structure/Footer';
 import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
 import PremiumHomePage from './structure/PremiumHomePage';
-import PaymentResult from './structure/PaymentResult';
+import { PaymentResultV2 } from './components/paymentsV2/PaymentResultV2';
 import PremiumSuccessPage from './structure/PremiumSuccessPage';
 import PremiumFailurePage from './structure/PremiumFailurePage';
 import PaymentLayoutTest from './components/PaymentLayoutTest';
@@ -257,7 +257,8 @@ const App: React.FC = () => {
   }, [cidParam, navigate, location.pathname]);
 
   if (location.pathname === '/payment/result') {
-    return <PaymentResult />;
+    // For legacy payment result route, show success result with minimal props
+    return <PaymentResultV2 status="success" />;
   }
 
   // Premium payment success route
