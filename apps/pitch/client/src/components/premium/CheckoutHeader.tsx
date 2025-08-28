@@ -1,4 +1,5 @@
 import React from 'react';
+import { FiMail } from 'react-icons/fi';
 import './CheckoutHeader-clean.css';
 
 interface CheckoutHeaderProps {
@@ -67,7 +68,10 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
           
           <div className="header-support">
             <span className="support-text">Need help?</span>
-            <a href="mailto:support@helix-law.com" className="support-email">support@helix-law.com</a>
+            <a href="mailto:support@helix-law.com" className="support-email support-email-desktop">support@helix-law.com</a>
+            <a href="mailto:support@helix-law.com" className="support-email support-email-mobile" title="Need help? Email us">
+              <FiMail size={20} />
+            </a>
           </div>
         </div>
       </div>

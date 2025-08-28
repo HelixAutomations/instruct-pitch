@@ -101,6 +101,15 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
+/* Show email text by default, hide mobile icon */
+.support-email-desktop {
+  display: block;
+}
+
+.support-email-mobile {
+  display: none;
+}
+
 /* Hero Section */
 .hero-section {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -334,12 +343,21 @@
     height: 32px;
   }
   
-  .header-support {
-    align-items: flex-end;
+  /* Switch to email icon when logo switches to mobile */
+  .support-email-desktop {
+    display: none;
+  }
+  
+  .support-email-mobile {
+    display: block;
   }
   
   .header-support {
     align-items: center;
+    flex-direction: row;
+    justify-content: flex-end;
+    text-align: right;
+    gap: 0.5rem;
   }
   
   .hero-content {

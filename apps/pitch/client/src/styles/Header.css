@@ -25,11 +25,76 @@
   display: block;
 }
 
+/* Show full logo by default, hide mobile icon */
+.logo-desktop {
+  display: block;
+}
+
+.logo-mobile {
+  display: none;
+}
+
+.header-support {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.support-text {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  display: block;
+}
+
+/* Show contact text by default, hide mobile icon */
+.contact-btn-desktop {
+  display: inline-flex;
+}
+
+.contact-btn-mobile {
+  display: none;
+}
+
 .contact-btn.btn.primary {
   padding: 0.45rem 1.1rem;
   line-height: 1.2;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   opacity: 1 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 1rem 1rem;
+  }
+  
+  /* Switch to icon-only logo when header wraps */
+  .logo-desktop {
+    display: none;
+  }
+  
+  .logo-mobile {
+    display: block;
+  }
+  
+  .logo img {
+    height: 32px;
+  }
+  
+  /* Switch to email icon when logo switches to mobile */
+  .contact-btn-desktop {
+    display: none;
+  }
+  
+  .contact-btn-mobile {
+    display: inline-flex;
+  }
+  
+  .header-support {
+    align-items: center;
+    justify-content: flex-end;
+    text-align: right;
+  }
 }

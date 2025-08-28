@@ -242,6 +242,7 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
               <PreflightExperience
                 amount={totalAmount}
                 instructionRef={dealData.InstructionRef || 'Unknown'}
+                serviceDescription={dealData.ServiceDescription}
                 onComplete={onPreflightComplete || (() => {})}
                 isVisible={true}
               />

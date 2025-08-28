@@ -20,6 +20,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   showHelp = false,
 }) => {
   const [loaded, setLoaded] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setLoaded(true), 10);
@@ -37,6 +38,32 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
     }
   }, [loaded, onAnimationEnd]);
 
+  const handleCopyRef = async () => {
+    if (!instructionRef) return;
+    
+    try {
+      await navigator.clipboard.writeText(instructionRef);
+      setCopied(true);
+      // Reset copied state after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy instruction reference:', err);
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = instructionRef;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed:', fallbackErr);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   return (
     <div className="client-hero">
       <div className={`client-hero-inner center${loaded ? ' loaded' : ''}`}>
@@ -52,7 +79,12 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
             {stage}
           </span>
           {confirmed && (
-            <span className="hero-line hero-ref">
+            <span 
+              className={`hero-line hero-ref ${copied ? 'copied' : ''}`}
+              onClick={handleCopyRef}
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+              title="Click to copy reference"
+            >
               <span className="completion-tick visible">
                 <svg viewBox="0 0 24 24">
                   <polyline
@@ -64,9 +96,9 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
                     strokeLinejoin="round"
                   />
                 </svg>
-
               </span>
-              {instructionRef}
+              <span className="ref-text">{instructionRef}</span>
+              {copied && <span className="copy-feedback">Copied!</span>}
             </span>
           )}
         </div>

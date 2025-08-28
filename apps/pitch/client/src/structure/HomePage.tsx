@@ -120,17 +120,30 @@ const HomePage: React.FC<HomePageProps> = ({
   const getCurrentStepIndex = () => checkoutSteps.findIndex(s => s.key === currentCheckoutStep);
   const nextStep = () => {
     const idx = getCurrentStepIndex();
-    if (idx < checkoutSteps.length - 1) updateCurrentStep(checkoutSteps[idx + 1].key);
+    if (idx < checkoutSteps.length - 1) {
+      updateCurrentStep(checkoutSteps[idx + 1].key);
+      // Scroll to top of form area after step change
+      setTimeout(() => {
+        scrollIntoViewIfNeeded(stepContentRef.current, 20);
+      }, 100);
+    }
   };
   const prevStep = () => {
     const idx = getCurrentStepIndex();
     if (idx > 0) updateCurrentStep(checkoutSteps[idx - 1].key);
   };
-  const goToStep = (stepKey: 'identity' | 'documents' | 'payment') => updateCurrentStep(stepKey);
+  const goToStep = (stepKey: 'identity' | 'documents' | 'payment') => {
+    updateCurrentStep(stepKey);
+    // Scroll to top of form area after step change
+    setTimeout(() => {
+      scrollIntoViewIfNeeded(stepContentRef.current, 20);
+    }, 100);
+  };
 
   useEffect(() => { if (onGreetingChange) onGreetingChange(null); }, [onGreetingChange]);
 
   const step1Ref = useRef<HTMLDivElement>(null);
+  const stepContentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     // Steps are always visible in the new layout
   }, []);
@@ -631,6 +644,7 @@ const HomePage: React.FC<HomePageProps> = ({
       )}
 
       {/* Step Content */}
+      <div ref={stepContentRef}>
         {/* Identity Verification */}
         {currentCheckoutStep === 'identity' && (
           <>
@@ -849,6 +863,7 @@ const HomePage: React.FC<HomePageProps> = ({
           </div>
         </div>
       )}
+      </div>
     </>
   );
 };
