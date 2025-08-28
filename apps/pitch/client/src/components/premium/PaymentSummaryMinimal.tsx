@@ -8,6 +8,10 @@ interface PaymentSummaryMinimalProps {
     ServiceDescription: string;
     InstructionRef?: string;
     ProspectId?: number;
+    SolicitorName?: string;
+    SolicitorTitle?: string;
+    SolicitorEmail?: string;
+    SolicitorPhone?: string;
   };
   onProceedToPayment: () => void;
   serviceFeatures?: string[]; // Optional array of service features from fee earner selections
@@ -42,6 +46,12 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
   // Use provided features or fallback to defaults
   const features = serviceFeatures && serviceFeatures.length > 0 ? serviceFeatures : defaultFeatures;
 
+  // Solicitor information with fallbacks
+  const solicitorName = dealData.SolicitorName || 'Jamie Smith';
+  const solicitorTitle = dealData.SolicitorTitle || 'Senior Associate Solicitor';
+  const solicitorEmail = dealData.SolicitorEmail || 'jamie.smith@helix-law.com';
+  const solicitorPhone = dealData.SolicitorPhone || '0345 314 2044';
+
   // Format currency
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -62,11 +72,25 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
       </div>
 
       <div className="receipt-content">
-        {/* Service Card with Editable Amount */}
+        {showPreflight && (
+          <div className="pricing-summary">
+            <div className="morph-container preflight-mode">
+              <PreflightExperience
+                amount={totalAmount}
+                instructionRef={dealData.InstructionRef || 'Unknown'}
+                serviceDescription="Payment on Account of Costs"
+                onComplete={onPreflightComplete || (() => {})}
+                isVisible={true}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Service Card with Editable Amount and Price Breakdown */}
         <div className="service-card">
           <div className="service-header">
             <div className="service-details">
-              <h2 className="service-name">{dealData.ServiceDescription}</h2>
+              <h2 className="service-name">Payment on Account of Costs</h2>
             </div>
           </div>
           
@@ -135,23 +159,49 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
                 <span className="original-amount">Original estimate: {formatAmount(dealData.Amount)}</span>
               </div>
             )}
+
+            {/* Price Breakdown within Service Card */}
+            {!showPreflight && (
+              <div className="price-breakdown-card">
+                <div className="price-line">
+                  <span className="price-label">Subtotal</span>
+                  <span className="price-value">{formatAmount(subtotal)}</span>
+                </div>
+                <div className="price-line vat-line">
+                  <span className="price-label">VAT (20%)</span>
+                  <span className="price-value">{formatAmount(vatAmount)}</span>
+                </div>
+                <div className="price-line total-line">
+                  <span className="price-label">Total</span>
+                  <span className="price-value total-amount">{formatAmount(totalAmount)}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Solicitor Card */}
+        {/* Proceed Button */}
+        <button 
+          className="proceed-button-minimal"
+          onClick={onProceedToPayment}
+        >
+          <div className="button-content">
+            <span className="button-text">Proceed to Payment</span>
+            <span className="button-amount">{formatAmount(totalAmount)}</span>
+          </div>
+          <div className="button-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" fill="currentColor"/>
+            </svg>
+          </div>
+        </button>        {/* Solicitor Card */}
         <div className="solicitor-card">
           <div className="solicitor-header">
             <div className="solicitor-avatar">
               <img 
-                src="/assets/solicitor-placeholder.jpg" 
-                alt="Your Solicitor"
-                style={{ display: 'none' }}
-                onError={(e) => {
-                  // Fallback to person icon if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
+                src="/assets/dark blue mark.svg" 
+                alt="Helix Law"
+                className="solicitor-logo"
               />
               <div className="solicitor-person-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -161,8 +211,8 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
               </div>
             </div>
             <div className="solicitor-info">
-              <h3 className="solicitor-name">Jamie Smith</h3>
-              <p className="solicitor-title">Senior Associate Solicitor</p>
+              <h3 className="solicitor-name">{solicitorName}</h3>
+              <p className="solicitor-title">{solicitorTitle}</p>
               <div className="solicitor-qualifications">
                 <span className="qualification-badge">LLB (Hons)</span>
                 <span className="qualification-badge">SRA Qualified</span>
@@ -184,19 +234,19 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
             </div>
             
             <div className="contact-methods">
-              <div className="contact-item">
+              <a href={`mailto:${solicitorEmail}`} className="contact-item">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" fill="none"/>
                   <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
                 </svg>
-                <span>jamie.smith@helixlaw.co.uk</span>
-              </div>
-              <div className="contact-item">
+                <span>{solicitorEmail}</span>
+              </a>
+              <a href={`tel:${solicitorPhone.replace(/\s/g, '')}`} className="contact-item">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" strokeWidth="2" fill="none"/>
                 </svg>
-                <span>+44 (0) 20 7946 0958</span>
-              </div>
+                <span>{solicitorPhone}</span>
+              </a>
             </div>
           </div>
         </div>
@@ -217,54 +267,6 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
             ))}
           </div>
         </div>
-
-        {/* Enhanced Pricing Summary with Morphing Container */}
-        <div className="pricing-summary">
-          <div className={`morph-container ${showPreflight ? 'preflight-mode' : ''}`}>
-            {!showPreflight && (
-              <div className="price-breakdown">
-                <div className="price-line">
-                  <span className="price-label">Subtotal</span>
-                  <span className="price-value">{formatAmount(subtotal)}</span>
-                </div>
-                <div className="price-line vat-line">
-                  <span className="price-label">VAT (20%)</span>
-                  <span className="price-value">{formatAmount(vatAmount)}</span>
-                </div>
-                <div className="price-line total-line">
-                  <span className="price-label">Total</span>
-                  <span className="price-value total-amount">{formatAmount(totalAmount)}</span>
-                </div>
-              </div>
-            )}
-            
-            {showPreflight && (
-              <PreflightExperience
-                amount={totalAmount}
-                instructionRef={dealData.InstructionRef || 'Unknown'}
-                serviceDescription={dealData.ServiceDescription}
-                onComplete={onPreflightComplete || (() => {})}
-                isVisible={true}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Enhanced Proceed Button */}
-        <button 
-          className="proceed-button-minimal"
-          onClick={onProceedToPayment}
-        >
-          <div className="button-content">
-            <span className="button-text">Proceed to Payment</span>
-            <span className="button-amount">{formatAmount(totalAmount)}</span>
-          </div>
-          <div className="button-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" fill="currentColor"/>
-            </svg>
-          </div>
-        </button>
 
         {/* Trust Signals */}
         <div className="trust-section">
@@ -290,9 +292,6 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
             <strong>Helix Law Limited</strong> • SRA ID: 565557
           </div>
           <div className="security-notice">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M6 0.75a1.5 1.5 0 011.5 1.5v.75h.75a.75.75 0 01.75.75v6a.75.75 0 01-.75.75h-4.5A.75.75 0 012.25 9V3a.75.75 0 01.75-.75H3.75V2.25A1.5 1.5 0 016 .75z" fill="currentColor"/>
-            </svg>
             Secure payment processing • Data protection guaranteed
           </div>
         </div>

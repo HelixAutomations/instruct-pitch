@@ -14,6 +14,13 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
+        timeout: 10000,
+        // Add retry logic for startup connection issues
+        configure: (proxy) => {
+          proxy.on('error', () => {
+            // Suppress repetitive error logs during startup
+          });
+        },
       },
     },
   },

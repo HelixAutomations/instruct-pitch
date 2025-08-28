@@ -39,7 +39,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
         };
       case 'payment':
         return {
-          title: 'Pay',
+          title: 'Pay Helix Law Ltd',
           description: 'Secure payment processing for your legal services. Your matter will be opened immediately upon payment completion.',
           classification: 'Client Account',
           urgency: 'Immediate Processing'

@@ -102,7 +102,7 @@
   gap: 0.75rem;
   position: relative;
   z-index: 1;
-  margin-bottom: 24px;
+  margin-bottom: 6px;
 }
 
 .service-details {
@@ -563,6 +563,96 @@
   margin-bottom: 2.5rem;
   border: 1px solid #e2e8f0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Top Priority Sections - Enhanced visibility */
+.top-priority {
+  position: relative;
+  z-index: 10;
+}
+
+.top-priority .pricing-summary {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.top-priority .cta-button {
+  margin-top: 1.5rem;
+  margin-bottom: 2.5rem;
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(123, 187, 125, 0.25);
+}
+
+/* Order Details Section */
+.order-details {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.order-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.order-item {
+  padding: 0.75rem 0;
+}
+
+.order-description {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Price Breakdown within Service Card */
+.price-breakdown-card {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.price-breakdown-card .price-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.price-breakdown-card .price-line:last-child {
+  margin-bottom: 0;
+}
+
+.price-breakdown-card .price-line.vat-line {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.price-breakdown-card .price-line.total-line {
+  padding-top: 0.75rem;
+  border-top: 2px solid #e2e8f0;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: #0f172a;
+}
+
+.price-breakdown-card .price-label {
+  font-weight: 500;
+}
+
+.price-breakdown-card .price-value {
+  font-weight: 600;
+  color: #0f172a;
 }
 
 .price-breakdown {
@@ -1216,18 +1306,20 @@
   transition: all 0.3s ease;
 }
 
-.solicitor-avatar img {
+.solicitor-avatar .solicitor-logo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+  object-fit: contain;
+  padding: 8px;
+  transition: opacity 0.3s ease;
+  opacity: 1;
 }
 
-.solicitor-avatar:hover img {
-  transform: scale(1.05);
+.solicitor-card:hover .solicitor-logo {
+  opacity: 0;
 }
 
-.solicitor-avatar:hover {
+.solicitor-card:hover .solicitor-avatar {
   border-color: #3690CE;
   box-shadow: 0 4px 12px rgba(54, 144, 206, 0.2);
 }
@@ -1240,14 +1332,16 @@
   justify-content: center;
   color: #6b7280;
   transition: all 0.3s ease;
+  opacity: 0;
 }
 
 .solicitor-person-icon.hidden {
   display: none;
 }
 
-.solicitor-avatar:hover .solicitor-person-icon {
+.solicitor-card:hover .solicitor-person-icon {
   color: #3690CE;
+  opacity: 1;
 }
 
 .solicitor-info {
@@ -1350,7 +1444,8 @@
 
 .contact-methods {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -1363,6 +1458,11 @@
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   transition: all 0.3s ease;
+  flex: 1;
+  min-width: 200px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .contact-item:hover {
@@ -1382,7 +1482,7 @@
 
 .contact-item:hover .contact-icon {
   transform: scale(1.1);
-  color: #2563eb;
+  color: #D65541;
 }
 
 .contact-item span {

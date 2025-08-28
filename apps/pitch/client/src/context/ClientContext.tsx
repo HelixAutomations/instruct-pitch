@@ -7,6 +7,10 @@ interface DealData {
   ServiceDescription?: string;
   Amount?: number;
   Currency?: string;
+  SolicitorName?: string;
+  SolicitorTitle?: string;
+  SolicitorEmail?: string;
+  SolicitorPhone?: string;
 }
 
 interface ClientData {

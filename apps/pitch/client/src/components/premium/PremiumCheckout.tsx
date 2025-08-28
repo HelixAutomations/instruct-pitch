@@ -58,7 +58,11 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
             Amount: dealData.Amount || 0,
             ServiceDescription: dealData.ServiceDescription || 'Legal Services',
             InstructionRef: dealData.InstructionRef,
-            ProspectId: dealData.ProspectId
+            ProspectId: dealData.ProspectId,
+            SolicitorName: dealData.SolicitorName,
+            SolicitorTitle: dealData.SolicitorTitle,
+            SolicitorEmail: dealData.SolicitorEmail,
+            SolicitorPhone: dealData.SolicitorPhone
           }}
           onProceedToPayment={() => setCurrentStep('preflight')}
           showPreflight={currentStep === 'preflight'}

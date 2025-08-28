@@ -10,7 +10,18 @@ let express;
 try {
   express = require('express');
 } catch (err) {
-  startupError = `Critical dependency missing: express (${err.message})`;
+  startupError = `Critical dependency missing: expres})().finally(() => {
+  // Start listening only after async initialization is complete
+  startListening();
+});
+
+// ─── Payment Integration - Prepared for Stripe ────────────────────────
+// TODO: Add Stripe payment endpoints here
+// - POST /pitch/create-payment-intent
+// - POST /pitch/confirm-payment-intent
+// - POST /pitch/webhook/stripe
+
+// ─── Instruction handlers ─────────────────────────────────────────────message})`;
   console.error(startupError);
   // Minimal express stub so iisnode returns a helpful message instead of 500.1001
   express = function () {
@@ -410,7 +421,10 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
     console.error('❌ Failed to load secrets from Key Vault — starting server without them:', err && err.message);
     // Do not crash the process; start the server and allow runtime paths to handle missing secrets.
   }
-})();
+})().finally(() => {
+  // Start listening only after async initialization is complete
+  startListening();
+});
 
 // ─── Payment Integration - Prepared for Stripe ────────────────────────
 // TODO: Add Stripe payment endpoints here
@@ -995,4 +1009,4 @@ function startListening() {
   }
 }
 
-startListening();
+// Server listening is now handled in the async initialization block above

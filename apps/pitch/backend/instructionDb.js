@@ -1,6 +1,56 @@
 const sql = require('mssql')
 const { getSqlPool } = require('./sqlClient')
 
+// Solicitor mapping based on PitchedBy field - looks up team member by initials
+async function getSolicitorInfo(pitchedBy) {
+  if (!pitchedBy) {
+    return {
+      SolicitorName: 'Support Team',
+      SolicitorTitle: 'Litigation Team',
+      SolicitorEmail: 'support@helix-law.com',
+      SolicitorPhone: '0345 314 2044'
+    };
+  }
+
+  try {
+    const pool = await getSqlPool();
+    const result = await pool.request()
+      .input('initials', sql.NVarChar(10), pitchedBy)
+      .query(`
+        SELECT [Full Name] as FullName, [Email] as Email
+        FROM [dbo].[team] 
+        WHERE [Initials] = @initials
+      `);
+
+    if (result.recordset.length > 0) {
+      const teamMember = result.recordset[0];
+      return {
+        SolicitorName: teamMember.FullName || 'Team Member',
+        SolicitorTitle: 'Solicitor',
+        SolicitorEmail: teamMember.Email || 'support@helix-law.com',
+        SolicitorPhone: '0345 314 2044' // Default phone as not in team table
+      };
+    } else {
+      // Fallback if initials not found
+      return {
+        SolicitorName: 'Support Team',
+        SolicitorTitle: 'Litigation Team',
+        SolicitorEmail: 'support@helix-law.com',
+        SolicitorPhone: '0345 314 2044'
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching solicitor info:', error);
+    // Return fallback on error
+    return {
+      SolicitorName: 'Support Team',
+      SolicitorTitle: 'Litigation Team',
+      SolicitorEmail: 'support@helix-law.com',
+      SolicitorPhone: '0345 314 2044'
+    };
+  }
+}
+
 async function getInstruction(ref) {
   const pool = await getSqlPool()
   const result = await pool.request()
@@ -55,13 +105,21 @@ async function getDealByPasscodeIncludingLinked(passcode, prospectId) {
   }
   const wherePid = prospectId != null ? 'AND ProspectId = @pid' : ''
   const result = await request.query(`
-      SELECT TOP 1 DealId, ProspectId, InstructionRef, ServiceDescription, Amount, AreaOfWork
+      SELECT TOP 1 DealId, ProspectId, InstructionRef, ServiceDescription, Amount, AreaOfWork, PitchedBy
       FROM Deals
       WHERE Passcode = @code ${wherePid}
         AND (UPPER(Status) <> 'CLOSED' OR InstructionRef IS NOT NULL)
       ORDER BY DealId DESC
     `)
-  return result.recordset[0]
+  
+  const deal = result.recordset[0];
+  if (deal && deal.PitchedBy) {
+    // Add solicitor information based on who pitched the deal
+    const solicitorInfo = await getSolicitorInfo(deal.PitchedBy);
+    Object.assign(deal, solicitorInfo);
+  }
+  
+  return deal;
 }
 
 // Lookup a deal by ProspectId (useful when the route contains the ProspectId)
@@ -70,13 +128,21 @@ async function getDealByProspectId(prospectId) {
   const result = await pool.request()
     .input('pid', sql.Int, prospectId)
     .query(`
-      SELECT TOP 1 DealId, ProspectId, Passcode, InstructionRef, ServiceDescription, Amount, AreaOfWork
+      SELECT TOP 1 DealId, ProspectId, Passcode, InstructionRef, ServiceDescription, Amount, AreaOfWork, PitchedBy
       FROM Deals
       WHERE ProspectId = @pid
         AND UPPER(Status) <> 'CLOSED'
       ORDER BY DealId DESC
     `)
-  return result.recordset[0]
+  
+  const deal = result.recordset[0];
+  if (deal && deal.PitchedBy) {
+    // Add solicitor information based on who pitched the deal
+    const solicitorInfo = await getSolicitorInfo(deal.PitchedBy);
+    Object.assign(deal, solicitorInfo);
+  }
+  
+  return deal;
 }
 
 // Given a passcode, return the existing InstructionRef on the matching deal

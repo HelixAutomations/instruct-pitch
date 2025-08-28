@@ -113,7 +113,7 @@
 /* Hero Section */
 .hero-section {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  padding: 2rem 0;
+  padding: 1.5rem 0;
   border-bottom: 1px solid var(--gray-200);
 }
 
@@ -128,7 +128,7 @@
 .hero-main {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 /* Integrated Progress Indicator */
@@ -176,12 +176,12 @@
 }
 
 .hero-title {
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--helix-navy);
   margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .hero-description {

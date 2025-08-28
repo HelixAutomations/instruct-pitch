@@ -59,7 +59,11 @@ async function start() {
   }
 
   console.log('Starting client (vite)...');
-  procs.client = run('npm', ['run', 'dev'], { cwd: clientDir });
+  
+  // Give backend a moment to fully initialize before starting client
+  setTimeout(() => {
+    procs.client = run('npm', ['run', 'dev'], { cwd: clientDir });
+  }, 2000);
 
   if (await isPortListening(3000)) {
     console.log('Backend port 3000 already in use – assuming backend running; skipping spawn.');
