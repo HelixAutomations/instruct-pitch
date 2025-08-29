@@ -17,10 +17,9 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isDevFrozen, setIsDevFrozen] = useState(false);
-  const [showExpanded, setShowExpanded] = useState(false); // Start collapsed for proper morph
+  const [showExpanded, setShowExpanded] = useState(true); // Start expanded to avoid flicker
 
-  // Define steps outside of render to avoid dependency issues
-  const steps = React.useMemo(() => [
+  const steps = [
     {
       title: "Initializing Session",
       description: "Establishing secure connection",
@@ -36,15 +35,10 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
       description: "Preparing secure interface",
       duration: 600
     }
-  ], []);
+  ];
 
   useEffect(() => {
     if (!isVisible) return;
-
-    // Start the morph animation immediately
-    const morphTimeout = setTimeout(() => {
-      setShowExpanded(true);
-    }, 100);
 
     // Development keyboard controls
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -60,13 +54,13 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
 
     document.addEventListener('keydown', handleKeyPress);
 
-    let stepTimeout: number;
+    let timeoutId: number;
     let progressInterval: number;
 
     const runStep = (stepIndex: number) => {
       if (isDevFrozen || stepIndex >= steps.length) {
         if (stepIndex >= steps.length) {
-          setTimeout(() => onComplete(), 500);
+          setTimeout(() => onComplete(), 400);
         }
         return;
       }
@@ -74,44 +68,38 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
       setCurrentStep(stepIndex);
       const step = steps[stepIndex];
       
-      // Simple progress animation
+      // Smooth progress animation
       let stepProgress = 0;
       const startProgress = (stepIndex / steps.length) * 100;
       const stepWidth = 100 / steps.length;
-      const incrementSize = 2; // Larger increments for smoother animation
-      const intervalTime = step.duration / (100 / incrementSize);
       
       progressInterval = setInterval(() => {
         if (isDevFrozen) return;
         
-        stepProgress += incrementSize;
+        stepProgress += 1.5;
         const currentProgress = startProgress + (stepProgress / 100) * stepWidth;
         setProgress(Math.min(currentProgress, (stepIndex + 1) / steps.length * 100));
         
         if (stepProgress >= 100) {
           clearInterval(progressInterval);
-          stepTimeout = setTimeout(() => runStep(stepIndex + 1), 300);
+          timeoutId = setTimeout(() => runStep(stepIndex + 1), 200);
         }
-      }, intervalTime);
+      }, step.duration / 100);
     };
 
-    // Start the preflight sequence after morph begins
     if (!isDevFrozen) {
-      stepTimeout = setTimeout(() => runStep(0), 1200); // Wait for morph to settle
+      timeoutId = setTimeout(() => runStep(0), 800);
     }
 
     return () => {
-      clearTimeout(morphTimeout);
-      clearTimeout(stepTimeout);
+      clearTimeout(timeoutId);
       clearInterval(progressInterval);
       document.removeEventListener('keydown', handleKeyPress);
     };
   }, [isVisible, isDevFrozen, onComplete, steps]);
 
-  // The amount prop is already the total including VAT
-  const totalAmount = amount;
-  const subtotal = totalAmount / 1.2; // Reverse calculate the pre-VAT amount
-  const vatAmount = totalAmount - subtotal;
+  const vatAmount = amount * 0.2;
+  const totalAmount = amount + vatAmount;
 
   const formatAmount = (value: number): string => {
     return new Intl.NumberFormat('en-GB', {
@@ -158,7 +146,7 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
             
             <div className="amount-section">
               <div className="amount-display">
-                <span className="amount-value">{formatAmount(totalAmount)}</span>
+                <span className="amount-value">{formatAmount(amount)}</span>
                 <button className="edit-amount-btn" type="button">
                   <span className="edit-icon">✏️</span>
                   Edit amount
@@ -173,7 +161,7 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
             <div className="breakdown-section">
               <div className="breakdown-row">
                 <span className="breakdown-label">Subtotal</span>
-                <span className="breakdown-value">{formatAmount(subtotal)}</span>
+                <span className="breakdown-value">{formatAmount(amount)}</span>
               </div>
               <div className="breakdown-row">
                 <span className="breakdown-label">VAT (20%)</span>
@@ -192,8 +180,8 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
             {/* Status Section */}
             <div className="status-section">
               <div className="status-header">
-                <h2 className="status-title">{steps[currentStep]?.title || "Loading..."}</h2>
-                <p className="status-subtitle">{steps[currentStep]?.description || "Please wait..."}</p>
+                <h2 className="status-title">Verifying Details</h2>
+                <p className="status-subtitle">Confirming instruction parameters</p>
               </div>
               
               <div className="progress-section">
@@ -204,7 +192,7 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
                   />
                 </div>
                 <div className="progress-info">
-                  <span className="progress-text">{Math.round(progress)}% • STEP {Math.min(currentStep + 1, steps.length)} OF {steps.length}</span>
+                  <span className="progress-text">{Math.round(progress)}% • STEP {currentStep + 1} OF {steps.length}</span>
                 </div>
               </div>
             </div>
