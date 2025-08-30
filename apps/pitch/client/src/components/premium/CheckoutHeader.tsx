@@ -19,56 +19,6 @@ interface CheckoutHeaderProps {
 }
 
 /**
- * Matter Opening Animation Component
- */
-const MatterOpeningAnimation: React.FC<{ isVisible: boolean }> = ({ isVisible }) => {
-  if (!isVisible) return null;
-  
-  return (
-    <div style={{
-      padding: 'clamp(16px, 4vw, 20px)',
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-      borderRadius: '8px',
-      border: '1px solid #bbf7d0',
-      marginBottom: 'clamp(16px, 4vw, 20px)',
-      textAlign: 'center'
-    }}>
-      <div style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '12px',
-        fontSize: 'clamp(14px, 3.5vw, 16px)',
-        fontWeight: '600',
-        color: '#16a34a'
-      }}>
-        <div style={{
-          width: '24px',
-          height: '24px',
-          background: '#16a34a',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          animation: 'pulse 2s infinite'
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-            <polyline points="9,11 12,14 22,4" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
-        Matter Opening in Progress...
-      </div>
-      <div style={{
-        fontSize: 'clamp(12px, 3vw, 13px)',
-        color: '#15803d',
-        marginTop: '4px'
-      }}>
-        We will be in touch shortly to confirm your matter details.
-      </div>
-    </div>
-  );
-};
-
-/**
  * Elite litigation-grade checkout header - Premium professional design
  * Completely redesigned for sophisticated legal services presentation
  */
@@ -81,15 +31,12 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
   showMatterAnimation = false,
 }) => {
   const [progressAnimation, setProgressAnimation] = useState(0);
-  const [showCompletionBadge, setShowCompletionBadge] = useState(false);
 
   // Animate progress bar completion for the complete step
   useEffect(() => {
     if (currentStep === 'complete') {
       // Animate to 100% first
       setTimeout(() => setProgressAnimation(100), 200);
-      // Then show completion badge
-      setTimeout(() => setShowCompletionBadge(true), 800);
     } else {
       setProgressAnimation(((currentIndex + 1) / steps.length) * 100);
     }
@@ -213,26 +160,6 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                     transition: currentStep === 'complete' ? 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)' : 'width 0.3s ease'
                   }}
                 />
-                {showCompletionBadge && (
-                  <div style={{
-                    position: 'absolute',
-                    right: '8px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: '#16a34a',
-                    borderRadius: '50%',
-                    width: '20px',
-                    height: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    animation: 'completionBadge 0.5s ease-out'
-                  }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                      <polyline points="9,11 12,14 22,4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                )}
               </div>
             </div>
             <h1 className="hero-title">{stepContent.title}</h1>
@@ -244,214 +171,114 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
               </div>
             )}
             
-            {/* Amalgamated Completion Status - Integrated into Hero */}
+            {/* Compact Completion Status - Seamlessly Integrated */}
             {currentStep === 'complete' && completionStatus && (
-              <div style={{ marginTop: 'clamp(24px, 6vw, 32px)' }}>
-                {/* Matter Opening Animation */}
-                {showMatterAnimation && <MatterOpeningAnimation isVisible={showMatterAnimation} />}
-                
-                {/* Redesigned Completion Dashboard */}
-                <div style={{ 
-                  marginTop: showMatterAnimation ? 'clamp(20px, 5vw, 24px)' : '12px',
-                  padding: 'clamp(16px, 4vw, 20px)',
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
-                  borderRadius: '12px',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+              <>
+                {/* Compact Status Indicators */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  marginTop: '16px',
+                  padding: '8px 16px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: '24px',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
                 }}>
-                  {/* Header Row */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '16px'
-                  }}>
-                    <h4 style={{
-                      margin: '0',
-                      fontSize: 'clamp(14px, 3.5vw, 16px)',
-                      fontWeight: '600',
-                      color: 'rgba(255, 255, 255, 0.95)',
-                      letterSpacing: '-0.01em'
-                    }}>
-                      Instruction Complete
-                    </h4>
+                  {/* Identity */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <div style={{
-                      padding: '4px 12px',
-                      background: '#7DBB7D',
-                      borderRadius: '20px',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: completionStatus.identityVerified ? '#7DBB7D' : '#e2e8f0'
+                    }} />
+                    <span style={{
                       fontSize: '11px',
-                      fontWeight: '600',
-                      color: 'white',
+                      color: '#475569',
+                      fontWeight: '500',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      CONFIRMED
-                    </div>
+                      ID
+                    </span>
                   </div>
-
-                  {/* Status Grid */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                    gap: 'clamp(12px, 3vw, 16px)',
-                    marginBottom: '16px'
-                  }}>
-                    {/* Identity Card */}
+                  
+                  {/* Payment */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <div style={{
-                      padding: '12px',
-                      background: completionStatus.identityVerified 
-                        ? 'rgba(125, 187, 125, 0.15)' 
-                        : 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '8px',
-                      border: `1px solid ${completionStatus.identityVerified ? 'rgba(125, 187, 125, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      transition: 'all 0.3s ease'
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: completionStatus.paymentCompleted ? '#7DBB7D' : '#e2e8f0'
+                    }} />
+                    <span style={{
+                      fontSize: '11px',
+                      color: '#475569',
+                      fontWeight: '500',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <div style={{
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '50%',
-                          background: completionStatus.identityVerified ? '#7DBB7D' : 'rgba(255, 255, 255, 0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          {completionStatus.identityVerified && (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                              <polyline points="9,11 12,14 22,4" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                        <span style={{
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          color: completionStatus.identityVerified ? '#7DBB7D' : 'rgba(255, 255, 255, 0.7)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                          {completionStatus.identityVerified ? 'VERIFIED' : 'PENDING'}
-                        </span>
-                      </div>
-                      <div style={{
-                        fontSize: '13px',
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        fontWeight: '400'
-                      }}>
-                        Identity Check
-                      </div>
-                    </div>
-
-                    {/* Documents Card */}
-                    <div style={{
-                      padding: '12px',
-                      background: completionStatus.documentsUploaded 
-                        ? 'rgba(125, 187, 125, 0.15)' 
-                        : 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '8px',
-                      border: `1px solid ${completionStatus.documentsUploaded ? 'rgba(125, 187, 125, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      transition: 'all 0.3s ease'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <div style={{
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '50%',
-                          background: completionStatus.documentsUploaded ? '#7DBB7D' : 'rgba(255, 255, 255, 0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          {completionStatus.documentsUploaded && (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                              <polyline points="9,11 12,14 22,4" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                        <span style={{
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          color: completionStatus.documentsUploaded ? '#7DBB7D' : 'rgba(255, 255, 255, 0.7)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                          {completionStatus.documentsUploaded ? 'SECURED' : 'PENDING'}
-                        </span>
-                      </div>
-                      <div style={{
-                        fontSize: '13px',
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        fontWeight: '400'
-                      }}>
-                        Documentation
-                      </div>
-                    </div>
-
-                    {/* Payment Card */}
-                    <div style={{
-                      padding: '12px',
-                      background: completionStatus.paymentCompleted 
-                        ? 'rgba(125, 187, 125, 0.15)' 
-                        : 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '8px',
-                      border: `1px solid ${completionStatus.paymentCompleted ? 'rgba(125, 187, 125, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      transition: 'all 0.3s ease'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <div style={{
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '50%',
-                          background: completionStatus.paymentCompleted ? '#7DBB7D' : 'rgba(255, 255, 255, 0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          {completionStatus.paymentCompleted && (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                              <polyline points="9,11 12,14 22,4" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                        <span style={{
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          color: completionStatus.paymentCompleted ? '#7DBB7D' : 'rgba(255, 255, 255, 0.7)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                          {completionStatus.paymentCompleted ? 'PROCESSED' : 'PENDING'}
-                        </span>
-                      </div>
-                      <div style={{
-                        fontSize: '13px',
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        fontWeight: '400'
-                      }}>
-                        Payment
-                      </div>
-                    </div>
+                      PAID
+                    </span>
                   </div>
-
-                  {/* Footer Message */}
-                  <div style={{
-                    padding: '12px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)'
-                  }}>
-                    <p style={{
-                      margin: '0',
-                      fontSize: '12px',
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      lineHeight: '1.4',
-                      textAlign: 'center'
+                  
+                  {/* Documents */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: completionStatus.documentsUploaded ? '#7DBB7D' : '#e2e8f0'
+                    }} />
+                    <span style={{
+                      fontSize: '11px',
+                      color: '#475569',
+                      fontWeight: '500',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
                     }}>
-                      We will be in touch shortly to confirm your matter details.
-                    </p>
+                      DOCS
+                    </span>
+                  </div>
+                  
+                  {/* Matter Opening */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#7DBB7D'
+                    }} />
+                    <span style={{
+                      fontSize: '11px',
+                      color: '#475569',
+                      fontWeight: '500',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      MATTER
+                    </span>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  <div style={{
+                    marginLeft: '8px',
+                    padding: '3px 8px',
+                    background: '#7DBB7D',
+                    borderRadius: '12px',
+                    fontSize: '10px',
+                    fontWeight: '600',
+                    color: 'white',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    COMPLETE
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>

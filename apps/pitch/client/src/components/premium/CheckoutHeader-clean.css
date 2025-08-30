@@ -43,7 +43,7 @@
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 clamp(1.5rem, 4vw, 2rem); /* Responsive padding for all screen sizes */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -120,7 +120,7 @@
 .hero-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 clamp(1.5rem, 4vw, 2rem); /* Responsive padding for all screen sizes */
   display: block;
   align-items: center;
 }
@@ -328,6 +328,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
+    padding: 0 clamp(1rem, 4vw, 2rem); /* Responsive padding for mobile */
   }
   
   /* Switch to icon-only logo when header wraps */
@@ -363,6 +364,7 @@
   .hero-content {
     gap: 2rem;
     text-align: left;
+    padding: 0 clamp(1rem, 4vw, 2rem); /* Match header responsive padding */
   }
   
   .hero-main {
@@ -419,7 +421,7 @@
   }
   
   .timeline-footer {
-    padding: 0 2rem 1rem 2rem; /* Reduced bottom padding since no labels */
+    padding: 0 clamp(1rem, 4vw, 2rem) 1rem clamp(1rem, 4vw, 2rem); /* Responsive mobile padding */
     min-height: auto; /* Allow height to shrink without labels */
   }
   
