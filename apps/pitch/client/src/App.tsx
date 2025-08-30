@@ -7,10 +7,11 @@ import IDAuth from './structure/IDAuth';
 import HomePage from './structure/HomePage';
 import PremiumHomePage from './structure/PremiumHomePage';
 import { PaymentResultV2 } from './components/paymentsV2/PaymentResultV2';
-import PremiumSuccessPage from './structure/PremiumSuccessPage';
 import PremiumFailurePage from './structure/PremiumFailurePage';
 import PaymentLayoutTest from './components/PaymentLayoutTest';
 import PaymentV2Demo from './structure/PaymentV2Demo';
+import AdminWorkbench from './components/AdminWorkbench';
+import SuccessPage from './structure/SuccessPage';
 import './styles/App.css';
 
 const App: React.FC = () => {
@@ -261,9 +262,9 @@ const App: React.FC = () => {
     return <PaymentResultV2 status="success" />;
   }
 
-  // Premium payment success route
+  // Success page route - comprehensive instruction summary
   if (location.pathname.match(/^\/[^\/]+\/success$/)) {
-    return <PremiumSuccessPage />;
+    return <SuccessPage />;
   }
 
   // Premium payment failure route  
@@ -295,6 +296,10 @@ const App: React.FC = () => {
             </div>
           ) : (
             <Routes>
+              <Route
+                path="/payment-workbench"
+                element={<AdminWorkbench />}
+              />
               <Route
                 path="/payment-v2-demo"
                 element={<PaymentV2Demo />}
@@ -328,27 +333,36 @@ const App: React.FC = () => {
                         showClientId={false}
                       />
                     )}
-                    {usePremiumLayout ? (
-                      <PremiumHomePage
-                        step1Reveal={step1Reveal}
-                        clientId={clientId}
-                        passcode={passcode}
-                        instructionRef={instructionRef}
-                        returning={returning}
-                        onContactInfoChange={handleContactInfoChange}
-                        feeEarner={feeEarner}
+                    <Routes>
+                      <Route path="payment-workbench" element={<AdminWorkbench />} />
+                      <Route path="payment-v2-demo" element={<PaymentV2Demo />} />
+                      <Route 
+                        path="*" 
+                        element={
+                          usePremiumLayout ? (
+                            <PremiumHomePage
+                              step1Reveal={step1Reveal}
+                              clientId={clientId}
+                              passcode={passcode}
+                              instructionRef={instructionRef}
+                              returning={returning}
+                              onContactInfoChange={handleContactInfoChange}
+                              feeEarner={feeEarner}
+                            />
+                          ) : (
+                            <HomePage
+                              step1Reveal={step1Reveal}
+                              clientId={clientId}
+                              passcode={passcode}
+                              instructionRef={instructionRef}
+                              returning={returning}
+                              onContactInfoChange={handleContactInfoChange}
+                              feeEarner={feeEarner}
+                            />
+                          )
+                        } 
                       />
-                    ) : (
-                      <HomePage
-                        step1Reveal={step1Reveal}
-                        clientId={clientId}
-                        passcode={passcode}
-                        instructionRef={instructionRef}
-                        returning={returning}
-                        onContactInfoChange={handleContactInfoChange}
-                        feeEarner={feeEarner}
-                      />
-                    )}
+                    </Routes>
                   </>
                 }
               />

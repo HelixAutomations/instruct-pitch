@@ -16,6 +16,7 @@ declare global {
 }
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { scrollIntoViewIfNeeded } from '../utils/scroll';
 import { useCompletion } from '../context/CompletionContext';
 import {
@@ -95,6 +96,7 @@ const HomePage: React.FC<HomePageProps> = ({
   onCurrentStepChange,
 }) => {
   // --- STATE & STEP HANDLING (simplified after sidebar removal) ---
+  const navigate = useNavigate();
   const [currentCheckoutStep, setCurrentCheckoutStep] = useState<'identity'|'documents'|'payment'>('identity');
   
   // Wrapper function to handle step changes
@@ -404,7 +406,6 @@ const HomePage: React.FC<HomePageProps> = ({
   const [isUploadDone, setUploadDone] = useState(false);
   const [isPaymentDone, setPaymentDone] = useState(false);
   const [expiryText, setExpiryText] = useState('');
-  const [showFinalBanner, setShowFinalBanner] = useState(false);
   const { summaryComplete, setSummaryComplete } = useCompletion();
 
   // Debounce timer ref for API calls
@@ -448,7 +449,7 @@ const HomePage: React.FC<HomePageProps> = ({
   // Steps are considered locked once the final banner is shown or the
   // instruction is marked completed server-side. At this stage we no
   // longer want users editing earlier steps.
-  const stepsLocked = instructionCompleted || showFinalBanner;
+  const stepsLocked = instructionCompleted;
 
   // Track editing state and whether any changes have been made
   // Removed editing/review state
@@ -513,58 +514,32 @@ const HomePage: React.FC<HomePageProps> = ({
     setUploadDone(isComplete);
   }, [uploadedFiles]);
 
+  // Auto-navigate to success when documents are done and no payment needed
   useEffect(() => {
+    console.log('Navigation check:', {
+      returning,
+      isUploadDone,
+      isUploadSkipped,
+      currentCheckoutStep,
+      showPaymentStep
+    });
     if (
       !returning &&
       (isUploadDone || isUploadSkipped) &&
       currentCheckoutStep === 'documents' &&
-      !showFinalBanner
+      !showPaymentStep
     ) {
-      setShowFinalBanner(true);
+      console.log('Navigating to success page...');
+      navigate(`/${clientId}/success`);
     }
-  }, [isUploadDone, isUploadSkipped, showFinalBanner, currentCheckoutStep, returning]);
+  }, [isUploadDone, isUploadSkipped, currentCheckoutStep, returning, showPaymentStep, navigate, clientId]);
 
+  // Handle instruction completion callback
   useEffect(() => {
-    if (currentCheckoutStep === 'documents') {
-      setShowFinalBanner(false);
-    }
-  }, [currentCheckoutStep]);
-
-  useEffect(() => {
-    if (showFinalBanner) {
-      goToStep('identity');
-    }
-  }, [showFinalBanner]);
-
-  useEffect(() => {
-    if (showFinalBanner && !instructionCompleted && instruction.instructionRef) {
-      fetch('/api/instruction/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructionRef: instruction.instructionRef }),
-      })
-        .then(() => setInstructionCompleted(true))
-        .catch(err => console.error('Failed to mark instruction completed', err));
-    }
-  }, [showFinalBanner, instructionCompleted, instruction.instructionRef]);
-
-  useEffect(() => {
-    if (showFinalBanner && !instructionCompleted && instruction.instructionRef) {
-      fetch('/api/instruction/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructionRef: instruction.instructionRef }),
-      })
-        .then(() => setInstructionCompleted(true))
-        .catch(err => console.error('Failed to mark instruction completed', err));
-    }
-  }, [showFinalBanner, instructionCompleted, instruction.instructionRef]);
-
-  useEffect(() => {
-    if ((instructionCompleted || showFinalBanner) && onInstructionConfirmed) {
+    if (instructionCompleted && onInstructionConfirmed) {
       onInstructionConfirmed();
     }
-  }, [instructionCompleted, showFinalBanner, onInstructionConfirmed]);
+  }, [instructionCompleted, onInstructionConfirmed]);
 
   useEffect(() => {
     if (instructionCompleted) {
@@ -766,12 +741,10 @@ const HomePage: React.FC<HomePageProps> = ({
               setIsComplete={setUploadDone}
               onBack={prevStep}
               onNext={() => {
-                if (showPaymentStep) {
-                  nextStep();
-                } else {
-                  // Skip to completion if no payment needed
-                  setShowFinalBanner(true);
-                }
+                console.log('DocumentUpload onNext called, showPaymentStep:', showPaymentStep);
+                // Always go to success when documents are completed/skipped
+                console.log('Documents completed, navigating to success');
+                navigate(`/${clientId}/success`);
               }}
               setUploadSkipped={setUploadSkipped}
               isUploadSkipped={isUploadSkipped}
@@ -797,7 +770,7 @@ const HomePage: React.FC<HomePageProps> = ({
                   if (showPaymentStep) {
                     nextStep();
                   } else {
-                    setShowFinalBanner(true);
+                    navigate(`/${clientId}/success`);
                   }
                 }}
               >
@@ -837,7 +810,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 onComplete={() => {
                   console.log('HomePage: Premium checkout completed');
                   setPaymentDone(true);
-                  setShowFinalBanner(true);
+                  navigate(`/${clientId}/success`);
                 }}
               />
             )}
@@ -853,16 +826,6 @@ const HomePage: React.FC<HomePageProps> = ({
             </div>
           </>
         )}
-
-      {/* Completion Banner */}
-      {showFinalBanner && (
-        <div className="completion-banner">
-          <div className="completion-content">
-            <h2>✅ All done!</h2>
-            <p>Thank you for confirming your instructions. We have emailed you a confirmation, and no further action is required at this time. The solicitor now has your file and will handle the next steps.</p>
-          </div>
-        </div>
-      )}
       </div>
     </>
   );

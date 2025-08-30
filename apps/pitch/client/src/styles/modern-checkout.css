@@ -868,30 +868,6 @@
   color: #059669;
 }
 
-/* Completion Banner */
-.completion-banner {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  padding: 3rem 2rem;
-  border-radius: 16px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.completion-content h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.completion-content p {
-  font-size: 1.125rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
 /* Premium checkout wrapper */
 .premium-checkout-wrapper {
   background: white;

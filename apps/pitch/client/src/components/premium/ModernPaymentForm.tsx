@@ -167,12 +167,12 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
           {isProcessing ? (
             <>
               <div className="button-spinner" />
-              Processing...
+              � MODERN FORM IS LIVE - Processing Payment...
             </>
           ) : (
             <>
               <FiLock />
-              Pay {formatAmount(amount * 1.2)}
+              🎯 THIS IS THE MODERN FORM - Pay {formatAmount(amount * 1.2)}
             </>
           )}
         </button>

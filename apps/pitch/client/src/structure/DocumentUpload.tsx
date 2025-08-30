@@ -463,10 +463,12 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             type="button"
             className="btn primary"
             onClick={() => {
+              console.log('Skip button clicked');
               setUploadSkipped(true);
               setIsComplete(true);
               sessionStorage.setItem(`uploadedDocs-${passcode}-${instructionRef}`, 'true');
               setUploadedFiles([]);
+              console.log('About to call onNext');
               onNext();
             }}
             disabled={uploading}

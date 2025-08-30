@@ -196,8 +196,8 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
             <FiShield className="trust-icon" />
           </div>
           <div className="payment-header-content">
-            <h3>Secure Payment</h3>
-            <p>Your payment is protected by industry-leading security</p>
+            <h3>🔐 Ultra-Secure Payment Gateway</h3>
+            <p>✨ Backend AI Assistant has modified this form - Your payment is protected by industry-leading security</p>
           </div>
           <div className="security-badges">
             <FiLock className="security-icon" />
