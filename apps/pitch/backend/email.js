@@ -284,6 +284,7 @@ module.exports = {
   sendClientFailureEmail,
   sendFeeEarnerEmail,
   sendAccountsEmail,
+  sendMail,
   deriveEmail,
   wrapSignature,
   buildClientSuccessBody,

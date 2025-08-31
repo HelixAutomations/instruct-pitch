@@ -420,4 +420,132 @@ async function handleSuccessfulPayment(payment, paymentIntent) {
   }
 }
 
+/**
+ * POST /admin/payment-failure-notification
+ * Send admin notification for payment failures
+ */
+router.post('/admin/payment-failure-notification', async (req, res) => {
+  try {
+    const { instructionRef, errorCode, errorMessage, clientEmail, amount, timestamp } = req.body;
+    
+    if (!instructionRef) {
+      return res.status(400).json({
+        error: 'Instruction reference is required'
+      });
+    }
+
+    console.log(`📧 Sending admin notification for payment failure: ${instructionRef}`);
+
+    // Import email functionality
+    const { sendMail } = require('./email');
+    
+    // Prepare admin notification email
+    const adminEmails = ['lz@helix-law.com', 'cb@helix-law.com'];
+    const subject = `Payment Failure Alert - ${instructionRef}`;
+    
+    const emailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #dc2626; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">Payment Failure Alert</h1>
+        </div>
+        
+        <div style="background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #dc2626; margin-top: 0;">Payment Processing Failed</h2>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: #f3f4f6;">
+              <td style="padding: 12px; border: 1px solid #d1d5db; font-weight: bold; width: 30%;">Instruction Reference</td>
+              <td style="padding: 12px; border: 1px solid #d1d5db;">${instructionRef}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #d1d5db; font-weight: bold;">Error Code</td>
+              <td style="padding: 12px; border: 1px solid #d1d5db;">${errorCode || 'Unknown'}</td>
+            </tr>
+            <tr style="background: #f3f4f6;">
+              <td style="padding: 12px; border: 1px solid #d1d5db; font-weight: bold;">Error Message</td>
+              <td style="padding: 12px; border: 1px solid #d1d5db;">${errorMessage || 'Payment processing failed'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #d1d5db; font-weight: bold;">Amount</td>
+              <td style="padding: 12px; border: 1px solid #d1d5db;">£${amount || 'Unknown'}</td>
+            </tr>
+            <tr style="background: #f3f4f6;">
+              <td style="padding: 12px; border: 1px solid #d1d5db; font-weight: bold;">Client Email</td>
+              <td style="padding: 12px; border: 1px solid #d1d5db;">${clientEmail || 'Not provided'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #d1d5db; font-weight: bold;">Timestamp</td>
+              <td style="padding: 12px; border: 1px solid #d1d5db;">${new Date(timestamp).toLocaleString('en-GB')}</td>
+            </tr>
+          </table>
+          
+          <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 20px 0;">
+            <h3 style="color: #92400e; margin-top: 0;">Action Required</h3>
+            <ul style="color: #92400e; margin-bottom: 0;">
+              <li>Contact the client to arrange alternative payment</li>
+              <li>Review payment gateway logs for technical issues</li>
+              <li>Verify client identity and documents are still valid</li>
+              <li>Consider manual payment processing if appropriate</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://admin.helix-law.com/instructions/${instructionRef}" 
+               style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              View Instruction Details
+            </a>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="color: #6b7280; font-size: 14px; margin: 0;">
+            This is an automated alert from the Helix Law payment system. 
+            Please respond promptly to ensure client satisfaction.
+          </p>
+        </div>
+      </div>
+    `;
+
+    // Send notification to admin team
+    for (const adminEmail of adminEmails) {
+      try {
+        await sendMail(adminEmail, subject, emailBody);
+        console.log(`✅ Admin notification sent to ${adminEmail}`);
+      } catch (emailError) {
+        console.error(`❌ Failed to send notification to ${adminEmail}:`, emailError);
+      }
+    }
+
+    // Also trigger the existing client failure email
+    if (clientEmail) {
+      try {
+        const { sendClientFailureEmail } = require('./email');
+        await sendClientFailureEmail({
+          InstructionRef: instructionRef,
+          Email: clientEmail,
+          PaymentAmount: amount,
+          PaymentProduct: 'Legal Services',
+          PaymentResult: 'failed'
+        });
+        console.log(`✅ Client failure notification sent to ${clientEmail}`);
+      } catch (clientEmailError) {
+        console.error(`❌ Failed to send client notification:`, clientEmailError);
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Admin notifications sent successfully',
+      notifiedEmails: adminEmails 
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to send admin notification:', error);
+    res.status(500).json({
+      error: 'Failed to send admin notification',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

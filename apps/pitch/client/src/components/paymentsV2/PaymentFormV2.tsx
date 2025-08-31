@@ -1,12 +1,12 @@
 /**
- * PaymentFormV2 Component
+ * PaymentFormV2 Component - Simplified Version 4
  * 
- * Enhanced payment form with full Stripe Elements v2 integration
- * Features: 3D Secure, automatic payment methods, Helix theming, trust indicators
+ * Streamlined payment form with single card input field
+ * Features: Clean interface, 3D Secure, essential trust indicators
  */
 
 import React, { useState, useEffect } from 'react';
-import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
+import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { FiLock, FiAlertCircle, FiShield, FiCheckCircle } from 'react-icons/fi';
 import { paymentTelemetry } from '../../utils/paymentTelemetry';
 import { PaymentErrorHandler } from '../../utils/paymentErrorHandler';
@@ -36,7 +36,31 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [paymentReady, setPaymentReady] = useState(false);
-  const [formValid, setFormValid] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
+
+  // Card element options for clean, simplified styling
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+        color: '#2d3748',
+        lineHeight: '24px',
+        '::placeholder': {
+          color: '#a0aec0',
+        },
+        padding: '12px',
+      },
+      invalid: {
+        color: '#e53e3e',
+        iconColor: '#e53e3e'
+      },
+      complete: {
+        color: '#059669',
+      }
+    },
+    hidePostalCode: false,
+  };
 
   // Track component mount and form readiness
   useEffect(() => {
@@ -77,6 +101,12 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
       return;
     }
 
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setErrorMessage('Card element not found');
+      return;
+    }
+
     // Track payment attempt start
     const startTime = Date.now();
     setIsProcessing(true);
@@ -85,18 +115,15 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
     paymentTelemetry.trackPaymentAttempt(amount, currency, instructionRef);
 
     try {
-      // Confirm payment with 3D Secure support
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/payment-result`,
-          payment_method_data: {
-            billing_details: {
-              // Billing details are handled automatically by PaymentElement
-            }
+      // Confirm payment with CardElement - simpler approach
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            // Basic billing details - user can add more if needed
+            name: 'Payment on Account of Costs',
           }
-        },
-        redirect: 'if_required' // Handle 3D Secure inline when possible
+        }
       });
 
       const duration = Date.now() - startTime;
@@ -130,7 +157,7 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
           paymentTelemetry.track3DSecure('completed', paymentIntent.id);
           onSuccess(paymentIntent.id);
         } else if (paymentIntent.status === 'requires_action') {
-          // This should be handled automatically by Stripe Elements
+          // This should be handled automatically by Stripe
           setErrorMessage('Additional authentication required. Please follow the prompts.');
           paymentTelemetry.track3DSecure('initiated', paymentIntent.id);
         } else if (paymentIntent.status === 'processing') {
@@ -168,8 +195,8 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
     }
   };
 
-  const handlePaymentElementChange = (event: any) => {
-    setFormValid(event.complete);
+  const handleCardElementChange = (event: any) => {
+    setCardComplete(event.complete);
     setPaymentReady(event.complete);
     
     // Clear errors when user is typing
@@ -181,7 +208,7 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
     if (event.complete && !paymentReady) {
       paymentTelemetry.trackUserInteraction('payment_form_completed', {
         instructionRef,
-        formType: 'stripe_elements'
+        formType: 'card_element'
       });
     }
   };
@@ -196,48 +223,24 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
             <FiShield className="trust-icon" />
           </div>
           <div className="payment-header-content">
-            <h3>🔐 Ultra-Secure Payment Gateway</h3>
-            <p>✨ Backend AI Assistant has modified this form - Your payment is protected by industry-leading security</p>
+            <h3>🔐 Secure Payment</h3>
+            <p>✨ Simplified payment form - Your card details are protected</p>
           </div>
           <div className="security-badges">
             <FiLock className="security-icon" />
           </div>
         </div>
 
-        {/* Stripe Payment Element */}
-        <div className="payment-element-container">
-          <div className="payment-element-wrapper">
-            <PaymentElement
-              options={{
-                layout: {
-                  type: 'tabs',
-                  defaultCollapsed: false,
-                  radios: false,
-                  spacedAccordionItems: true
-                },
-                paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
-                fields: {
-                  billingDetails: {
-                    name: 'auto',
-                    email: 'auto',
-                    phone: 'auto',
-                    address: {
-                      country: 'auto',
-                      line1: 'auto',
-                      line2: 'auto',
-                      city: 'auto',
-                      state: 'auto',
-                      postalCode: 'auto'
-                    }
-                  }
-                },
-                terms: {
-                  card: 'auto',
-                  applePay: 'auto',
-                  googlePay: 'auto'
-                }
-              }}
-              onChange={handlePaymentElementChange}
+        {/* Card Input Element */}
+        <div className="card-input-container">
+          <label htmlFor="card-element" className="card-label">
+            Card Details
+          </label>
+          <div className="card-element-wrapper">
+            <CardElement
+              id="card-element"
+              options={cardElementOptions}
+              onChange={handleCardElementChange}
             />
           </div>
         </div>
@@ -253,8 +256,8 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
         {/* Payment Button */}
         <button
           type="submit"
-          disabled={!stripe || !paymentReady || isProcessing || !formValid}
-          className={`payment-button ${isProcessing ? 'processing' : ''} ${formValid ? 'ready' : 'pending'}`}
+          disabled={!stripe || !paymentReady || isProcessing || !cardComplete}
+          className={`payment-button ${isProcessing ? 'processing' : ''} ${cardComplete ? 'ready' : 'pending'}`}
         >
           {isProcessing ? (
             <div className="processing-content">
@@ -361,6 +364,32 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
 
         .payment-element-wrapper {
           padding: 1.5rem;
+        }
+
+        .card-input-container {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .card-label {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 0.5rem;
+        }
+
+        .card-element-wrapper {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 1rem;
+          transition: border-color 150ms ease;
+        }
+
+        .card-element-wrapper:focus-within {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .payment-error {
@@ -505,8 +534,12 @@ export const PaymentFormV2: React.FC<PaymentFormV2Props> = ({
             gap: 0.75rem;
           }
 
-          .payment-element-wrapper {
-            padding: 1rem;
+          .card-element-wrapper {
+            padding: 0.75rem;
+          }
+
+          .card-label {
+            font-size: 0.8rem;
           }
         }
       `}</style>

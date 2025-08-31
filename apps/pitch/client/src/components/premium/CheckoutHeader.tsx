@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiMail } from 'react-icons/fi';
+import { FiMail, FiPhone } from 'react-icons/fi';
 import './CheckoutHeader-clean.css';
 
 interface CompletionStatus {
@@ -138,9 +138,12 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
           </div>
           
           <div className="header-support">
-            <span className="support-text">Need help?</span>
+            <a href="tel:03451234567" className="support-phone support-phone-desktop">0345 123 4567</a>
+            <a href="tel:03451234567" className="support-phone support-phone-mobile" title="Call us">
+              <FiPhone size={20} />
+            </a>
             <a href="mailto:support@helix-law.com" className="support-email support-email-desktop">support@helix-law.com</a>
-            <a href="mailto:support@helix-law.com" className="support-email support-email-mobile" title="Need help? Email us">
+            <a href="mailto:support@helix-law.com" className="support-email support-email-mobile" title="Email us">
               <FiMail size={20} />
             </a>
           </div>
@@ -202,7 +205,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      ID
+                      ID PROVEN
                     </span>
                   </div>
                   
@@ -221,7 +224,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      PAID
+                      PAYMENT ON ACCOUNT OF COSTS RECEIVED
                     </span>
                   </div>
                   
@@ -240,7 +243,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      DOCS
+                      DOCUMENTS PROCESSED
                     </span>
                   </div>
                   
@@ -259,7 +262,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      MATTER
+                      MATTER OPENED
                     </span>
                   </div>
                   

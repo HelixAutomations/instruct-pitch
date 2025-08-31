@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { FiCheck, FiShield } from 'react-icons/fi';
+import ModernPaymentForm from '../premium/ModernPaymentForm';
 
 interface PriceSummaryCardProps {
   amount: number;
@@ -16,6 +17,9 @@ interface PriceSummaryCardProps {
   legalService: string;
   vatIncluded?: boolean;
   breakdown?: Array<{ label: string; amount: number }>;
+  onPaymentSuccess?: (paymentIntentId: string) => void;
+  onPaymentError?: (error: string) => void;
+  onPaymentProcessingChange?: (processing: boolean) => void;
 }
 
 export const PriceSummaryCard: React.FC<PriceSummaryCardProps> = ({
@@ -25,7 +29,10 @@ export const PriceSummaryCard: React.FC<PriceSummaryCardProps> = ({
   instructionRef,
   legalService,
   vatIncluded = true,
-  breakdown = []
+  breakdown = [],
+  onPaymentSuccess,
+  onPaymentError,
+  onPaymentProcessingChange
 }) => {
   const formatAmount = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-GB', {
@@ -86,7 +93,19 @@ export const PriceSummaryCard: React.FC<PriceSummaryCardProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
+      {/* Integrated Payment Form */}
+      <div className="integrated-payment-section">
+        <ModernPaymentForm
+          amount={amount / 100} // Convert from pence to pounds
+          currency={currency}
+          instructionRef={instructionRef}
+          onSuccess={onPaymentSuccess || (() => {})}
+          onError={onPaymentError || (() => {})}
+          onProcessingChange={onPaymentProcessingChange || (() => {})}
+        />
+      </div>
+
+      <style>{`
         .price-summary-card {
           background: white;
           border-radius: 12px;

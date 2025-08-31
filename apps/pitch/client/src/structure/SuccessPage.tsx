@@ -111,27 +111,33 @@ const SuccessPage: React.FC = () => {
       />
 
       {/* Clean Success Content - Optimized Responsive Layout */}
-      <div className="home-page">
-        <div className="main-content" style={{ 
+      <div className="premium-payment-layout">
+        <div className="premium-payment-container" style={{ 
           justifyContent: 'center',
           padding: 'clamp(16px, 4vw, 32px)',
           minHeight: 'auto'
         }}>
-          <div className="checkout-container" style={{ 
+          <div style={{ 
             justifyContent: 'center',
             maxWidth: '100%',
             width: '100%'
           }}>
-            <div className="steps-column" style={{ 
-              maxWidth: 'min(800px, 95vw)', 
+            <div style={{ 
+              maxWidth: '800px', 
               margin: '0 auto',
               width: '100%'
             }}>
               
               {/* Welcome Message - Clean & Simple */}
-              <div className="typeform-section" style={{ 
+              <div style={{ 
+                background: 'white',
+                borderRadius: '12px',
+                padding: 'clamp(20px, 5vw, 40px)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                border: '1px solid #e5e7eb',
                 marginTop: 'clamp(16px, 4vw, 32px)',
-                marginBottom: 'clamp(20px, 5vw, 32px)'
+                marginBottom: 'clamp(20px, 5vw, 32px)',
+                textAlign: 'center'
               }}>
                 <h1 style={{
                   fontSize: 'clamp(20px, 4.5vw, 28px)',
@@ -188,7 +194,12 @@ const SuccessPage: React.FC = () => {
               </div>
 
               {/* Service Summary - Clean Card */}
-              <div className="typeform-section" style={{
+              <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: 'clamp(20px, 5vw, 40px)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                border: '1px solid #e5e7eb',
                 marginBottom: 'clamp(16px, 4vw, 24px)'
               }}>
                 <h3 style={{
@@ -334,14 +345,15 @@ const SuccessPage: React.FC = () => {
               </div>
 
               {/* Solicitor Card */}
-              <div className="typeform-section" style={{
+              <div style={{
                 background: 'white',
-                borderRadius: '16px',
-                padding: '24px',
+                borderRadius: '12px',
+                padding: 'clamp(20px, 5vw, 40px)',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
                 border: '1px solid #e5e7eb',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                marginBottom: 'clamp(16px, 4vw, 24px)'
               }}>
                 <div style={{
                   position: 'absolute',
@@ -524,7 +536,14 @@ const SuccessPage: React.FC = () => {
               </div>
 
               {/* Next Steps - Simple List */}
-              <div className="typeform-section">
+              <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: 'clamp(20px, 5vw, 40px)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                border: '1px solid #e5e7eb',
+                marginBottom: 'clamp(16px, 4vw, 24px)'
+              }}>
                 <h3 style={{
                   fontSize: 'clamp(18px, 4.5vw, 20px)',
                   fontWeight: '600',
@@ -652,7 +671,14 @@ const SuccessPage: React.FC = () => {
               </div>
 
               {/* Contact Support - Simple */}
-              <div className="typeform-section" style={{ textAlign: 'center' }}>
+              <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: 'clamp(20px, 5vw, 40px)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                border: '1px solid #e5e7eb',
+                textAlign: 'center'
+              }}>
                 <h3 style={{
                   fontSize: 'clamp(18px, 4.5vw, 20px)',
                   fontWeight: '600',

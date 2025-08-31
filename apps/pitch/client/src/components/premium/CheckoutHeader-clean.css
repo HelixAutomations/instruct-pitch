@@ -101,6 +101,28 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
+/* Phone support styling - matches email styling */
+.support-phone {
+  font-size: 0.875rem;
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.support-phone:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Show phone text by default, hide mobile icon */
+.support-phone-desktop {
+  display: block;
+}
+
+.support-phone-mobile {
+  display: none;
+}
+
 /* Show email text by default, hide mobile icon */
 .support-email-desktop {
   display: block;
@@ -322,7 +344,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .header-content {
     flex-direction: row;
     justify-content: space-between;
@@ -344,7 +366,15 @@
     height: 32px;
   }
   
-  /* Switch to email icon when logo switches to mobile */
+  /* Switch to phone and email icons when logo switches to mobile */
+  .support-phone-desktop {
+    display: none;
+  }
+  
+  .support-phone-mobile {
+    display: block;
+  }
+  
   .support-email-desktop {
     display: none;
   }
@@ -372,12 +402,12 @@
   }
   
   .hero-title {
-    font-size: 2rem;
+    /* Removed font-size change to prevent responsive enlargement */
     text-align: left;
   }
   
   .hero-description {
-    font-size: 1.125rem;
+    /* Removed font-size change to prevent responsive enlargement */
     text-align: left;
   }
   

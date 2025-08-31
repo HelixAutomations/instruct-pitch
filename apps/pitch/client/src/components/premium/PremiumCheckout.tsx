@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useClient } from '../../context/ClientContext';
 import PaymentSummaryMinimal from './PaymentSummaryMinimal';
 import OrderSummaryMinimal from './OrderSummaryMinimal';
-import ModernPaymentForm from './ModernPaymentForm';
 import PaymentReceipt from './PaymentReceipt';
 import './premiumCheckout.css';
 
@@ -73,7 +72,7 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
       {/* Step 2: Main Checkout Flow */}
       {(currentStep === 'payment' || currentStep === 'processing' || currentStep === 'receipt') && (
         <>
-          {/* Order Summary - Direct child of premium-checkout */}
+          {/* Order Summary with integrated payment form */}
           <OrderSummaryMinimal
             dealData={{
               Amount: dealData.Amount || 0,
@@ -82,21 +81,9 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
               ProspectId: dealData.ProspectId
             }}
             isProcessing={currentStep === 'processing'}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
           />
-
-          {/* Payment Details - Direct child of premium-checkout */}
-          {currentStep === 'payment' && (
-            <div className="payment-section-minimal">
-              <ModernPaymentForm
-                amount={dealData.Amount || 0}
-                currency="gbp"
-                instructionRef={instructionRef}
-                onSuccess={handlePaymentSuccess}
-                onError={handlePaymentError}
-                onProcessingChange={() => {}}
-              />
-            </div>
-          )}
 
           {currentStep === 'processing' && (
             <div className="processing-section">
