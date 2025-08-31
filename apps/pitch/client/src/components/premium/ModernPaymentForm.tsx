@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStripe, useElements, CardElement, PaymentRequestButtonElement } from '@stripe/react-stripe-js';
-import { FiLock, FiAlertCircle, FiCreditCard, FiBriefcase } from 'react-icons/fi';
-import { FaApple, FaGoogle } from 'react-icons/fa';
+import { FiLock, FiAlertCircle, FiCreditCard } from 'react-icons/fi';
+import { FaApple, FaGoogle, FaUniversity } from 'react-icons/fa';
 import { paymentService } from '../../utils/paymentService';
 
 interface ModernPaymentFormProps {
@@ -31,6 +31,7 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
   const [cardComplete, setCardComplete] = useState(false);
   const [paymentRequest, setPaymentRequest] = useState<any>(null);
   const [activePaymentMethod, setActivePaymentMethod] = useState<'card' | 'bank'>('card');
+  const [copiedField, setCopiedField] = useState<string>('');
 
   // Card element options for clean, simplified styling
   const cardElementOptions = {
@@ -206,6 +207,16 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
     }
   };
 
+  const handleCopy = (label: string, value: string) => {
+    try {
+      navigator.clipboard.writeText(value);
+      setCopiedField(label);
+      setTimeout(() => setCopiedField(''), 1800);
+    } catch (e) {
+      console.warn('Clipboard copy failed', e);
+    }
+  };
+
   const handleCardElementChange = (event: any) => {
     setCardComplete(event.complete);
     
@@ -228,7 +239,7 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
     return (
       <div className="modern-payment-loading">
         <div className="loading-spinner" />
-        <p>Initializing secure payment...</p>
+        <p>Initialising secure payment...</p>
       </div>
     );
   }
@@ -252,7 +263,7 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
             className={`payment-tab ${activePaymentMethod === 'bank' ? 'active' : ''}`}
             onClick={() => setActivePaymentMethod('bank')}
           >
-            <FiBriefcase />
+            <FaUniversity />
             Bank Transfer
           </button>
         </div>
@@ -296,28 +307,45 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
         {activePaymentMethod === 'bank' && (
           <div className="bank-transfer-section">
             <div className="bank-instructions">
-              <h4>Bank Transfer Details</h4>
-              <div className="bank-details">
-                <div className="bank-detail">
-                  <strong>Account Name:</strong> Helix Legal Solutions Ltd
+              <div className="bank-header-row">
+                <h4>Bank Transfer Details</h4>
+                <span className="bank-badge">Manual Settlement</span>
+              </div>
+              <p className="bank-intro">Send a transfer using your online banking. Use the exact reference so we can match your payment instantly.</p>
+              <div className="bank-details-grid">
+                <div className="bank-detail-item">
+                  <span className="detail-label">Account Name</span>
+                  <span className="detail-value" onClick={() => handleCopy('accountName','Helix Legal Solutions Ltd')}>
+                    Helix Legal Solutions Ltd
+                  </span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('accountName','Helix Legal Solutions Ltd')}>{copiedField==='accountName' ? 'Copied' : 'Copy'}</button>
                 </div>
-                <div className="bank-detail">
-                  <strong>Sort Code:</strong> 04-00-04
+                <div className="bank-detail-item">
+                  <span className="detail-label">Sort Code</span>
+                  <span className="detail-value" onClick={() => handleCopy('sortCode','04-00-04')}>04-00-04</span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('sortCode','04-00-04')}>{copiedField==='sortCode' ? 'Copied' : 'Copy'}</button>
                 </div>
-                <div className="bank-detail">
-                  <strong>Account Number:</strong> 12345678
+                <div className="bank-detail-item">
+                  <span className="detail-label">Account Number</span>
+                  <span className="detail-value" onClick={() => handleCopy('accountNumber','12345678')}>12345678</span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('accountNumber','12345678')}>{copiedField==='accountNumber' ? 'Copied' : 'Copy'}</button>
                 </div>
-                <div className="bank-detail">
-                  <strong>Reference:</strong> {instructionRef}
+                <div className="bank-detail-item ref-item">
+                  <span className="detail-label">Reference</span>
+                  <span className="detail-value ref-value" onClick={() => handleCopy('reference', instructionRef)}>{instructionRef}</span>
+                  <button type="button" className="copy-btn primary" onClick={() => handleCopy('reference', instructionRef)}>{copiedField==='reference' ? 'Copied' : 'Copy'}</button>
                 </div>
-                <div className="bank-detail">
-                  <strong>Amount:</strong> {formatAmount(amount * 1.2)}
+                <div className="bank-detail-item">
+                  <span className="detail-label">Amount (GBP)</span>
+                  <span className="detail-value" onClick={() => handleCopy('amount', formatAmount(amount * 1.2))}>{formatAmount(amount * 1.2)}</span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('amount', formatAmount(amount * 1.2))}>{copiedField==='amount' ? 'Copied' : 'Copy'}</button>
                 </div>
               </div>
-              <p className="bank-note">
-                Please use the reference number above when making your transfer.
-                Payment processing may take 1-3 business days.
-              </p>
+              <div className="bank-hints">
+                <div className="hint-item">Use the reference exactly – it links your payment to your matter.</div>
+                <div className="hint-item">Faster Payments usually arrive within minutes; some banks may take up to 2 hours.</div>
+                <div className="hint-item">We’ll email you as soon as funds are matched.</div>
+              </div>
             </div>
           </div>
         )}
@@ -375,7 +403,7 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
             onClick={() => onSuccess('bank-transfer-pending')}
             className="pay-button bank-transfer-button"
           >
-            <FiBriefcase />
+            <FaUniversity />
             Confirm Bank Transfer Details
           </button>
         )}
@@ -392,6 +420,38 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
+        }
+
+        /* Bank Transfer Enhanced Styles */
+        .bank-transfer-section {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 1.25rem 1.25rem 1.5rem;
+          animation: fadeInBank 400ms ease;
+        }
+        @keyframes fadeInBank { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform: translateY(0);} }
+        .bank-header-row { display:flex; align-items:center; gap:.75rem; margin:0 0 .5rem; }
+        .bank-header-row h4 { font-size:1rem; font-weight:600; color:#0D2F60; letter-spacing:.3px; margin:0; }
+        .bank-badge { background:#0D2F6010; color:#0D2F60; font-size:.625rem; font-weight:600; letter-spacing:.5px; padding:4px 8px; border-radius:6px; text-transform:uppercase; }
+        .bank-intro { font-size:.75rem; line-height:1.3; color:#475569; margin:0 0 .875rem; }
+        .bank-details-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem .85rem; margin-bottom:1rem; }
+        .bank-detail-item { position:relative; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:.6rem .65rem .55rem; display:flex; flex-direction:column; gap:2px; transition:border-color .15s ease, box-shadow .15s ease; }
+        .bank-detail-item:hover { border-color:#cbd5e1; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+        .detail-label { font-size:.575rem; font-weight:600; letter-spacing:.7px; text-transform:uppercase; color:#64748b; }
+        .detail-value { font-size:.8rem; font-weight:600; color:#0f172a; word-break:break-all; cursor:pointer; }
+        .ref-item { border-color:#0D2F60; }
+        .ref-item .detail-value { color:#0D2F60; }
+        .ref-item .detail-label { color:#0D2F60; }
+        .copy-btn { position:absolute; top:6px; right:6px; background:#f1f5f9; border:1px solid #e2e8f0; font-size:.55rem; font-weight:600; letter-spacing:.5px; padding:3px 6px; border-radius:4px; cursor:pointer; color:#475569; transition:all .15s ease; }
+        .copy-btn:hover { background:#e2e8f0; }
+        .copy-btn.primary { background:#0D2F60; border-color:#0D2F60; color:#fff; }
+        .copy-btn.primary:hover { background:#061733; }
+        .bank-hints { display:flex; flex-direction:column; gap:6px; }
+        .hint-item { font-size:.65rem; line-height:1.25; color:#475569; padding:6px 8px; background:#fff; border:1px dashed #e2e8f0; border-radius:6px; }
+        @media (max-width:520px){
+          .bank-details-grid { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+          .detail-value { font-size:.75rem; }
         }
 
         .payment-element-container {

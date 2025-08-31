@@ -145,7 +145,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     return (
       <StripeContext.Provider value={contextValue}>
         <div className="stripe-loading">
-          <p>Initializing payment...</p>
+          <p>Initialising payment...</p>
         </div>
       </StripeContext.Provider>
     );

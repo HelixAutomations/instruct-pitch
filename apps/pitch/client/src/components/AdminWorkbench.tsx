@@ -199,7 +199,7 @@ const AdminWorkbench: React.FC = () => {
         <div className="admin-header">
           <div className="admin-header-content">
             <h1>System Admin Interface</h1>
-            <div className="loading-indicator">Initializing system diagnostics...</div>
+            <div className="loading-indicator">Initialising system diagnostics...</div>
           </div>
         </div>
       </div>

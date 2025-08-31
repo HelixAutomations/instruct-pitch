@@ -6,13 +6,17 @@ interface PreflightExperienceProps {
   instructionRef: string;
   onComplete: () => void;
   isVisible: boolean;
+  serviceDescription?: string;
+  solicitorName?: string;
 }
 
 const PreflightExperience: React.FC<PreflightExperienceProps> = ({
   amount,
   instructionRef,
   onComplete,
-  isVisible
+  isVisible,
+  serviceDescription,
+  solicitorName
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -22,29 +26,27 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
   // Define steps outside of render to avoid dependency issues
   const steps = React.useMemo(() => [
     {
-      title: "Initializing Session",
-      description: "Establishing secure connection",
+      title: "Securing Your Session",
+      description: "Establishing encrypted connection with Helix Law",
+      duration: 1200
+    },
+    {
+      title: "Verifying Instruction Details", 
+      description: "Confirming your payment parameters",
       duration: 1000
     },
     {
-      title: "Verifying Details", 
-      description: "Confirming instruction parameters",
+      title: "Preparing Payment Interface",
+      description: "Loading secure Stripe payment form",
       duration: 800
-    },
-    {
-      title: "Loading Payment Form",
-      description: "Preparing secure interface",
-      duration: 600
     }
   ], []);
 
   useEffect(() => {
     if (!isVisible) return;
 
-    // Start the morph animation immediately
-    const morphTimeout = setTimeout(() => {
-      setShowExpanded(true);
-    }, 100);
+    // Begin expansion sooner for immediate feedback
+    const morphTimeout = setTimeout(() => setShowExpanded(true), 50);
 
     // Development keyboard controls
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -64,41 +66,35 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
     let progressInterval: number;
 
     const runStep = (stepIndex: number) => {
-      if (isDevFrozen || stepIndex >= steps.length) {
-        if (stepIndex >= steps.length) {
-          setTimeout(() => onComplete(), 500);
-        }
+      if (stepIndex >= steps.length) {
+        // Smoothly finish to 100 then call onComplete
+        setProgress(100);
+        setTimeout(() => onComplete(), 400);
         return;
       }
 
       setCurrentStep(stepIndex);
       const step = steps[stepIndex];
-      
-      // Simple progress animation
       let stepProgress = 0;
       const startProgress = (stepIndex / steps.length) * 100;
       const stepWidth = 100 / steps.length;
-      const incrementSize = 2; // Larger increments for smoother animation
+      const incrementSize = 1; // Finer increments for smoother real-time feel
       const intervalTime = step.duration / (100 / incrementSize);
-      
+
       progressInterval = setInterval(() => {
-        if (isDevFrozen) return;
-        
+        if (isDevFrozen) return; // freeze just pauses increments
         stepProgress += incrementSize;
         const currentProgress = startProgress + (stepProgress / 100) * stepWidth;
         setProgress(Math.min(currentProgress, (stepIndex + 1) / steps.length * 100));
-        
         if (stepProgress >= 100) {
           clearInterval(progressInterval);
-          stepTimeout = setTimeout(() => runStep(stepIndex + 1), 300);
+          stepTimeout = setTimeout(() => runStep(stepIndex + 1), 150); // faster chaining
         }
-      }, intervalTime);
+      }, Math.max(intervalTime, 16)); // clamp to ~60fps
     };
 
-    // Start the preflight sequence after morph begins
-    if (!isDevFrozen) {
-      stepTimeout = setTimeout(() => runStep(0), 1200); // Wait for morph to settle
-    }
+    // Start immediately (no long wait) for real-time perceived responsiveness
+    runStep(0);
 
     return () => {
       clearTimeout(morphTimeout);
@@ -152,7 +148,7 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
           <div className={`original-content ${showExpanded ? 'fade-out' : ''}`}>
             <div className="service-header">
               <div className="service-details">
-                <h2 className="service-name">Payment on Account of Costs</h2>
+                <h2 className="service-name">{serviceDescription || 'Payment on Account of Costs'}</h2>
               </div>
             </div>
             
@@ -204,21 +200,33 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
                   />
                 </div>
                 <div className="progress-info">
-                  <span className="progress-text">{Math.round(progress)}% • STEP {Math.min(currentStep + 1, steps.length)} OF {steps.length}</span>
+                  <span className="progress-left">{Math.round(progress)}% Complete</span>
+                  <span className="progress-right">Step {Math.min(currentStep + 1, steps.length)} of {steps.length}</span>
                 </div>
               </div>
             </div>
 
             {/* Transaction Summary */}
             <div className="transaction-summary-clean">
-              <div className="summary-row">
-                <span className="summary-label">Amount</span>
-                <span className="summary-value">{formatAmount(totalAmount)}</span>
+              <div className="summary-header-row">
+                <div className="summary-service-heading">{serviceDescription || 'Payment on Account of Costs'}</div>
+                <div className="summary-amount-inline">
+                  <span className="amount-major">{formatAmount(totalAmount)}</span>
+                  <span className="amount-subtext">Total inc. VAT</span>
+                </div>
               </div>
-              <div className="summary-row">
-                <span className="summary-label">Reference</span>
-                <span className="summary-value">{instructionRef}</span>
+              <div className="summary-logo-float" aria-hidden="true">
+                <img src="/assets/dark blue mark.svg" alt="" />
               </div>
+              {instructionRef && (
+                <div className="summary-reference-inline">Reference <span className="ref-separator">•</span> <span className="ref-value">{instructionRef}</span></div>
+              )}
+              {solicitorName && (
+                <div className="summary-row">
+                  <span className="summary-label">Solicitor</span>
+                  <span className="summary-value">{solicitorName}</span>
+                </div>
+              )}
             </div>
 
             {/* Security Footer */}
@@ -226,11 +234,11 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
               <div className="security-indicators-clean">
                 <div className="security-item-clean">
                   <span className="security-icon">🔒</span>
-                  <span>SSL Encrypted</span>
+                  <span>256-bit SSL</span>
                 </div>
                 <div className="security-item-clean">
                   <span className="security-icon">✓</span>
-                  <span>PCI Compliant</span>
+                  <span>SRA Regulated</span>
                 </div>
               </div>
             </div>
@@ -243,8 +251,8 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
         {isDevFrozen && (
           <div className="dev-overlay">
             <div className="dev-notice">
-              <div className="dev-title">DEVELOPMENT PAUSE</div>
-              <div className="dev-instruction">Press Ctrl+F to continue</div>
+              <div className="dev-title">DEVELOPMENT PAUSED</div>
+              <div className="dev-instruction">Press Ctrl+F to resume preflight</div>
             </div>
           </div>
         )}

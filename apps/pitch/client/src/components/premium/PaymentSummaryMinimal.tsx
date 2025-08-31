@@ -79,6 +79,7 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
                 amount={totalAmount}
                 instructionRef={dealData.InstructionRef || 'Unknown'}
                 serviceDescription="Payment on Account of Costs"
+                solicitorName={solicitorName}
                 onComplete={onPreflightComplete || (() => {})}
                 isVisible={true}
               />

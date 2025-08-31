@@ -445,11 +445,12 @@
 .premium-button--secondary {
   background: #F4F4F6;
   color: #061733;
-  border: 1px solid #E5E7EB;
+  box-shadow: inset 0 0 0 1px #E5E7EB;
 }
 
 .premium-button--secondary:hover:not(:disabled) {
   background: #E5E7EB;
+  box-shadow: inset 0 0 0 1px #D1D5DB;
 }
 
 .premium-button:disabled {

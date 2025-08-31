@@ -391,8 +391,8 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
           {instructionError && <p className="error-message">{instructionError}</p>}
         </div>
         <div className="action-buttons">
-          <button type="button" className="premium-button premium-button--secondary" onClick={onBack}>
-            Back
+          <button type="button" className="premium-button premium-button--secondary premium-button--nav premium-button--clean" onClick={onBack}>
+            <span>Back</span>
           </button>
         </div>
       </div>
@@ -567,17 +567,17 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
         <div className="action-buttons">
           <button 
             type="button" 
-            className="premium-button premium-button--secondary" 
+            className="premium-button premium-button--secondary premium-button--nav premium-button--clean" 
             onClick={onBack}
             disabled={uploading}
           >
-            Back
+            <span>Back</span>
           </button>
           
           {documents.length === 0 && !isUploadSkipped ? (
             <button
               type="button"
-              className="premium-button premium-button--secondary"
+              className="premium-button premium-button--secondary premium-button--nav premium-button--clean"
               onClick={() => {
                 setUploadSkipped(true);
                 setIsComplete(true);
@@ -587,16 +587,18 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
               }}
               disabled={uploading}
             >
-              Skip Upload
+              <span>Skip Upload</span>
             </button>
           ) : (
             <button
               type="button"
-              className="premium-button premium-button--primary"
+              className="premium-button premium-button--primary premium-button--nav premium-button--clean"
               onClick={handleNext}
               disabled={uploading || !documents.every(d => !!d.file || !!d.blobUrl)}
             >
-              {uploading ? 'Uploading...' : readyToSubmit ? 'Continue' : 'Upload & Continue'}
+              <span>
+                {uploading ? 'Uploading...' : readyToSubmit ? 'Continue' : 'Upload & Continue'}
+              </span>
             </button>
           )}
         </div>

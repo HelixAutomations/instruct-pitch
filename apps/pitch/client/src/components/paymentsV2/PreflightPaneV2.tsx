@@ -24,7 +24,7 @@ export const PreflightPane: React.FC<PreflightPaneProps> = ({
 
   const steps = [
     { icon: FiShield, text: 'Verifying secure connection', delay: 300 },
-    { icon: FiLock, text: 'Initializing encryption', delay: 400 },
+    { icon: FiLock, text: 'Initialising encryption', delay: 400 },
     { icon: FiCreditCard, text: 'Preparing payment form', delay: 500 }
   ];
 

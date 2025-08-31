@@ -748,11 +748,11 @@
   align-items: center;
   justify-content: space-between;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
     0 8px 32px rgba(13, 47, 96, 0.25),
     0 2px 16px rgba(6, 23, 51, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -778,8 +778,8 @@
   box-shadow: 
     0 12px 40px rgba(13, 47, 96, 0.35),
     0 4px 20px rgba(54, 144, 206, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .proceed-button-minimal:active {

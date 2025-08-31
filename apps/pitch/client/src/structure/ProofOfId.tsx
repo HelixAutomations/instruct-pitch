@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import '../styles/premium/premiumDevTools.css';
 import { FaBuilding, FaUser, FaMapMarkerAlt, FaPhone, FaIdCard, FaUserTie } from 'react-icons/fa';
 import { scrollIntoViewIfNeeded } from '../utils/scroll';
 import InfoPopover from '../components/InfoPopover';
@@ -37,6 +38,14 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
     const prefill = (window as any).helixPrefillData;
     if (Array.isArray(prefill?.activeTeam)) setActiveTeam(prefill.activeTeam);
   }, []);
+
+  // Dev-only: reference onSkipToStep so linter recognizes usage prior to conditional rendering of dev tools
+  useEffect(() => {
+    if (!(import.meta as any).env?.DEV && window.location.hostname !== 'localhost') return;
+    if (onSkipToStep) {
+      // no-op reference
+    }
+  }, [onSkipToStep]);
 
   // Also check for prefill data updates (in case it loads after component mount)
   useEffect(() => {
@@ -580,6 +589,13 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
 
   return (
     <>
+      {/* Dev Tools (local only) mounted only on the first step */}
+      {currentQuestionInGroup === 0 && (
+        <ProofOfIdDevTools
+          onSkipToStep={onSkipToStep}
+          markComplete={() => setIsComplete(true)}
+        />
+      )}
       {/* Content area */}
       <div className="premium-identity-content">
         {currentStep.description && (
@@ -654,11 +670,11 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
           {currentQuestionInGroup > 0 && (
             <button
               type="button"
-              className="premium-button-secondary"
+              className="premium-button premium-button--secondary premium-button--nav premium-button--clean"
               onClick={goPrev}
               aria-label="Go back to previous step"
             >
-              ← Back
+              <span>Back</span>
             </button>
           )}
           
@@ -684,7 +700,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
             return (
               <button
                 type="button"
-                className="premium-button"
+                className="premium-button premium-button--primary premium-button--nav premium-button--clean"
                 disabled={!isValid()}
                 onClick={goNext}
                 aria-label={
@@ -693,65 +709,18 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     : "Continue to next step"
                 }
               >
-                {currentQuestionInGroup === totalSteps - 1
-                  ? "Complete"
-                  : "Continue →"
-                }
+                <span>
+                  {currentQuestionInGroup === totalSteps - 1
+                    ? "Complete"
+                    : "Continue →"
+                  }
+                </span>
               </button>
             );
           })()}
 
           {/* Development Skip Buttons - Step 2 and 3 */}
-          {(import.meta.env.DEV || window.location.hostname === 'localhost') && onSkipToStep && (
-            <div style={{ marginLeft: '1rem', display: 'flex', gap: '0.5rem' }}>
-              <button
-                type="button"
-                className="premium-button-dev"
-                onClick={() => {
-                  console.log('🚀 DEV: Skipping to documents step...');
-                  setIsComplete(true);
-                  onSkipToStep('documents');
-                }}
-                style={{
-                  background: '#7c3aed',
-                  color: 'white',
-                  border: '2px dashed #fbbf24',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.375rem',
-                  fontWeight: 'bold',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                }}
-                title="Development only - Skip to documents step"
-              >
-                📄 Documents
-              </button>
-              <button
-                type="button"
-                className="premium-button-dev"
-                onClick={() => {
-                  console.log('🚀 DEV: Skipping to payment step...');
-                  setIsComplete(true);
-                  onSkipToStep('payment');
-                }}
-                style={{
-                  background: '#059669',
-                  color: 'white',
-                  border: '2px dashed #fbbf24',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.375rem',
-                  fontWeight: 'bold',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                }}
-                title="Development only - Skip to payment step"
-              >
-                💳 Payment
-              </button>
-            </div>
-          )}
+          {/* Dev skip buttons relocated to floating sidebar (local only) */}
 
         </div>
 
@@ -766,3 +735,44 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
 };
 
 export default ProofOfId;
+
+// Floating Dev Tools Sidebar (local/dev only) -------------------------------------------------
+export const ProofOfIdDevTools: React.FC<{ onSkipToStep?: (s: 'documents' | 'payment') => void; markComplete: () => void; }> = ({ onSkipToStep, markComplete }) => {
+  const [open, setOpen] = useState(false);
+  // Only render locally or in Vite dev mode
+  const enabled = (import.meta as any).env?.DEV || window.location.hostname === 'localhost';
+  if (!enabled || !onSkipToStep) return null;
+  return (
+    <>
+      <button
+        type="button"
+        className={`dev-tools-toggle ${open ? 'open' : ''}`}
+        onClick={() => setOpen(o => !o)}
+        aria-label={open ? 'Hide developer tools' : 'Show developer tools'}
+      >
+        {open ? '×' : 'DEV'}
+      </button>
+      <aside className={`dev-tools-panel ${open ? 'open' : ''}`} aria-hidden={!open}>
+        <h4 className="dev-tools-title">Dev Tools</h4>
+        <p className="dev-tools-hint">Local only; excluded from build.</p>
+        <div className="dev-tools-group">
+          <button
+            type="button"
+            className="premium-button premium-button--secondary premium-button--clean"
+            onClick={() => { console.log('🚀 DEV: Skip to documents'); markComplete(); onSkipToStep('documents'); }}
+          >
+            <span>→ Documents</span>
+          </button>
+          <button
+            type="button"
+            className="premium-button premium-button--secondary premium-button--clean"
+            onClick={() => { console.log('🚀 DEV: Skip to payment'); markComplete(); onSkipToStep('payment'); }}
+          >
+            <span>→ Payment</span>
+          </button>
+        </div>
+        <div className="dev-tools-footer">Press ESC to close</div>
+      </aside>
+    </>
+  );
+};

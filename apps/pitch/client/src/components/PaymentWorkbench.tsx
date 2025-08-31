@@ -85,7 +85,7 @@ const DevWorkbench: React.FC = () => {
       <div className="dev-workbench">
         <div className="workbench-header">
           <h1>🔧 Development Workbench</h1>
-          <p>Initializing development environment...</p>
+          <p>Initialising development environment...</p>
         </div>
       </div>
     );

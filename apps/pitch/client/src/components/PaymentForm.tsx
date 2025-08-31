@@ -221,7 +221,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     return (
       <div className="payment-form loading">
         <div className="payment-form__loading">
-          <p>Initializing payment...</p>
+          <p>Initialising payment...</p>
         </div>
       </div>
     );

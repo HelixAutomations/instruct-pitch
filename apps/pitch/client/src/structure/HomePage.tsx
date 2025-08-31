@@ -658,77 +658,7 @@ const HomePage: React.FC<HomePageProps> = ({
               }}
             />
 
-            <div className="step-navigation">
-              <button 
-                type="button" 
-                className="btn btn-primary"
-                onClick={nextStep}
-                disabled={!isIdReviewDone}
-              >
-                {showPaymentStep ? 'Continue to Payment' : 'Continue to Documents'}
-              </button>
-
-              {/* Development Skip to Payment Button - Next to Continue Button */}
-              {(import.meta.env.DEV || window.location.hostname === 'localhost') && (
-                <div style={{ marginLeft: '1rem', display: 'flex', gap: '0.5rem' }}>
-                  <button 
-                    type="button"
-                    className="btn btn-dev-skip"
-                    onClick={() => {
-                      console.log('🚀 DEV: Skipping directly to payment...');
-                      // Complete all prerequisite steps
-                      setIdReviewDone(true);
-                      setUploadDone(true);
-                      setShowPaymentStep(true);
-                      // Jump directly to payment step
-                      setTimeout(() => {
-                        goToStep('payment');
-                      }, 100);
-                    }}
-                    title="Development only - Skip directly to payment"
-                    style={{
-                      background: '#059669',
-                      color: 'white', 
-                      border: '2px dashed #fbbf24',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '0.375rem',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                    }}
-                  >
-                    💳 Payment
-                  </button>
-                  <button 
-                    type="button"
-                    className="btn btn-dev-skip"
-                    onClick={() => {
-                      console.log('🚀 DEV: Skipping to documents...');
-                      // Complete ID verification and go to documents
-                      setIdReviewDone(true);
-                      setTimeout(() => {
-                        goToStep('documents');
-                      }, 100);
-                    }}
-                    title="Development only - Skip to documents"
-                    style={{
-                      background: '#7c3aed',
-                      color: 'white',
-                      border: '2px dashed #fbbf24',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '0.375rem',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                    }}
-                  >
-                    📄 Documents
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Legacy step-navigation removed; premium navigation inside ProofOfId handles progression & dev skips */}
           </>
         )}
 
@@ -755,28 +685,7 @@ const HomePage: React.FC<HomePageProps> = ({
               instructionError={instructionError}
             />
 
-            <div className="step-navigation">
-              <button 
-                type="button" 
-                className="btn btn-secondary"
-                onClick={prevStep}
-              >
-                Back to Payment
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-primary"
-                onClick={() => {
-                  if (showPaymentStep) {
-                    nextStep();
-                  } else {
-                    navigate(`/${clientId}/success`);
-                  }
-                }}
-              >
-                {showPaymentStep ? 'Continue to Payment' : 'Complete'}
-              </button>
-            </div>
+            {/* Legacy document upload navigation removed; premium buttons in DocumentUploadPremium manage flow */}
           </>
         )}
 
@@ -815,15 +724,7 @@ const HomePage: React.FC<HomePageProps> = ({
               />
             )}
 
-            <div className="step-navigation">
-              <button 
-                type="button" 
-                className="btn btn-secondary"
-                onClick={prevStep}
-              >
-                Back to Identity
-              </button>
-            </div>
+            {/* Legacy payment navigation removed; premium components manage completion */}
           </>
         )}
       </div>

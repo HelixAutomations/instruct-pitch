@@ -175,54 +175,145 @@
   white-space: nowrap;
 }
 
-/* === BUTTONS === */
+/* === MODERN NAVIGATION BUTTONS (Refactored & Simplified) === */
+/* Rationale:
+   - Collapse extremely specific selector chains to a single base + variants
+   - Remove broad use of !important now that legacy step-navigation markup is gone
+   - Keep consistent sizing, accessible focus styles, and smooth interaction states
+*/
+
 .premium-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(6px, 2vw, 10px);
-  padding: clamp(14px, 4vw, 18px) clamp(20px, 6vw, 40px);
+  gap: clamp(8px, 2vw, 12px);
+  padding: clamp(16px, 4vw, 20px) clamp(24px, 6vw, 32px);
   border: none;
-  border-radius: clamp(8px, 2.5vw, 14px);
-  font-size: clamp(0.875rem, 3.5vw, 1rem);
-  font-weight: 600;
+  border-radius: 12px;
+  font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: clamp(0.95rem, 3.5vw, 1.05rem);
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: all 150ms ease;
-  min-height: clamp(48px, 12vw, 56px);
-  touch-action: manipulation;
+  transition: background 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: clamp(52px, 12vw, 60px);
   width: 100%;
   max-width: 100%;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  letter-spacing: -0.01em;
+  background: #f5f7fa; /* neutral fallback for unthemed button */
+  color: #061733;
 }
 
-.premium-button:focus {
-  outline: 2px solid #3690CE;
-  outline-offset: 2px;
+@media (min-width: 768px) {
+  .premium-button { width: auto; min-width: 160px; }
 }
 
+/* Primary Variant */
 .premium-button--primary {
-  background: #0D2F60;
+  background: linear-gradient(135deg, #0D2F60 0%, #061733 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(13, 47, 96, 0.25);
+}
+.premium-button--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1a4071 0%, #0f2542 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(13, 47, 96, 0.35);
+}
+.premium-button--primary:active:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(13, 47, 96, 0.25);
+}
+
+/* Secondary Variant */
+.premium-button--secondary, .premium-button.secondary { /* keep legacy .secondary hook */
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.premium-button--secondary:hover:not(:disabled),
+.premium-button.secondary:hover:not(:disabled) {
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  border-color: #d1d5db;
+}
+.premium-button--secondary:active:not(:disabled),
+.premium-button.secondary:active:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* CTA Variant */
+.premium-button--cta {
+  background: #D65541;
   color: #FFFFFF;
 }
+.premium-button--cta:hover:not(:disabled) { background: #B91C1C; transform: translateY(-1px); }
+.premium-button--cta:active:not(:disabled) { transform: translateY(0); }
 
-.premium-button--primary:hover:not(:disabled) {
-  background: #061733;
-  transform: translateY(-1px);
+/* Navigation modifier just adjusts minor typography, relying on variant for color */
+.premium-button--nav { font-weight: 500; letter-spacing: 0.01em; }
+
+/* Clean modifier (retain from earlier) */
+.premium-button--clean { background-clip: padding-box; -webkit-background-clip: padding-box; isolation: isolate; }
+
+/* Loading State */
+.premium-button--loading { position: relative; color: transparent; }
+.premium-button--loading::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(16px, 4vw, 22px);
+  height: clamp(16px, 4vw, 22px);
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: premium-spin 1s linear infinite;
 }
 
-.premium-button--primary:active {
-  transform: translateY(0);
+/* Focus & Accessibility */
+.premium-button:focus-visible {
+  outline: 2px solid #3690CE;
+  outline-offset: 3px;
 }
+
+/* Disabled */
+.premium-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Keep span layering (was used before for pseudo content safety) */
+.premium-button span, .premium-button { position: relative; z-index: 1; }
 
 .premium-button--secondary {
-  background: #F4F4F6;
-  color: #061733;
-  border: 1px solid #E5E7EB;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .premium-button--secondary:hover:not(:disabled) {
-  background: #E5E7EB;
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  border-color: #d1d5db;
+}
+
+.premium-button--secondary:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .premium-button--cta {
@@ -240,9 +331,49 @@
 }
 
 .premium-button:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Enhanced button text styling */
+.premium-button span,
+.premium-button {
+  position: relative;
+  z-index: 1;
+}
+
+/* Clean button variant - removes any potential artifacts */
+.premium-button--clean {
+  background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  border-style: solid;
+  isolation: isolate;
+}
+
+/* Special navigation button styles */
+.premium-button--nav {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.premium-button--nav.premium-button--primary {
+  background: linear-gradient(135deg, #0D2F60 0%, #061733 100%);
+  box-shadow: 0 3px 12px rgba(13, 47, 96, 0.2);
+}
+
+.premium-button--nav.premium-button--secondary {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.premium-button--nav.premium-button--secondary:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
 }
 
 .premium-button--loading {
