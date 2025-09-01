@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './PaymentSummaryMinimal.css';
 import PreflightExperience from './PreflightExperience';
-import lawSocietyLogo from '../../assets/The Law Society.svg';
+import lawSocietyLogo from '../../assets/The Law society.svg';
 import legal500Logo from '../../assets/The Legal 500.svg';
-import chambersPartnersLogo from '../../assets/Chambers and Partners.svg';
+import chambersPartnersLogo from '../../assets/Chambers & Partners.svg';
 
 interface PaymentSummaryMinimalProps {
   dealData: {
@@ -272,26 +272,20 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
           </div>
         </div>
 
-        {/* Trust Signals */}
-        <div className="trust-section">
-          <div className="trust-logos">
-            <div className="trust-logo">
-              <img src={lawSocietyLogo} alt="The Law Society" width="18" height="18" />
-            </div>
-            <div className="trust-logo">
-              <img src={legal500Logo} alt="The Legal 500" width="18" height="18" />
-            </div>
-            <div className="trust-logo">
-              <img src={chambersPartnersLogo} alt="Chambers and Partners" width="18" height="18" />
-            </div>
+        {/* Trust Signals - Independent */}
+        <div className="trust-section-independent">
+          <div className="company-info">
+            <strong>Helix Law Limited</strong> • SRA ID: 565557
+          </div>
+          <div className="trust-logos-independent">
+            <img src={lawSocietyLogo} alt="The Law Society" className="trust-logo-independent" />
+            <img src={legal500Logo} alt="The Legal 500" className="trust-logo-independent" />
+            <img src={chambersPartnersLogo} alt="Chambers and Partners" className="trust-logo-independent chambers-logo" />
           </div>
         </div>
 
         {/* Footer */}
         <div className="order-footer">
-          <div className="company-info">
-            <strong>Helix Law Limited</strong> • SRA ID: 565557
-          </div>
           <div className="security-notice">
             Secure payment processing • Data protection guaranteed
           </div>

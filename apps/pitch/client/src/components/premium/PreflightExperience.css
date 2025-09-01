@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap');
 
-/* CSS Variables for Helix Branding */
+/* CSS Variables for Helix Branding - Enhanced for litigation-grade trust */
 :root {
   --helix-navy: #061733;
   --helix-blue: #3690CE;
@@ -9,9 +9,20 @@
   --helix-success: #10B981;
   --helix-text-primary: #1e293b;
   --helix-text-secondary: #64748b;
+  
+  /* Litigation-grade trust palette */
+  --trust-deep-navy: #0a1628;
+  --trust-subtle-blue: #2563eb;
+  --trust-platinum: #f8fafc;
+  --trust-silver: #e2e8f0;
+  --trust-gold-accent: #fbbf24;
+  --trust-professional-green: #059669;
+  --trust-shadow-soft: rgba(6, 23, 51, 0.03);
+  --trust-shadow-medium: rgba(6, 23, 51, 0.08);
+  --trust-shadow-deep: rgba(6, 23, 51, 0.15);
 }
 
-/* Backdrop that appears behind the morphing card */
+/* Backdrop that appears behind the morphing card - Enhanced professional depth */
 .preflight-backdrop {
   position: fixed;
   top: 0;
@@ -21,11 +32,16 @@
   background: transparent;
   z-index: 999;
   pointer-events: none;
-  transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preflight-backdrop.backdrop-expanded {
-  background: rgba(6, 23, 51, 0.08);
+  background: linear-gradient(
+    135deg, 
+    var(--trust-deep-navy) 0%, 
+    rgba(6, 23, 51, 0.12) 100%
+  );
+  backdrop-filter: blur(1px);
   pointer-events: auto;
 }
 
@@ -122,13 +138,13 @@
 
 .status-title {
   font-family: 'Raleway', sans-serif;
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--helix-text-secondary);
-  margin: 0 0 8px 0;
-  letter-spacing: -0.01em;
+  font-size: 1.5rem; /* ~24px primary preflight heading */
+  font-weight: 600;
+  color: var(--helix-navy);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.015em;
   position: relative;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .status-title::after {
@@ -136,12 +152,12 @@
   display: inline-block;
   width: 14px;
   height: 14px;
-  margin-left: 8px;
+  margin-left: 10px;
   border: 2px solid transparent;
-  border-top: 2px solid var(--helix-text-secondary);
+  border-top: 2px solid var(--helix-navy);
   border-radius: 50%;
-  opacity: 0.5;
-  animation: modern-spinner 0.8s linear infinite;
+  opacity: 0.4;
+  animation: modern-spinner 0.75s linear infinite;
 }
 
 @keyframes modern-spinner {
@@ -155,12 +171,12 @@
 
 .status-subtitle {
   font-family: 'Raleway', sans-serif;
-  font-size: 14px;
+  font-size: 0.875rem; /* 14px */
   font-weight: 400;
   color: var(--helix-text-secondary);
   margin: 0;
-  line-height: 1.4;
-  opacity: 0.7;
+  line-height: 1.5;
+  opacity: 0.8;
 }
 
 /* Progress bar styling */
@@ -193,10 +209,11 @@
   justify-content: space-between;
   align-items: center;
   font-family: 'Raleway', sans-serif;
-  font-size: 12px;
+  font-size: 0.75rem; /* 12px */
   font-weight: 500;
-  letter-spacing: 0.4px;
-  opacity: 0.6;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.55;
 }
 
 .progress-left {
@@ -237,9 +254,9 @@
 
 .summary-service-heading {
   font-family: 'Raleway', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  letter-spacing: -0.01em;
   text-transform: none;
   color: var(--helix-navy);
   margin: 0;
@@ -247,31 +264,6 @@
   border: none;
 }
 
-.summary-reference-inline {
-  font-family: 'Raleway', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--helix-navy);
-  margin: 6px 0 18px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  order: 4;
-}
-
-.summary-reference-inline .ref-value {
-  font-family: 'Raleway', sans-serif !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  color: var(--helix-navy) !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  line-height: inherit !important;
-}
-
-.summary-reference-inline .ref-separator {
-  display: none;
-}
 
 /* New flex header row aligning service and amount */
 .summary-header-row {
@@ -292,57 +284,54 @@
 
 .summary-amount-inline .amount-major {
   font-family: 'Raleway', sans-serif;
-  font-size: 36px;
-  font-weight: 800;
+  font-size: 2.25rem; /* 36px */
+  font-weight: 700;
   color: var(--helix-navy);
   letter-spacing: -0.5px;
 }
 
-.summary-logo-float {
+/* Inline brand mark within header row */
+.summary-brand-mark {
   position: absolute;
-  right: 24px;
-  top: 74px; /* nudge up slightly for new larger size */
-  width: 48px;
-  height: 48px;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  opacity: 0.18;
   pointer-events: none;
-  z-index: -1;
 }
 
-.summary-logo-float img {
-  max-width: 42px;
-  max-height: 42px;
-  opacity: 0.15;
-}
+.summary-brand-mark img { max-width: 38px; max-height: 38px; display: block; }
 
 .transaction-summary-clean { position: relative; }
 
 .summary-amount-inline .amount-subtext {
   font-family: 'Raleway', sans-serif;
-  font-size: 13px;
+  font-size: 0.75rem; /* 12px */
   font-weight: 600;
   color: var(--helix-text-secondary);
-  letter-spacing: 0.6px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
 .summary-label {
   font-family: 'Raleway', sans-serif;
-  font-size: 15px;
+  font-size: 0.9375rem; /* 15px */
   font-weight: 500;
   color: var(--helix-navy);
 }
 
 .summary-value {
   font-family: 'Raleway', sans-serif;
-  font-size: 15px;
+  font-size: 0.9375rem; /* 15px */
   font-weight: 600;
   color: var(--helix-navy);
 }
+
 
 /* Security footer */
 .security-footer-clean {
@@ -363,13 +352,14 @@
   align-items: center;
   gap: 8px;
   font-family: 'Raleway', sans-serif;
-  font-size: 13px;
+  font-size: 0.8125rem; /* 13px */
   font-weight: 500;
   color: var(--helix-success);
   background: rgba(16, 185, 129, 0.05);
   padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(16, 185, 129, 0.1);
+  border-radius: 18px;
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  backdrop-filter: blur(2px);
 }
 
 .security-icon {
@@ -381,6 +371,143 @@
   justify-content: center;
   width: 16px;
   height: 16px;
+}
+
+/* Preflight Trust Logos */
+/* Dominant Trust Footer (logos only) */
+/* Simplified trust footer: logos inline, no pill container */
+.preflight-trust-footer {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--helix-border);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+
+.trust-footer-logos-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.85rem; /* tighter grouping */
+  height: 40px;
+  width: auto;
+  margin: 0 auto;
+  position: relative;
+  padding: 0 2px;
+}
+
+.trust-footer-logos-inline .preflight-trust-logo {
+  height: 40px;
+  opacity: 0.65;
+  filter: grayscale(10%);
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trust-footer-logos-inline .preflight-trust-logo:hover {
+  opacity: 0.9;
+  filter: grayscale(0%);
+  transform: translateY(-4px);
+}
+
+.trust-footer-logos-inline .preflight-trust-logo.chambers-size { height: 22px; /* same grey tone as others (no separate opacity) */ }
+
+/* Secondary security chips (restored) */
+/* Subtle inline security signals beneath logos */
+.security-inline {
+  display: flex;
+  gap: 36px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.security-signal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #7DBB7D; /* brand green */
+  position: relative;
+}
+
+.fluent-icon {
+  width: 26px;
+  height: 26px;
+  stroke: currentColor;
+  color: #7DBB7D;
+  opacity: 0.9;
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+
+.security-signal:hover .fluent-icon {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.signal-label {
+  font-size: 0.6875rem; /* 11px */
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--helix-text-secondary);
+  opacity: 0.7;
+  line-height: 1;
+  white-space: nowrap;
+  font-family: 'Raleway', sans-serif;
+}
+
+.security-signal:hover .signal-label { opacity: 1; }
+
+/* Trust logos adopt text color tone (desaturated) */
+.trust-footer-logos-inline .preflight-trust-logo {
+  /* Force all logos to pure black then use opacity for consistent grey */
+  filter: brightness(0) saturate(100%);
+  opacity: 0.58; /* uniform grey tone */
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1);
+}
+
+.trust-footer-logos-inline .preflight-trust-logo:hover {
+  opacity: 0.75;
+  transform: translateY(-3px);
+}
+
+/* Mask-based logos to guarantee identical grey regardless of source artwork */
+.trust-logo-mask {
+  display: inline-block;
+  flex: 0 0 82px; /* narrower slot */
+  height: 40px;
+  background: #6B7280;
+  opacity: 0.58;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1);
+}
+
+.trust-logo-mask.chambers-size { flex: 0 0 82px; height: 22px; }
+
+.trust-logo-mask:hover { opacity: 0.75; transform: translateY(-3px); }
+
+@media (max-width: 640px) {
+  .preflight-trust-footer { margin-top: 32px; padding-top: 24px; gap: 14px; }
+  .trust-footer-logos-inline { gap: 2rem; }
+  .trust-footer-logos-inline .preflight-trust-logo { height: 32px; }
+  .trust-footer-logos-inline .preflight-trust-logo.chambers-size { height: 18px; }
+  .security-inline { gap: 24px; }
+  .fluent-icon { width: 22px; height: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trust-footer-logos-inline .preflight-trust-logo { transition: none; }
+  .trust-footer-logos-inline .preflight-trust-logo:hover { transform: none; }
 }
 
 /* SSL Icon */
@@ -453,7 +580,7 @@
 
 .service-details h2.service-name {
   font-family: 'Raleway', sans-serif;
-  font-size: 20px;
+  font-size: 1.25rem; /* 20px */
   font-weight: 600;
   color: #1e293b;
   margin: 0;
@@ -468,9 +595,10 @@
 
 .amount-value {
   font-family: 'Raleway', sans-serif;
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 2rem; /* 32px */
+  font-weight: 600;
   color: #1e293b;
+  letter-spacing: -0.5px;
 }
 
 .edit-amount-btn {
@@ -516,7 +644,7 @@
   align-items: center;
   padding: 8px 0;
   font-family: 'Raleway', sans-serif;
-  font-size: 14px;
+  font-size: 0.875rem; /* 14px */
 }
 
 .breakdown-row.total-row {
@@ -524,15 +652,34 @@
   margin-top: 8px;
   padding-top: 16px;
   font-weight: 600;
+  font-size: 0.9375rem;
 }
 
 .breakdown-label {
   color: #64748b;
+  font-weight: 500;
 }
 
 .breakdown-value {
   color: #1e293b;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+/* Subtle elevated ring for litigation-grade reassurance */
+.preflight-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgba(6,23,51,0.05), rgba(54,144,206,0.04) 35%, rgba(6,23,51,0.06) 70%);
+  mix-blend-mode: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+
+.preflight-experience.expanded .preflight-card::after {
+  opacity: 1;
 }
 
 /* Responsive Design for Mobile and iPad */

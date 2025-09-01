@@ -322,3 +322,62 @@
   color: #1e293b;
   font-weight: 500;
 }
+
+/* Preflight Trust Logos - subtle, low-dominance reassurance */
+.preflight-trust-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.25rem;
+  margin: 8px 0 20px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.preflight-trust-logos::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 120%, rgba(54,144,206,0.08), transparent 70%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.preflight-trust-logo {
+  height: 28px;
+  width: auto;
+  opacity: 0.55;
+  filter: grayscale(25%);
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.preflight-trust-logo:hover {
+  opacity: 0.75;
+  filter: grayscale(0%);
+  transform: translateY(-2px);
+}
+
+/* Chambers scaled down for balanced visual weight */
+.preflight-trust-logo.chambers-size {
+  height: 14px; /* ~50% of others */
+  opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+  .preflight-trust-logos {
+    gap: 1.25rem;
+    padding: 8px 12px;
+  }
+  .preflight-trust-logo { height: 24px; }
+  .preflight-trust-logo.chambers-size { height: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preflight-trust-logo { transition: none; }
+  .preflight-trust-logo:hover { transform: none; }
+}

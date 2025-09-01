@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './PreflightExperience.css';
+// Trust logos (aligned with PaymentSummaryMinimal)
+import lawSocietyLogo from '../../assets/The Law society.svg';
+import legal500Logo from '../../assets/The Legal 500.svg';
+import chambersPartnersLogo from '../../assets/Chambers & Partners.svg';
+import darkBlueMark from '../../assets/dark blue mark.svg';
 
 interface PreflightExperienceProps {
   amount: number;
-  instructionRef: string;
+  instructionRef?: string; // now unused visually, kept optional for backward compatibility
   onComplete: () => void;
   isVisible: boolean;
   serviceDescription?: string;
@@ -12,7 +17,6 @@ interface PreflightExperienceProps {
 
 const PreflightExperience: React.FC<PreflightExperienceProps> = ({
   amount,
-  instructionRef,
   onComplete,
   isVisible,
   serviceDescription,
@@ -214,13 +218,11 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
                   <span className="amount-major">{formatAmount(totalAmount)}</span>
                   <span className="amount-subtext">Total inc. VAT</span>
                 </div>
+                <div className="summary-brand-mark" aria-hidden="true">
+                  <img src={darkBlueMark} alt="" />
+                </div>
               </div>
-              <div className="summary-logo-float" aria-hidden="true">
-                <img src="/assets/dark blue mark.svg" alt="" />
-              </div>
-              {instructionRef && (
-                <div className="summary-reference-inline">Reference <span className="ref-separator">•</span> <span className="ref-value">{instructionRef}</span></div>
-              )}
+              {/* Reference removed from primary content per request; shown as subtle system tag */}
               {solicitorName && (
                 <div className="summary-row">
                   <span className="summary-label">Solicitor</span>
@@ -229,17 +231,48 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
               )}
             </div>
 
-            {/* Security Footer */}
-            <div className="security-footer-clean">
-              <div className="security-indicators-clean">
-                <div className="security-item-clean">
-                  <span className="security-icon">🔒</span>
-                  <span>256-bit SSL</span>
-                </div>
-                <div className="security-item-clean">
-                  <span className="security-icon">✓</span>
-                  <span>SRA Regulated</span>
-                </div>
+            {/* Trust Footer: logos (dominant) + secondary security signals */}
+            <div className="preflight-trust-footer" aria-label="Professional accreditations and security">
+              <div className="trust-footer-logos-inline" role="group" aria-label="Accreditations">
+                {/* Mask-based uniform grey logos for perfectly consistent tone */}
+                <span
+                  role="img"
+                  aria-label="The Law Society"
+                  className="trust-logo-mask"
+                  style={{ WebkitMaskImage: `url(${lawSocietyLogo})`, maskImage: `url(${lawSocietyLogo})` }}
+                />
+                <span
+                  role="img"
+                  aria-label="The Legal 500"
+                  className="trust-logo-mask"
+                  style={{ WebkitMaskImage: `url(${legal500Logo})`, maskImage: `url(${legal500Logo})` }}
+                />
+                <span
+                  role="img"
+                  aria-label="Chambers and Partners"
+                  className="trust-logo-mask chambers-size"
+                  style={{ WebkitMaskImage: `url(${chambersPartnersLogo})`, maskImage: `url(${chambersPartnersLogo})` }}
+                />
+              </div>
+              <div className="security-inline" role="group" aria-label="Security assurances">
+                <span className="security-signal" aria-label="256-bit SSL encryption">
+                  <svg className="fluent-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                    {/** Clear padlock icon: shackle + body */}
+                    <path d="M8.25 10V8a3.75 3.75 0 1 1 7.5 0v2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="5.75" y="10" width="12.5" height="9" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M12 13.25v2.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <circle cx="12" cy="12.75" r="1" fill="currentColor" />
+                  </svg>
+                  <span className="signal-label">256‑bit SSL</span>
+                </span>
+                <span className="security-signal" aria-label="SRA regulated firm">
+                  <svg className="fluent-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                    {/** Shield with check */}
+                    <path d="M12 3.5 5 6v5.25c0 4.06 2.83 7.88 7 8.75 4.17-.87 7-4.69 7-8.75V6l-7-2.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                    <path d="m9.25 12.25 1.75 1.75 3.75-3.75" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span className="signal-label">SRA Regulated</span>
+                </span>
               </div>
             </div>
 

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import './PreflightExperience.css';
+// Use the new stylesheet variant for ongoing refinements
+import './PreflightExperience_new.css';
+// Trust logos (aligned with PaymentSummaryMinimal usage)
+import lawSocietyLogo from '../../assets/The Law society.svg';
+import legal500Logo from '../../assets/The Legal 500.svg';
+import chambersPartnersLogo from '../../assets/Chambers & Partners.svg';
 
 interface PreflightExperienceProps {
   amount: number;
@@ -207,6 +212,13 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
                 <span className="summary-label">Reference</span>
                 <span className="summary-value">{instructionRef}</span>
               </div>
+            </div>
+
+            {/* Trust Logos (subtle reassurance carried into preflight) */}
+            <div className="preflight-trust-logos" aria-label="Professional accreditations">
+              <img src={lawSocietyLogo} alt="The Law Society" className="preflight-trust-logo" loading="lazy" />
+              <img src={legal500Logo} alt="The Legal 500" className="preflight-trust-logo" loading="lazy" />
+              <img src={chambersPartnersLogo} alt="Chambers and Partners" className="preflight-trust-logo chambers-size" loading="lazy" />
             </div>
 
             {/* Security Footer */}

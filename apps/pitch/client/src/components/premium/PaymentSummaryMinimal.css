@@ -12,7 +12,7 @@
 
 /* Enhanced Header */
 .receipt-header {
-  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 2vw, 1.5rem) clamp(0.5rem, 1vw, 0.5rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem) 0 clamp(1rem, 2vw, 1.5rem) 0;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
@@ -46,8 +46,8 @@
 
 .summary-title {
   margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.75rem; /* H1 - Primary page title */
+  font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.025em;
 }
@@ -117,7 +117,7 @@
 
 .service-name {
   margin: 0 0 0.75rem 0;
-  font-size: 1.25rem;
+  font-size: 1.5rem; /* H2 - Service title */
   font-weight: 600;
   color: #0D2F60;
   line-height: 1.4;
@@ -181,8 +181,8 @@
 
 .amount-value {
   font-family: 'Raleway', sans-serif;
-  font-size: 1.75rem;
-  font-weight: 300;
+  font-size: 1.75rem; /* Important pricing display */
+  font-weight: 500; /* Medium weight for better readability */
   color: #0D2F60;
   transition: all 0.3s ease;
 }
@@ -519,7 +519,7 @@
 
 .included-title {
   margin: 0 0 1.5rem 0;
-  font-size: 1.25rem;
+  font-size: 1.375rem; /* H3 - Section headings */
   font-weight: 600;
   color: #0f172a;
   text-align: center;
@@ -717,20 +717,78 @@
 
 .trust-logo {
   flex-shrink: 0;
-  opacity: 0.4;
+  opacity: 0.6;
   transition: opacity 0.2s ease;
-  background: #e5e7eb;
-  border-radius: 8px;
-  padding: 8px;
+  background: none;
+  border-radius: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: auto;
+  height: auto;
 }
 
 .trust-logo:hover {
+  opacity: 0.8;
+}
+
+/* Trust logo uniform sizing - all same height */
+.trust-logo img {
+  height: 32px;
+  width: auto;
+}
+
+/* Independent trust logos section */
+.trust-section-independent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.trust-section-independent .company-info {
+  font-family: 'Raleway', sans-serif;
+  font-size: 14px;
+  color: var(--helix-text-secondary);
+  font-weight: 500;
+}
+
+.trust-logos-independent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: nowrap;
+}
+
+.trust-logo-independent {
   opacity: 0.6;
+  transition: opacity 0.2s ease;
+  filter: grayscale(20%);
+  height: 40px; /* Fixed height for consistent alignment */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trust-logo-independent:hover {
+  opacity: 0.8;
+  filter: grayscale(0%);
+}
+
+/* Individual logo height scaling - Legal 500 as reference */
+.trust-logo-independent img {
+  height: 40px; /* Base height matching Legal 500 */
+  width: auto; /* Maintain aspect ratio */
+  object-fit: contain;
+}
+
+/* Chambers & Partners logo - reduced size for less visual weight */
+.trust-logo-independent.chambers-logo {
+  height: 20px; /* 50% of base height for lighter appearance */
 }
 
 /* Enhanced Proceed Button */
@@ -859,7 +917,7 @@
   }
   
   .receipt-header {
-    padding: 1.5rem 1.25rem 1rem 1.25rem;
+    padding: 1.5rem 0 1rem 0;
     margin-bottom: 0;
   }
   
@@ -872,7 +930,7 @@
   }
   
   .summary-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem; /* Maintain hierarchy on mobile */
   }
   
   .receipt-content {
@@ -894,7 +952,7 @@
   }
   
   .service-name {
-    font-size: 1.125rem;
+    font-size: 1.25rem; /* Maintain proper hierarchy on mobile */
     margin-bottom: 0.5rem;
   }
   
@@ -1078,7 +1136,7 @@
   }
   
   .receipt-header {
-    padding: 1.25rem 1rem 0.75rem 1rem;
+    padding: 1.25rem 0 0.75rem 0;
     margin-bottom: 0;
   }
   
@@ -1103,7 +1161,7 @@
   }
   
   .service-name {
-    font-size: 1rem;
+    font-size: 1.125rem; /* Maintain readable hierarchy on small screens */
   }
   
   .amount-explanation {
@@ -1354,19 +1412,19 @@
 
 .solicitor-name {
   font-family: 'Raleway', sans-serif;
-  font-size: 18px;
+  font-size: 1.125rem; /* H4 - Person names, using rem units */
   font-weight: 600;
   color: #0D2F60;
-  margin: 0 0 4px 0;
+  margin: 0 0 0.25rem 0;
   line-height: 1.3;
 }
 
 .solicitor-title {
   font-family: 'Raleway', sans-serif;
-  font-size: 14px;
+  font-size: 0.875rem; /* Consistent body text size */
   font-weight: 400;
   color: #6b7280;
-  margin: 0 0 12px 0;
+  margin: 0 0 0.75rem 0;
   line-height: 1.4;
 }
 
@@ -1382,7 +1440,7 @@
   padding: 4px 8px;
   border-radius: 6px;
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 0.6875rem; /* Small labels, consistent sizing */
   font-weight: 500;
   border: 1px solid rgba(54, 144, 206, 0.2);
   transition: all 0.3s ease;

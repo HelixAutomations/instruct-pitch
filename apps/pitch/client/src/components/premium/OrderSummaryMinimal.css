@@ -360,13 +360,14 @@
 
 /* Mobile Responsiveness */
 @media (max-width: 767px) {
+  /* Mobile: remove side margins for true edge-to-edge (previously 0 1rem 1rem 1rem) */
   .order-summary-minimal {
-    margin: 0 1rem 1rem 1rem;
+    margin: 0 0 1rem 0; /* drop horizontal gutters */
     max-width: none;
   }
-  
+
   .payment-section {
-    margin: 0 1rem;
+    margin: 0; /* align payment form flush with summary */
     max-width: none;
   }
   
@@ -382,3 +383,9 @@
     font-size: 1.125rem;
   }
 }
+
+/* --- Explicit override (fallback) in case earlier duplicate rules reintroduce margin --- */
+@media (max-width: 767px) {
+  .order-summary-minimal.full-bleed { margin: 0 !important; }
+}
+

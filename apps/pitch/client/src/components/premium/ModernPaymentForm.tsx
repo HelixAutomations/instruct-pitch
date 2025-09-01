@@ -3,6 +3,10 @@ import { useStripe, useElements, CardElement, PaymentRequestButtonElement } from
 import { FiLock, FiAlertCircle, FiCreditCard } from 'react-icons/fi';
 import { FaApple, FaGoogle, FaUniversity } from 'react-icons/fa';
 import { paymentService } from '../../utils/paymentService';
+// Trust / accreditation assets (reuse from preflight)
+import lawSocietyLogo from '../../assets/The Law society.svg';
+import legal500Logo from '../../assets/The Legal 500.svg';
+import chambersPartnersLogo from '../../assets/Chambers & Partners.svg';
 
 interface ModernPaymentFormProps {
   amount: number;
@@ -408,13 +412,56 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
           </button>
         )}
       </form>
+      {/* Trust Footer: mirrors preflight styling (uniform grey logos + security signals) */}
+      <div className="payment-trust-footer" aria-label="Professional accreditations and security">
+        <div className="payment-trust-logos" role="group" aria-label="Accreditations">
+          <span
+            role="img"
+            aria-label="The Law Society"
+            className="trust-logo-mask"
+            style={{ WebkitMaskImage: `url(${lawSocietyLogo})`, maskImage: `url(${lawSocietyLogo})` }}
+          />
+          <span
+            role="img"
+            aria-label="The Legal 500"
+            className="trust-logo-mask"
+            style={{ WebkitMaskImage: `url(${legal500Logo})`, maskImage: `url(${legal500Logo})` }}
+          />
+          <span
+            role="img"
+            aria-label="Chambers and Partners"
+            className="trust-logo-mask chambers-size"
+            style={{ WebkitMaskImage: `url(${chambersPartnersLogo})`, maskImage: `url(${chambersPartnersLogo})` }}
+          />
+        </div>
+        <div className="payment-security-inline" role="group" aria-label="Security assurances">
+          <span className="security-signal" aria-label="256-bit SSL encryption">
+            <svg className="fluent-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <path d="M8.25 10V8a3.75 3.75 0 1 1 7.5 0v2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <rect x="5.75" y="10" width="12.5" height="9" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M12 13.25v2.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="12" cy="12.75" r="1" fill="currentColor" />
+            </svg>
+            <span className="signal-label">256‑bit SSL</span>
+          </span>
+          <span className="security-signal" aria-label="SRA regulated firm">
+            <svg className="fluent-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <path d="M12 3.5 5 6v5.25c0 4.06 2.83 7.88 7 8.75 4.17-.87 7-4.69 7-8.75V6l-7-2.5Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              <path d="m9.25 12.25 1.75 1.75 3.75-3.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="signal-label">SRA Regulated</span>
+          </span>
+        </div>
+      </div>
 
       <style>{`
         .modern-payment-form {
           width: 100%;
-          max-width: 500px;
-          margin: 0 auto;
+          max-width: 100%; /* allow parent card to control width */
+          margin: 0; /* remove auto margins causing horizontal shift */
         }
+        /* Defensive override when embedded in minimal summary */
+        .payment-section .modern-payment-form { max-width: 100%; margin: 0; }
 
         .payment-form {
           display: flex;
@@ -630,6 +677,21 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
             padding: 1rem;
           }
         }
+
+  /* Trust footer styles (scoped here to avoid pulling full preflight CSS) */
+  .payment-trust-footer { margin-top: 1.25rem; padding-top: 1.2rem; border-top: 1px solid #e5e7eb; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .payment-trust-logos { display:flex; align-items:center; justify-content:center; gap:1.85rem; }
+  .trust-logo-mask { display:inline-block; flex:0 0 82px; height:40px; background:#6B7280; opacity:0.58; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; -webkit-mask-size:contain; mask-size:contain; transition:opacity .35s ease, transform .45s cubic-bezier(0.16,1,0.3,1); }
+  .trust-logo-mask.chambers-size { flex:0 0 82px; height:22px; }
+  .trust-logo-mask:hover { opacity:.75; transform:translateY(-3px); }
+  .payment-security-inline { display:flex; align-items:center; justify-content:center; gap:48px; }
+  .security-signal { display:inline-flex; align-items:center; gap:10px; padding:4px 8px; border-radius:6px; color:#7DBB7D; position:relative; }
+  .fluent-icon { width:26px; height:26px; stroke:currentColor; color:#7DBB7D; opacity:.9; transition:opacity .3s ease, transform .4s cubic-bezier(0.16,1,0.3,1); }
+  .security-signal:hover .fluent-icon { opacity:1; transform:translateY(-2px); }
+  .signal-label { font-size:0.6875rem; letter-spacing:.05em; font-weight:600; text-transform:uppercase; color:#64748b; opacity:.7; line-height:1; white-space:nowrap; font-family:'Raleway',sans-serif; }
+  .security-signal:hover .signal-label { opacity:1; }
+  @media (max-width:640px){ .payment-security-inline { gap:32px; } .trust-logo-mask { height:32px; } .trust-logo-mask.chambers-size { height:18px; } .fluent-icon { width:22px; height:22px; } }
+  @media (prefers-reduced-motion: reduce) { .trust-logo-mask { transition:none; } .trust-logo-mask:hover { transform:none; } }
       `}</style>
     </div>
   );
