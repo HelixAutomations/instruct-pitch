@@ -18,6 +18,7 @@
   text-align: left;
   position: relative;
   overflow: hidden;
+  margin-bottom: 0;
 }
 
 .receipt-header::after {
@@ -45,8 +46,8 @@
 
 .summary-title {
   margin: 0 0 0.5rem 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
   color: #0f172a;
   letter-spacing: -0.025em;
 }
@@ -81,27 +82,27 @@
 
 /* Content Area */
 .receipt-content {
-  padding: clamp(0.25rem, 1.5vw, 1.5rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1rem, 2vw, 2rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem);
 }
 
 /* Enhanced Service Card */
 .service-card {
-  padding: clamp(1rem, 3vw, 1.5rem) clamp(1.25rem, 3vw, 2rem);
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
+  padding: 0.75rem;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  margin-bottom: 0;
+  box-shadow: none;
+  position: static;
+  overflow: visible;
 }
 
 .service-header {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  position: relative;
-  z-index: 1;
+  position: static;
+  z-index: auto;
   margin-bottom: 6px;
 }
 
@@ -134,8 +135,8 @@
 
 .amount-section {
   text-align: left;
-  position: relative;
-  z-index: 1;
+  position: static;
+  z-index: auto;
   margin-bottom: 24px;
 }
 
@@ -614,8 +615,8 @@
 
 /* Price Breakdown within Service Card */
 .price-breakdown-card {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
   border-top: 1px solid #e2e8f0;
 }
 
@@ -859,6 +860,7 @@
   
   .receipt-header {
     padding: 1.5rem 1.25rem 1rem 1.25rem;
+    margin-bottom: 0;
   }
   
   .receipt-header::after {
@@ -870,16 +872,16 @@
   }
   
   .summary-title {
-    font-size: 1.375rem;
+    font-size: 1.25rem;
   }
   
   .receipt-content {
-    padding: 1.5rem 1.25rem;
+    padding: 1.25rem 1rem;
   }
   
   .service-card {
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+    margin-bottom: 0;
   }
   
   .service-header {
@@ -1072,11 +1074,12 @@
 
 @media (max-width: 480px) {
   .payment-summary-minimal {
-    margin: 0 0.25rem;
+    margin: 0;
   }
   
   .receipt-header {
     padding: 1.25rem 1rem 0.75rem 1rem;
+    margin-bottom: 0;
   }
   
   .receipt-header::after {
@@ -1087,16 +1090,16 @@
   }
   
   .summary-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
   
   .receipt-content {
-    padding: 1.25rem 1rem;
+    padding: 1rem 0.75rem;
   }
   
   .service-card {
-    padding: 1rem;
-    margin-bottom: 1.25rem;
+    padding: 0.375rem;
+    margin-bottom: 0;
   }
   
   .service-name {

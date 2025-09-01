@@ -550,7 +550,7 @@
 /* Mobile Responsive */
 @media (max-width: 640px) {
   .premium-checkout {
-    padding: 1rem 0.5rem;
+    padding: 0;
   }
   
   .premium-checkout__container {
@@ -603,5 +603,25 @@
   
   .price-expiry {
     align-items: center;
+  }
+}
+
+/* Additional responsive breakpoints for better mobile experience */
+@media (max-width: 768px) {
+  .premium-checkout {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .premium-checkout {
+    padding: 0;
+  }
+}
+
+/* Tablet responsive adjustments */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .premium-checkout {
+    padding: 0;
   }
 }

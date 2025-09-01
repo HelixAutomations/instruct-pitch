@@ -227,13 +227,12 @@
   max-width: 600px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   overflow: hidden;
 }
 
 .service-header {
   padding: 24px 32px 16px;
-  border-bottom: 1px solid #f1f5f9;
 }
 
 .service-details h2.service-name {

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './PaymentSummaryMinimal.css';
 import PreflightExperience from './PreflightExperience';
+import lawSocietyLogo from '../../assets/The Law Society.svg';
+import legal500Logo from '../../assets/The Legal 500.svg';
+import chambersPartnersLogo from '../../assets/Chambers and Partners.svg';
 
 interface PaymentSummaryMinimalProps {
   dealData: {
@@ -273,16 +276,13 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
         <div className="trust-section">
           <div className="trust-logos">
             <div className="trust-logo">
-              <img src="/assets/dark blue mark.svg" alt="Trust Badge 1" width="18" height="18" />
+              <img src={lawSocietyLogo} alt="The Law Society" width="18" height="18" />
             </div>
             <div className="trust-logo">
-              <img src="/assets/dark blue mark.svg" alt="Trust Badge 2" width="18" height="18" />
+              <img src={legal500Logo} alt="The Legal 500" width="18" height="18" />
             </div>
             <div className="trust-logo">
-              <img src="/assets/dark blue mark.svg" alt="Trust Badge 3" width="18" height="18" />
-            </div>
-            <div className="trust-logo">
-              <img src="/assets/dark blue mark.svg" alt="Trust Badge 4" width="18" height="18" />
+              <img src={chambersPartnersLogo} alt="Chambers and Partners" width="18" height="18" />
             </div>
           </div>
         </div>

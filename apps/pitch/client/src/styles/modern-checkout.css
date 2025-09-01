@@ -878,6 +878,10 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .premium-checkout-wrapper {
+    padding: 0.5rem;
+  }
+  
   .modern-checkout-container {
     padding: 1rem 0.5rem;
   }
@@ -927,5 +931,19 @@
   
   .typeform-container {
     padding: 1.5rem;
+  }
+}
+
+/* Tablet responsive adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .premium-checkout-wrapper {
+    padding: 1rem;
+  }
+}
+
+/* Small mobile responsive adjustments */
+@media (max-width: 480px) {
+  .premium-checkout-wrapper {
+    padding: 0.25rem;
   }
 }
