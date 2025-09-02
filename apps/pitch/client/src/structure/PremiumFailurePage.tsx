@@ -5,7 +5,7 @@
  * Matches success page layout exactly but with failure-specific information
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useClient } from '../context/ClientContext';
 import CheckoutHeader from '../components/premium/CheckoutHeader';
@@ -52,6 +52,7 @@ const PremiumFailurePage: React.FC = () => {
   const [paymentData, setPaymentData] = useState<any>(null);
   const [instructionSummary, setInstructionSummary] = useState<InstructionSummary | null>(null);
   const location = useLocation();
+  const notificationSentRef = useRef(false);
 
   console.log('PremiumFailurePage - dealData:', dealData);
   console.log('PremiumFailurePage - instructionRef:', instructionRef);
@@ -103,7 +104,9 @@ const PremiumFailurePage: React.FC = () => {
   // Send admin notification for failure
   useEffect(() => {
     const sendAdminNotification = async () => {
-      if (!effectiveInstructionRef) return;
+      if (!effectiveInstructionRef || notificationSentRef.current) return;
+      
+      notificationSentRef.current = true;
 
       try {
         console.log('Sending admin notification for payment failure');

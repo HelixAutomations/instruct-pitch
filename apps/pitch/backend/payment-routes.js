@@ -440,7 +440,7 @@ router.post('/admin/payment-failure-notification', async (req, res) => {
     const { sendMail } = require('./email');
     
     // Prepare admin notification email
-    const adminEmails = ['lz@helix-law.com', 'cb@helix-law.com'];
+    const adminEmails = ['lz@helix-law.com'];
     const subject = `Payment Failure Alert - ${instructionRef}`;
     
     const emailBody = `

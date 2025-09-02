@@ -30,6 +30,15 @@ Write-Host "Ensuring client/dist exists at package root"
 New-Item -ItemType Directory -Path (Join-Path $packageRoot 'client\dist') -Force | Out-Null
 Copy-Item -Recurse -Force .\client\dist\* (Join-Path $packageRoot 'client\dist')
 
+# Verify assets were copied
+$assetsPath = Join-Path $packageRoot 'client\dist\assets'
+if (Test-Path $assetsPath) {
+    $assetCount = (Get-ChildItem $assetsPath).Count
+    Write-Host "✅ Copied $assetCount asset files to deployment package"
+} else {
+    throw "❌ Assets directory missing after copy - frontend build may have failed"
+}
+
 # Remove client dev dependencies
 Remove-Item -Recurse -Force .\client\node_modules -ErrorAction SilentlyContinue
 
@@ -84,13 +93,19 @@ npm install @azure/identity @azure/keyvault-secrets
 $expectedFiles = @(
   (Join-Path $packageRoot 'server.js'),
   (Join-Path $packageRoot 'client\dist\index.html'),
+  (Join-Path $packageRoot 'client\dist\assets'),
   (Join-Path $packageRoot 'dist\generateInstructionRef.js')
 )
 foreach ($f in $expectedFiles) {
   if (!(Test-Path $f)) {
     throw "Deployment missing required file: $f"
   } else {
-    Write-Host "Found: $f"
+    if ($f -like "*assets*") {
+      $assetCount = (Get-ChildItem $f).Count
+      Write-Host "Found: $f ($assetCount files)"
+    } else {
+      Write-Host "Found: $f"
+    }
   }
 }
 
@@ -121,7 +136,6 @@ Pop-Location
 az webapp deployment source config-zip `
   --resource-group Instructions `
   --name instruct-helixlaw-pitch `
-  --slot staging `
   --src (Join-Path $packageRoot 'push-package.zip')
 
 # Check deployment success before cleanup
