@@ -530,7 +530,7 @@ const HomePage: React.FC<HomePageProps> = ({
       !showPaymentStep
     ) {
       console.log('Navigating to success page...');
-      navigate(`/${clientId}/success`);
+      navigate(`/${clientId}-${passcode}/success`);
     }
   }, [isUploadDone, isUploadSkipped, currentCheckoutStep, returning, showPaymentStep, navigate, clientId]);
 
@@ -674,7 +674,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 console.log('DocumentUpload onNext called, showPaymentStep:', showPaymentStep);
                 // Always go to success when documents are completed/skipped
                 console.log('Documents completed, navigating to success');
-                navigate(`/${clientId}/success`);
+                navigate(`/${clientId}-${passcode}/success`);
               }}
               setUploadSkipped={setUploadSkipped}
               isUploadSkipped={isUploadSkipped}
@@ -719,7 +719,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 onComplete={() => {
                   console.log('HomePage: Premium checkout completed');
                   setPaymentDone(true);
-                  navigate(`/${clientId}/success`);
+                  navigate(`/${clientId}-${passcode}/success`);
                 }}
               />
             )}

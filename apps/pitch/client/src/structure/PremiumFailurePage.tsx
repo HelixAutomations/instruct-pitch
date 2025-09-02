@@ -6,11 +6,14 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useClient } from '../context/ClientContext';
 import CheckoutHeader from '../components/premium/CheckoutHeader';
 import { getStoredPaymentData, clearStoredPaymentData, getPremiumErrorMessage } from '../utils/premiumPaymentUtils';
+import { colours } from '../styles/colours';
 import '../styles/premium/premiumComponents.css';
+// Path fix: file resides in components/premium not styles
+import '../components/premium/PaymentSummaryMinimal.css';
 
 interface InstructionSummary {
   instructionRef: string;
@@ -45,15 +48,26 @@ interface InstructionSummary {
 }
 
 const PremiumFailurePage: React.FC = () => {
-  const { ref } = useParams<{ ref: string }>();
-  const navigate = useNavigate();
   const { instructionRef, dealData } = useClient();
   const [paymentData, setPaymentData] = useState<any>(null);
   const [instructionSummary, setInstructionSummary] = useState<InstructionSummary | null>(null);
+  const location = useLocation();
+
+  console.log('PremiumFailurePage - dealData:', dealData);
+  console.log('PremiumFailurePage - instructionRef:', instructionRef);
+  console.log('PremiumFailurePage - location.pathname:', location.pathname);
+
+  // Extract instruction reference from URL if not available in context
+  const extractedRef = location.pathname.split('/')[1]; // Get the first part after /
+  const effectiveInstructionRef = instructionRef || extractedRef;
+  
+  console.log('PremiumFailurePage - extractedRef:', extractedRef);
+  console.log('PremiumFailurePage - effectiveInstructionRef:', effectiveInstructionRef);
 
   useEffect(() => {
     // Get payment data from session storage
     const storedData = getStoredPaymentData('failure');
+    console.log('PremiumFailurePage - storedData:', storedData);
     if (storedData) {
       setPaymentData(storedData);
       // Clear the stored data after use
@@ -63,15 +77,14 @@ const PremiumFailurePage: React.FC = () => {
 
   useEffect(() => {
     const fetchInstructionSummary = async () => {
-      if (!instructionRef && !ref) {
-        console.log('No instructionRef, skipping API call');
+      if (!effectiveInstructionRef) {
+        console.log('No effectiveInstructionRef, skipping API call');
         return;
       }
 
       try {
-        const refToUse = instructionRef || ref;
-        console.log('Fetching instruction summary for:', refToUse);
-        const response = await fetch(`/api/instruction/summary/${refToUse}`);
+        console.log('Fetching instruction summary for:', effectiveInstructionRef);
+        const response = await fetch(`/api/instruction/summary/${effectiveInstructionRef}`);
         if (response.ok) {
           const data = await response.json();
           console.log('Fetched instruction summary:', data);
@@ -85,12 +98,12 @@ const PremiumFailurePage: React.FC = () => {
     };
 
     fetchInstructionSummary();
-  }, [instructionRef, ref]);
+  }, [effectiveInstructionRef]);
 
   // Send admin notification for failure
   useEffect(() => {
     const sendAdminNotification = async () => {
-      if (!instructionSummary?.instructionRef) return;
+      if (!effectiveInstructionRef) return;
 
       try {
         console.log('Sending admin notification for payment failure');
@@ -100,11 +113,11 @@ const PremiumFailurePage: React.FC = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            instructionRef: instructionSummary.instructionRef,
+            instructionRef: effectiveInstructionRef,
             errorCode: paymentData?.status || 'unknown',
             errorMessage: paymentData ? getPremiumErrorMessage(paymentData) : 'Payment processing failed',
-            clientEmail: instructionSummary.clientDetails?.email,
-            amount: instructionSummary.serviceDetails?.amount,
+            clientEmail: instructionSummary?.clientDetails?.email,
+            amount: instructionSummary?.serviceDetails?.amount,
             timestamp: new Date().toISOString()
           }),
         });
@@ -115,7 +128,7 @@ const PremiumFailurePage: React.FC = () => {
     };
 
     sendAdminNotification();
-  }, [instructionSummary, paymentData]);
+  }, [effectiveInstructionRef, instructionSummary, paymentData]);
 
   // Extract error details from stored data or provide defaults
   const errorCode = paymentData?.status || 'failed';
@@ -123,17 +136,17 @@ const PremiumFailurePage: React.FC = () => {
 
   // Create complete summary including failure details
   const summary: InstructionSummary = instructionSummary || {
-    instructionRef: ref || instructionRef || 'UNKNOWN',
+    instructionRef: effectiveInstructionRef || 'UNKNOWN',
     serviceDetails: {
-      description: dealData?.ServiceDescription || 'Commercial Litigation',
+      description: dealData?.ServiceDescription || 'Payment on Account of Costs',
       amount: paymentData?.amount || dealData?.Amount,
       currency: dealData?.Currency || 'GBP'
     },
     solicitorDetails: {
-      name: dealData?.SolicitorName || 'Charles Peterson-White',
-      title: dealData?.SolicitorTitle || 'Senior Partner',
-      email: dealData?.SolicitorEmail || 'cp@helix-law.com',
-      phone: dealData?.SolicitorPhone || '+44 20 7183 6832'
+      name: dealData?.SolicitorName,
+      title: dealData?.SolicitorTitle,
+      email: dealData?.SolicitorEmail,
+      phone: dealData?.SolicitorPhone
     },
     completedSteps: {
       identityVerified: true, // They got to payment so ID was verified
@@ -231,26 +244,27 @@ const PremiumFailurePage: React.FC = () => {
               {/* Payment Failed Message - Clean & Simple */}
               <div style={{ 
                 background: 'white',
-                borderRadius: '12px',
-                padding: 'clamp(20px, 5vw, 40px)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #e5e7eb',
-                marginTop: 'clamp(16px, 4vw, 32px)',
-                marginBottom: 'clamp(20px, 5vw, 32px)',
+                borderRadius: '16px',
+                padding: 'clamp(32px, 6vw, 48px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)',
+                border: '1px solid #f1f5f9',
+                marginTop: 'clamp(24px, 5vw, 40px)',
+                marginBottom: 'clamp(32px, 6vw, 48px)',
                 textAlign: 'center'
               }}>
                 {/* Error Icon */}
                 <div style={{ 
                   width: 'clamp(64px, 15vw, 80px)', 
                   height: 'clamp(64px, 15vw, 80px)',
-                  backgroundColor: '#EF4444',
+                  backgroundColor: colours.cta,
                   borderRadius: '50%',
-                  margin: '0 auto clamp(16px, 4vw, 24px) auto',
+                  margin: '0 auto clamp(20px, 5vw, 28px) auto',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 16px rgba(220, 38, 38, 0.2)'
                 }}>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="15" y1="9" x2="9" y2="15"/>
                     <line x1="9" y1="9" x2="15" y2="15"/>
@@ -258,192 +272,29 @@ const PremiumFailurePage: React.FC = () => {
                 </div>
 
                 <h1 style={{
-                  fontSize: 'clamp(20px, 4.5vw, 28px)',
-                  fontWeight: '700',
-                  color: '#EF4444',
-                  margin: '0 0 clamp(12px, 3vw, 16px) 0',
-                  paddingTop: 'clamp(16px, 4vw, 24px)',
-                  textAlign: 'center',
-                  lineHeight: '1.2'
+                  fontSize: 'clamp(28px, 5.5vw, 36px)',
+                  fontWeight: '600',
+                  color: colours.cta,
+                  margin: '0 0 clamp(16px, 3.5vw, 20px) 0',
+                  lineHeight: '1.1',
+                  letterSpacing: '-0.02em'
                 }}>
                   {errorInfo.title}
                 </h1>
                 <p style={{
-                  fontSize: 'clamp(14px, 3.5vw, 16px)',
-                  color: '#6b7280',
+                  fontSize: 'clamp(16px, 3.8vw, 18px)',
+                  color: '#475569',
                   textAlign: 'center',
-                  margin: '0 0 clamp(24px, 6vw, 32px) 0',
-                  lineHeight: '1.5',
-                  padding: '0 clamp(8px, 2vw, 16px)'
+                  margin: '0 0 clamp(32px, 7vw, 40px) 0',
+                  lineHeight: '1.6',
+                  padding: '0 clamp(16px, 3vw, 24px)',
+                  fontWeight: '400'
                 }}>
                   {errorInfo.message}
                 </p>
-                
-                {/* Reference Display */}
-                <div style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '8px',
-                  padding: 'clamp(12px, 3vw, 16px)',
-                  textAlign: 'center',
-                  marginBottom: 'clamp(16px, 4vw, 24px)',
-                  margin: '0 clamp(8px, 2vw, 0px) clamp(16px, 4vw, 24px)'
-                }}>
-                  <span style={{
-                    fontSize: 'clamp(11px, 2.75vw, 13px)',
-                    fontWeight: '500',
-                    color: '#b91c1c',
-                    display: 'block',
-                    marginBottom: 'clamp(2px, 1vw, 4px)'
-                  }}>
-                    Your Reference
-                  </span>
-                  <span style={{
-                    fontSize: 'clamp(14px, 3.5vw, 18px)',
-                    fontWeight: '700',
-                    color: '#991b1b',
-                    fontFamily: 'monospace',
-                    letterSpacing: '0.05em',
-                    wordBreak: 'break-all'
-                  }}>
-                    {summary.instructionRef}
-                  </span>
-                </div>
               </div>
 
-              {/* Service Summary - Clean Card */}
-              <div style={{
-                background: 'white',
-                borderRadius: '12px',
-                padding: 'clamp(20px, 5vw, 40px)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #e5e7eb',
-                marginBottom: 'clamp(16px, 4vw, 24px)'
-              }}>
-                <h3 style={{
-                  fontSize: 'clamp(16px, 4vw, 18px)',
-                  fontWeight: '600',
-                  color: '#111827',
-                  margin: '0 0 clamp(12px, 3vw, 16px) 0'
-                }}>
-                  Service Details
-                </h3>
-                
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: 'clamp(8px, 2vw, 12px)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    paddingBottom: 'clamp(8px, 2vw, 12px)',
-                    borderBottom: '1px solid #f1f5f9',
-                    gap: '16px'
-                  }}>
-                    <span style={{
-                      fontSize: 'clamp(12px, 3vw, 14px)',
-                      color: '#64748b',
-                      fontWeight: '500',
-                      flexShrink: 0
-                    }}>
-                      Service Description
-                    </span>
-                    <span style={{
-                      fontSize: 'clamp(12px, 3vw, 14px)',
-                      color: '#111827',
-                      fontWeight: '600',
-                      textAlign: 'right',
-                      wordBreak: 'break-word'
-                    }}>
-                      {summary.serviceDetails?.description || 'Commercial Litigation'}
-                    </span>
-                  </div>
-                  
-                  {summary.serviceDetails?.amount && (
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      paddingBottom: 'clamp(8px, 2vw, 12px)',
-                      borderBottom: '1px solid #f1f5f9',
-                      gap: '16px'
-                    }}>
-                      <span style={{
-                        fontSize: 'clamp(12px, 3vw, 14px)',
-                        color: '#64748b',
-                        fontWeight: '500',
-                        flexShrink: 0
-                      }}>
-                        Fee Amount
-                      </span>
-                      <span style={{
-                        fontSize: 'clamp(12px, 3vw, 14px)',
-                        color: '#111827',
-                        fontWeight: '700',
-                        textAlign: 'right'
-                      }}>
-                        {formatAmount(summary.serviceDetails.amount, summary.serviceDetails.currency)}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    paddingBottom: 'clamp(8px, 2vw, 12px)',
-                    borderBottom: '1px solid #f1f5f9',
-                    gap: '16px'
-                  }}>
-                    <span style={{
-                      fontSize: 'clamp(12px, 3vw, 14px)',
-                      color: '#64748b',
-                      fontWeight: '500',
-                      flexShrink: 0
-                    }}>
-                      Payment Status
-                    </span>
-                    <span style={{
-                      fontSize: 'clamp(12px, 3vw, 14px)',
-                      color: '#ef4444',
-                      fontWeight: '600',
-                      textAlign: 'right',
-                      wordBreak: 'break-word'
-                    }}>
-                      Failed - {errorCode}
-                    </span>
-                  </div>
-                  
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    gap: '16px'
-                  }}>
-                    <span style={{
-                      fontSize: 'clamp(12px, 3vw, 14px)',
-                      color: '#64748b',
-                      fontWeight: '500',
-                      flexShrink: 0
-                    }}>
-                      Solicitor
-                    </span>
-                    <span style={{
-                      fontSize: 'clamp(12px, 3vw, 14px)',
-                      color: '#111827',
-                      fontWeight: '600',
-                      textAlign: 'right',
-                      wordBreak: 'break-word'
-                    }}>
-                      {summary.solicitorDetails?.name || 'Charles Peterson-White'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Solicitor Card - Same as Success */}
+              {/* Combined Service Summary & Solicitor Card */}
               <div style={{
                 background: 'white',
                 borderRadius: '12px',
@@ -454,6 +305,159 @@ const PremiumFailurePage: React.FC = () => {
                 overflow: 'hidden',
                 marginBottom: 'clamp(16px, 4vw, 24px)'
               }}>
+                {/* Reference and Service Info */}
+                <div style={{
+                  marginBottom: 'clamp(24px, 5vw, 32px)',
+                  paddingBottom: 'clamp(20px, 4vw, 24px)',
+                  borderBottom: '1px solid #e5e7eb'
+                }}>
+                  <div style={{
+                    background: 'linear-gradient(135deg, #fef2f2 0%, #fecaca 100%)',
+                    border: '1px solid #fca5a5',
+                    borderRadius: 'clamp(12px, 3vw, 16px)',
+                    padding: 'clamp(20px, 4.5vw, 28px)',
+                    textAlign: 'center',
+                    margin: '0 0 clamp(20px, 4vw, 24px) 0',
+                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.1)'
+                  }}>
+                    <span style={{
+                      fontSize: 'clamp(12px, 2.8vw, 14px)',
+                      fontWeight: '700',
+                      color: '#991b1b',
+                      display: 'block',
+                      marginBottom: 'clamp(6px, 1.5vw, 8px)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em'
+                    }}>
+                      Your Reference
+                    </span>
+                    <span style={{
+                      fontSize: 'clamp(18px, 4.5vw, 22px)',
+                      fontWeight: '800',
+                      color: '#991b1b',
+                      fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                      letterSpacing: '0.05em',
+                      wordBreak: 'break-all',
+                      display: 'block',
+                      padding: 'clamp(4px, 1vw, 6px) 0'
+                    }}>
+                      HLX-{summary.instructionRef}
+                    </span>
+                  </div>
+                  
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    flexWrap: 'wrap',
+                    gap: '16px'
+                  }}>
+                    <div>
+                      <h3 style={{
+                        fontSize: 'clamp(22px, 5vw, 26px)',
+                        fontWeight: '700',
+                        color: '#1e293b',
+                        margin: '0 0 8px 0',
+                        letterSpacing: '-0.015em',
+                        lineHeight: '1.3'
+                      }}>
+                        {summary.serviceDetails?.description || 'Payment on Account of Costs'}
+                      </h3>
+                      <p style={{
+                        fontSize: 'clamp(14px, 3.2vw, 16px)',
+                        color: colours.cta,
+                        margin: 0,
+                        fontWeight: '500'
+                      }}>
+                        Payment processing failed
+                      </p>
+                    </div>
+                    
+                    {summary.serviceDetails?.amount && (
+                      <div style={{
+                        textAlign: 'right'
+                      }}>
+                        <div style={{
+                          fontSize: 'clamp(20px, 5vw, 24px)',
+                          fontWeight: '800',
+                          color: colours.cta,
+                          lineHeight: '1.2',
+                          marginBottom: '4px'
+                        }}>
+                          {formatAmount(summary.serviceDetails.amount, summary.serviceDetails.currency)}
+                        </div>
+                        <div style={{
+                          fontSize: 'clamp(12px, 2.8vw, 14px)',
+                          color: '#64748b',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em'
+                        }}>
+                          Payment Required
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Service Assignment */}
+                  <div style={{
+                    background: '#f8fafc',
+                    borderRadius: 'clamp(12px, 3vw, 16px)',
+                    padding: 'clamp(20px, 4.5vw, 28px)',
+                    border: '1px solid #e2e8f0',
+                    marginTop: 'clamp(20px, 4vw, 24px)'
+                  }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: 'clamp(12px, 2.5vw, 16px)'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{
+                          fontSize: 'clamp(14px, 3.2vw, 16px)',
+                          color: '#64748b',
+                          fontWeight: '600'
+                        }}>
+                          Assigned Solicitor
+                        </span>
+                        <span style={{
+                          fontSize: 'clamp(14px, 3.2vw, 16px)',
+                          color: '#1e293b',
+                          fontWeight: '700'
+                        }}>
+                          {summary.solicitorDetails?.name || 'Lukasz Zemanek'}
+                        </span>
+                      </div>
+                      
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{
+                          fontSize: 'clamp(14px, 3.2vw, 16px)',
+                          color: '#64748b',
+                          fontWeight: '600'
+                        }}>
+                          Supervising Partner
+                        </span>
+                        <span style={{
+                          fontSize: 'clamp(14px, 3.2vw, 16px)',
+                          color: '#1e293b',
+                          fontWeight: '700'
+                        }}>
+                          Rebecca Johnson
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detailed Solicitor Information */}
                 <div style={{
                   position: 'absolute',
                   top: 0,
@@ -497,34 +501,52 @@ const PremiumFailurePage: React.FC = () => {
                         objectFit: 'contain',
                         padding: '8px',
                         transition: 'opacity 0.3s ease',
-                        filter: 'brightness(0.8)'
+                        opacity: 1
                       }}
                     />
                   </div>
                   
-                  <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <h3 style={{
-                      fontSize: 'clamp(16px, 4vw, 18px)',
+                      fontFamily: 'Raleway, sans-serif',
+                      fontSize: '18px',
                       fontWeight: '600',
-                      color: '#111827',
-                      margin: '0 0 4px 0'
+                      color: '#0D2F60',
+                      margin: '0 0 4px 0',
+                      lineHeight: '1.3'
                     }}>
-                      {summary.solicitorDetails?.name || 'Charles Peterson-White'}
+                      {summary.solicitorDetails?.name || 'Lukasz Zemanek'}
                     </h3>
+                    
                     <p style={{
-                      fontSize: 'clamp(13px, 3.25vw, 14px)',
-                      color: '#64748b',
-                      margin: '0 0 12px 0'
+                      fontFamily: 'Raleway, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      color: '#6b7280',
+                      margin: '0 0 12px 0',
+                      lineHeight: '1.4'
                     }}>
-                      {summary.solicitorDetails?.title || 'Senior Partner'}
+                      {summary.solicitorDetails?.title || 'Solicitor'}
                     </p>
                     
                     <div style={{
                       display: 'flex',
                       gap: '8px',
-                      flexWrap: 'wrap',
-                      marginBottom: '12px'
+                      flexWrap: 'wrap'
                     }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '4px 8px',
+                        backgroundColor: '#f0f9ff',
+                        color: '#0369a1',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: '500',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        LLB (Hons)
+                      </span>
                       <span style={{
                         display: 'inline-block',
                         padding: '4px 8px',
@@ -576,452 +598,178 @@ const PremiumFailurePage: React.FC = () => {
                   flexWrap: 'wrap'
                 }}>
                   <a 
-                    href={`mailto:${summary.solicitorDetails?.email || 'c.peterson-white@helix-law.com'}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 12px',
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '6px',
-                      color: '#111827',
-                      textDecoration: 'none',
-                      fontSize: 'clamp(12px, 3vw, 13px)',
-                      fontWeight: '500',
-                      transition: 'all 0.2s ease'
-                    }}
+                    href={`mailto:${summary.solicitorDetails?.email || 'lz@helix-law.com'}`}
+                    className="contact-item"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                      <polyline points="22,6 12,13 2,6"/>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                      <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
                     </svg>
-                    Email
+                    <span>{summary.solicitorDetails?.email || 'lz@helix-law.com'}</span>
                   </a>
                   
                   <a 
-                    href={`tel:${summary.solicitorDetails?.phone || '+442071836832'}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 12px',
-                      background: '#111827',
-                      border: '1px solid #111827',
-                      borderRadius: '6px',
-                      color: 'white',
-                      textDecoration: 'none',
-                      fontSize: 'clamp(12px, 3vw, 13px)',
-                      fontWeight: '500',
-                      transition: 'all 0.2s ease'
-                    }}
+                    href={`tel:${summary.solicitorDetails?.phone || '03453142044'}`}
+                    className="contact-item"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" strokeWidth="2" fill="none"/>
                     </svg>
-                    Call
+                    <span>{summary.solicitorDetails?.phone || '0345 314 2044'}</span>
                   </a>
                 </div>
               </div>
 
-              {/* What happens next? - Failure version */}
+              {/* Error Details Section */}
               <div style={{
-                background: 'white',
-                borderRadius: '12px',
-                padding: 'clamp(20px, 5vw, 40px)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #e5e7eb',
-                marginBottom: 'clamp(16px, 4vw, 24px)'
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                borderRadius: 'clamp(12px, 3vw, 16px)',
+                padding: 'clamp(28px, 6vw, 40px)',
+                border: `1px solid ${colours.cta}`,
+                marginBottom: 'clamp(16px, 4vw, 24px)',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
               }}>
                 <h3 style={{
-                  fontSize: 'clamp(18px, 4.5vw, 20px)',
-                  fontWeight: '600',
-                  color: '#111827',
-                  margin: '0 0 16px 0'
+                  fontSize: 'clamp(20px, 4.5vw, 24px)',
+                  fontWeight: '700',
+                  color: '#1e293b',
+                  margin: '0 0 20px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
                 }}>
-                  What happens next?
-                </h3>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      background: '#10b981',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: '2px'
-                    }}>
-                      <span style={{
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        color: 'white'
-                      }}>✓</span>
-                    </div>
-                    <div>
-                      <h4 style={{
-                        fontSize: 'clamp(15px, 3.75vw, 16px)',
-                        fontWeight: '600',
-                        color: '#111827',
-                        margin: '0 0 4px 0'
-                      }}>
-                        Your information is safe
-                      </h4>
-                      <p style={{
-                        fontSize: 'clamp(13px, 3.25vw, 14px)',
-                        color: '#64748b',
-                        margin: '0',
-                        lineHeight: '1.4'
-                      }}>
-                        Your identity verification and documents have been saved securely
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      background: '#ef4444',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: '2px'
-                    }}>
-                      <span style={{
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        color: 'white'
-                      }}>!</span>
-                    </div>
-                    <div>
-                      <h4 style={{
-                        fontSize: 'clamp(15px, 3.75vw, 16px)',
-                        fontWeight: '600',
-                        color: '#111827',
-                        margin: '0 0 4px 0'
-                      }}>
-                        Payment assistance required
-                      </h4>
-                      <p style={{
-                        fontSize: 'clamp(13px, 3.25vw, 14px)',
-                        color: '#64748b',
-                        margin: '0',
-                        lineHeight: '1.4'
-                      }}>
-                        We will contact you to arrange alternative payment and proceed with your matter
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      background: '#6b7280',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: '2px'
-                    }}>
-                      <span style={{
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        color: 'white'
-                      }}>3</span>
-                    </div>
-                    <div>
-                      <h4 style={{
-                        fontSize: 'clamp(15px, 3.75vw, 16px)',
-                        fontWeight: '600',
-                        color: '#111827',
-                        margin: '0 0 4px 0'
-                      }}>
-                        Direct solicitor contact
-                      </h4>
-                      <p style={{
-                        fontSize: 'clamp(13px, 3.25vw, 14px)',
-                        color: '#64748b',
-                        margin: '0',
-                        lineHeight: '1.4'
-                      }}>
-                        Your assigned solicitor will be your dedicated point of contact throughout
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Support - Enhanced with Immediate Action */}
-              <div style={{
-                background: 'white',
-                borderRadius: '12px',
-                padding: 'clamp(20px, 5vw, 40px)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center',
-                marginBottom: 'clamp(16px, 4vw, 24px)'
-              }}>
-                <h3 style={{
-                  fontSize: 'clamp(18px, 4.5vw, 20px)',
-                  fontWeight: '600',
-                  color: '#111827',
-                  margin: '0 0 16px 0'
-                }}>
-                  Need immediate assistance?
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                    <circle cx="12" cy="12" r="10" fill={colours.cta}/>
+                    <line x1="12" y1="8" x2="12" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Payment Issue
                 </h3>
                 
                 <p style={{
-                  fontSize: 'clamp(13px, 3.25vw, 14px)',
+                  fontSize: 'clamp(15px, 3.5vw, 16px)',
                   color: '#64748b',
-                  margin: '0 0 20px 0',
-                  lineHeight: '1.5'
+                  margin: '0 0 24px 0',
+                  lineHeight: '1.6'
                 }}>
-                  Our team has been notified and will contact you shortly. For immediate assistance:
+                  We encountered an issue processing your payment. Please try again or contact us for assistance.
                 </p>
                 
                 <div style={{
-                  display: 'flex',
-                  gap: 'clamp(12px, 3vw, 16px)',
-                  justifyContent: 'center',
-                  flexWrap: 'wrap',
-                  marginBottom: '20px'
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  border: '1px solid rgba(239, 68, 68, 0.2)'
                 }}>
-                  <a
-                    href="tel:+442071836832"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 20px',
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      textDecoration: 'none',
-                      borderRadius: '8px',
-                      fontSize: 'clamp(13px, 3.25vw, 14px)',
-                      fontWeight: '500',
-                      transition: 'background-color 0.2s ease'
-                    }}
-                  >
-                    📞 Call Us Now
-                  </a>
-                  <a
-                    href="mailto:cp@helix-law.com"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 20px',
-                      backgroundColor: 'white',
-                      color: '#3b82f6',
-                      textDecoration: 'none',
-                      borderRadius: '8px',
-                      border: '2px solid #3b82f6',
-                      fontSize: 'clamp(13px, 3.25vw, 14px)',
-                      fontWeight: '500',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    ✉️ Email Us
-                  </a>
-                </div>
-
-                {/* Action Buttons */}
-                <div style={{ 
-                  display: 'flex', 
-                  gap: '12px', 
-                  justifyContent: 'center',
-                  marginTop: '24px',
-                  flexWrap: 'wrap'
-                }}>
-                  <button 
-                    style={{
-                      padding: 'clamp(12px, 3vw, 16px) clamp(24px, 6vw, 32px)',
-                      backgroundColor: 'white',
-                      border: '2px solid #E5E7EB',
-                      borderRadius: '8px',
-                      fontSize: 'clamp(0.875rem, 3.5vw, 1rem)',
-                      fontWeight: '600',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onClick={() => navigate('/pitch')}
-                  >
-                    Start Over
-                  </button>
-                  <button 
-                    style={{
-                      padding: 'clamp(12px, 3vw, 16px) clamp(24px, 6vw, 32px)',
-                      backgroundColor: '#1F2937',
-                      border: '2px solid #1F2937',
-                      borderRadius: '8px',
-                      fontSize: 'clamp(0.875rem, 3.5vw, 1rem)',
-                      fontWeight: '600',
-                      color: 'white',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onClick={() => navigate(`/pitch/${summary.instructionRef}/payment`)}
-                  >
-                    Try Payment Again
-                  </button>
+                  <h4 style={{
+                    fontSize: 'clamp(16px, 4vw, 18px)',
+                    fontWeight: '600',
+                    color: colours.cta,
+                    margin: '0 0 8px 0'
+                  }}>
+                    What this means:
+                  </h4>
+                  <ul style={{
+                    margin: '0',
+                    paddingLeft: '20px',
+                    color: '#4b5563'
+                  }}>
+                    <li style={{ marginBottom: '4px' }}>Your payment could not be processed</li>
+                    <li style={{ marginBottom: '4px' }}>Your instruction has not been submitted yet</li>
+                    <li style={{ marginBottom: '4px' }}>No charges have been made to your account</li>
+                  </ul>
                 </div>
               </div>
 
-              {/* Assistance Section - Same as Success */}
+              {/* Retry Options Section */}
               <div style={{
                 background: 'white',
-                borderRadius: '12px',
-                padding: 'clamp(20px, 5vw, 40px)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #e5e7eb',
-                marginBottom: 'clamp(16px, 4vw, 24px)'
+                borderRadius: 'clamp(12px, 3vw, 16px)',
+                padding: 'clamp(28px, 6vw, 40px)',
+                border: '1px solid #e2e8f0',
+                marginBottom: 'clamp(16px, 4vw, 24px)',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
               }}>
                 <h3 style={{
-                  fontSize: 'clamp(16px, 4vw, 18px)',
-                  fontWeight: '600',
-                  color: '#111827',
-                  margin: '0 0 16px 0'
+                  fontSize: 'clamp(20px, 4.5vw, 24px)',
+                  fontWeight: '700',
+                  color: '#1e293b',
+                  margin: '0 0 20px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
                 }}>
-                  Need Assistance?
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                    <path d="M9 12l2 2 4-4" stroke="#3690CE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="10" stroke="#3690CE" strokeWidth="2" fill="none"/>
+                  </svg>
+                  Next Steps
                 </h3>
                 
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 'clamp(12px, 3vw, 16px)'
+                <p style={{
+                  fontSize: 'clamp(15px, 3.5vw, 16px)',
+                  color: '#64748b',
+                  margin: '0 0 24px 0',
+                  lineHeight: '1.6'
                 }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 0'
-                  }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
+                  You can try your payment again or contact us for assistance with the payment issue.
+                </p>
+                
+                <div style={{
+                  display: 'grid',
+                  gap: '16px',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
+                }}>
+                  <button 
+                    style={{
+                      background: colours.cta,
+                      color: 'white',
+                      border: 'none',
                       borderRadius: '8px',
-                      background: '#fef2f2',
+                      padding: '16px 24px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="8" x2="12" y2="12"/>
-                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p style={{
-                        fontSize: 'clamp(13px, 3.25vw, 14px)',
-                        fontWeight: '600',
-                        color: '#111827',
-                        margin: '0 0 2px 0'
-                      }}>
-                        Payment Issues
-                      </p>
-                      <p style={{
-                        fontSize: 'clamp(12px, 3vw, 13px)',
-                        color: '#64748b',
-                        margin: '0'
-                      }}>
-                        Our team has been notified and will review your payment
-                      </p>
-                    </div>
-                  </div>
+                      gap: '8px'
+                    }}
+                    onClick={() => window.location.reload()}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M1 4v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Try Payment Again
+                  </button>
                   
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 0'
-                  }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
+                  <a 
+                    href={`mailto:${summary.solicitorDetails?.email || 'lz@helix-law.com'}?subject=Payment Issue - ${summary.instructionRef || 'Unknown'}`}
+                    style={{
+                      background: 'white',
+                      color: colours.cta,
+                      border: `2px solid ${colours.cta}`,
                       borderRadius: '8px',
-                      background: '#f0f9ff',
+                      padding: '16px 24px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0369a1" strokeWidth="2">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p style={{
-                        fontSize: 'clamp(13px, 3.25vw, 14px)',
-                        fontWeight: '600',
-                        color: '#111827',
-                        margin: '0 0 2px 0'
-                      }}>
-                        Email Support
-                      </p>
-                      <p style={{
-                        fontSize: 'clamp(12px, 3vw, 13px)',
-                        color: '#64748b',
-                        margin: '0'
-                      }}>
-                        <a href="mailto:support@helix-law.com" style={{ color: '#0369a1', textDecoration: 'none' }}>
-                          support@helix-law.com
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 0'
-                  }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      background: '#f0fdf4',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p style={{
-                        fontSize: 'clamp(13px, 3.25vw, 14px)',
-                        fontWeight: '600',
-                        color: '#111827',
-                        margin: '0 0 2px 0'
-                      }}>
-                        Phone Support
-                      </p>
-                      <p style={{
-                        fontSize: 'clamp(12px, 3vw, 13px)',
-                        color: '#64748b',
-                        margin: '0'
-                      }}>
-                        <a href="tel:+443457774777" style={{ color: '#15803d', textDecoration: 'none' }}>
-                          0345 777 4777
-                        </a>
-                      </p>
-                    </div>
-                  </div>
+                      gap: '8px',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Contact Support
+                  </a>
                 </div>
               </div>
 
@@ -1029,6 +777,61 @@ const PremiumFailurePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Premium Footer */}
+      <footer className="premium-payment-footer">
+        <div className="premium-footer-container">
+          <div className="premium-trust-footer">
+            <div className="premium-trust-indicators">
+              <div className="premium-trust-indicator">
+                <svg className="premium-trust-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                <span>Secure Payment Processing</span>
+              </div>
+              
+              <div className="premium-trust-indicator">
+                <svg className="premium-trust-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>AML/KYC Compliant</span>
+              </div>
+            </div>
+            
+            <div className="premium-footer-legal">
+              <div className="premium-footer-copyright">
+                All copyright is reserved entirely on behalf of Helix Law Limited. Helix Law
+                and applicable logo are exclusively owned trademarks registered with the
+                Intellectual Property Office under numbers UK00003984532 and
+                UK00003984535. The trademarks should not be used, copied or replicated
+                without consent. Helix Law Limited is regulated by the SRA, our SRA ID is
+                565557.
+              </div>
+              
+              <div className="premium-footer-links">
+                <ul className="premium-legal-menu">
+                  <li>
+                    <a href="https://helix-law.co.uk/transparency/">
+                      Transparency, Complaints, Timescales and VAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://helix-law.co.uk/cookies-policy/">Cookies Policy</a>
+                  </li>
+                  <li>
+                    <a href="https://helix-law.co.uk/privacy-policy/">Privacy Policy</a>
+                  </li>
+                  <li>
+                    <a href="https://helix-law.co.uk/terms-and-conditions/">
+                      Terms and Conditions
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </>
   );
 };

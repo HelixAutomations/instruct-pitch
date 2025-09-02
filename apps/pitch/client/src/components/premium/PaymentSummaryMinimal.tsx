@@ -50,9 +50,9 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
   const features = serviceFeatures && serviceFeatures.length > 0 ? serviceFeatures : defaultFeatures;
 
   // Solicitor information with fallbacks
-  const solicitorName = dealData.SolicitorName || 'Jamie Smith';
-  const solicitorTitle = dealData.SolicitorTitle || 'Senior Associate Solicitor';
-  const solicitorEmail = dealData.SolicitorEmail || 'jamie.smith@helix-law.com';
+  const solicitorName = dealData.SolicitorName || 'Lukasz Zemanek';
+  const solicitorTitle = dealData.SolicitorTitle || 'Solicitor';
+  const solicitorEmail = dealData.SolicitorEmail || 'lz@helix-law.com';
   const solicitorPhone = dealData.SolicitorPhone || '0345 314 2044';
 
   // Format currency
@@ -232,7 +232,7 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
             <div className="fee-earner-description">
               <p>
                 Specialist in commercial litigation with extensive experience in contract disputes, 
-                professional negligence claims, and debt recovery. Jamie has successfully handled 
+                professional negligence claims, and debt recovery. {solicitorName.split(' ')[0]} has successfully handled 
                 cases ranging from £5,000 to £2M+ and maintains a 95% success rate.
               </p>
             </div>

@@ -28,7 +28,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
   instructionRef,
   currentStep,
   completionStatus,
-  showMatterAnimation = false,
+  showMatterAnimation: _showMatterAnimation = false,
 }) => {
   const [progressAnimation, setProgressAnimation] = useState(0);
 
@@ -205,7 +205,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      ID PROVEN
+                      ID
                     </span>
                   </div>
                   
@@ -224,7 +224,7 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      PAYMENT ON ACCOUNT OF COSTS RECEIVED
+                      Payment
                     </span>
                   </div>
                   
@@ -243,42 +243,8 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      DOCUMENTS PROCESSED
+                      Documents
                     </span>
-                  </div>
-                  
-                  {/* Matter Opening */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: '#7DBB7D'
-                    }} />
-                    <span style={{
-                      fontSize: '11px',
-                      color: '#475569',
-                      fontWeight: '500',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}>
-                      MATTER OPENED
-                    </span>
-                  </div>
-                  
-                  {/* Status Badge */}
-                  <div style={{
-                    marginLeft: '8px',
-                    padding: '3px 8px',
-                    background: '#7DBB7D',
-                    borderRadius: '12px',
-                    fontSize: '10px',
-                    fontWeight: '600',
-                    color: 'white',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}>
-                    COMPLETE
                   </div>
                 </div>
               </>

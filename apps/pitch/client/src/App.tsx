@@ -96,6 +96,12 @@ const App: React.FC = () => {
       return;
     }
     
+    // Skip passcode lookup for success/failure pages to avoid incorrect API calls
+    if (location.pathname.match(/\/(success|failure)$/)) {
+      completeInitialization();
+      return;
+    }
+    
     // Check if this might be a passcode that needs lookup
     if (/^\d+$/.test(cidParam)) {
       console.log('Detected passcode in URL:', cidParam);
