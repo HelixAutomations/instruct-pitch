@@ -10,8 +10,11 @@ export const colours = {
     helixGrey: '#F4F4F6',           // or 'rgb(244, 244, 246)'
   
     // Additional placeholders not in your color list but used in the ButtonStyles snippet:
-    green: '#7DBB7D', // For "sharedDraftConfirmedButtonStyles"
-    lockedBg: 'rgba(125,187,125,0.1)',
+  // Updated green: midpoint style between #10B981 (emerald) and earlier #18A974 tweak.
+  // Chosen value #14B07A (H≈156°, S≈80%, L≈38%) gives balanced vibrancy without being too neon or too muted.
+  green: '#14B07A',
+  // Adjust locked background tint to match new hue
+  lockedBg: 'rgba(20,176,122,0.12)',
     secondaryButtonBackground: '#EBEBEB', // or any fallback color you like
   };
   

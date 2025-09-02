@@ -17,7 +17,6 @@ interface PaymentSummaryMinimalProps {
     SolicitorPhone?: string;
   };
   onProceedToPayment: () => void;
-  serviceFeatures?: string[]; // Optional array of service features from fee earner selections
   showPreflight?: boolean;
   onPreflightComplete?: () => void;
 }
@@ -25,7 +24,6 @@ interface PaymentSummaryMinimalProps {
 const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
   dealData,
   onProceedToPayment,
-  serviceFeatures,
   showPreflight = false,
   onPreflightComplete
 }) => {
@@ -37,17 +35,6 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
   const subtotal = editableAmount;
   const vatAmount = subtotal * 0.20;
   const totalAmount = subtotal + vatAmount;
-
-  // Default placeholder features if none provided
-  const defaultFeatures = [
-    'Service component 1',
-    'Service component 2', 
-    'Service component 3',
-    'Service component 4'
-  ];
-
-  // Use provided features or fallback to defaults
-  const features = serviceFeatures && serviceFeatures.length > 0 ? serviceFeatures : defaultFeatures;
 
   // Solicitor information with fallbacks
   const solicitorName = dealData.SolicitorName || 'Lukasz Zemanek';
@@ -190,7 +177,7 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
           onClick={onProceedToPayment}
         >
           <div className="button-content">
-            <span className="button-text">Proceed to Payment</span>
+            <span className="button-text">Pay Now</span>
             <span className="button-amount">{formatAmount(totalAmount)}</span>
           </div>
           <div className="button-icon">
@@ -252,23 +239,6 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
                 <span>{solicitorPhone}</span>
               </a>
             </div>
-          </div>
-        </div>
-
-        {/* What's Included */}
-        <div className="whats-included">
-          <h3 className="included-title">Your service includes</h3>
-          <div className="features-grid">
-            {features.map((feature, index) => (
-              <div key={index} className="feature-item">
-                <div className="feature-icon">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="currentColor"/>
-                  </svg>
-                </div>
-                <span>{feature}</span>
-              </div>
-            ))}
           </div>
         </div>
 

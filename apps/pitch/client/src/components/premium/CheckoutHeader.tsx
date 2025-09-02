@@ -2,20 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { FiMail, FiPhone } from 'react-icons/fi';
 import './CheckoutHeader-clean.css';
 
-interface CompletionStatus {
-  identityVerified: boolean;
-  documentsUploaded: boolean;
-  paymentCompleted: boolean;
-}
-
 interface CheckoutHeaderProps {
   currentIndex: number;
   steps: { key: string; label: string }[];
   instructionRef: string;
   contact?: string;
   currentStep?: string; // Add current step key for header content
-  completionStatus?: CompletionStatus; // Add completion status for amalgamated display
   showMatterAnimation?: boolean; // Control matter opening animation
+  showInstructionRef?: boolean; // Control display of instruction reference
 }
 
 /**
@@ -27,8 +21,8 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
   steps,
   instructionRef,
   currentStep,
-  completionStatus,
   showMatterAnimation: _showMatterAnimation = false,
+  showInstructionRef = true,
 }) => {
   const [progressAnimation, setProgressAnimation] = useState(0);
 
@@ -72,6 +66,13 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
           description: 'Your instruction has been successfully submitted and processed.',
           classification: 'Matter Opened',
           urgency: 'Confirmed'
+        };
+      case 'error':
+        return {
+          title: 'Payment Not Completed',
+          description: 'Your card payment didn\'t go through. You can still complete your instruction now by sending a bank transfer – details are below.',
+          classification: 'Action Required',
+          urgency: 'Attention'
         };
       default:
         return {
@@ -155,100 +156,45 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
         <div className="hero-content">
           <div className="hero-main">
             <div className="hero-progress-meta">
-              <div className="progress-bar" style={{ position: 'relative' }}>
-                <div 
-                  className="progress-fill" 
-                  style={{ 
+              <div className={`progress-bar ${currentStep === 'complete' ? 'complete' : ''} ${currentStep === 'error' ? 'error' : ''}`} style={{ position: 'relative' }}>
+                <div
+                  className="progress-fill"
+                  style={{
                     width: `${progressAnimation}%`,
-                    transition: currentStep === 'complete' ? 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)' : 'width 0.3s ease'
+                    transition: (currentStep === 'complete' || currentStep === 'error') ? 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)' : 'width 0.3s ease'
                   }}
                 />
               </div>
             </div>
-            <h1 className="hero-title">{stepContent.title}</h1>
+            <h1 className={`hero-title ${currentStep === 'complete' ? 'complete-title' : ''} ${currentStep === 'error' ? 'error-title' : ''}`}>
+              {currentStep === 'complete' && (
+                <span className="completion-badge" aria-label="Instruction Complete" role="img">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="11" strokeOpacity="0.25" />
+                    <path d="M7.8 12.5l3 3.1 5.4-6.6" />
+                  </svg>
+                </span>
+              )}
+              {currentStep === 'error' && (
+                <span className="error-badge" aria-label="Instruction Failed" role="img">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="11" strokeOpacity="0.25" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                </span>
+              )}
+              {stepContent.title}
+            </h1>
             <p className="hero-description">{stepContent.description}</p>
-            {instructionRef && (
+            {instructionRef && showInstructionRef && (
               <div className="instruction-ref">
                 <span className="ref-label">Reference:</span>
                 <span className="ref-value">{instructionRef}</span>
               </div>
             )}
             
-            {/* Compact Completion Status - Seamlessly Integrated */}
-            {currentStep === 'complete' && completionStatus && (
-              <>
-                {/* Compact Status Indicators */}
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  marginTop: '16px',
-                  padding: '8px 16px',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  borderRadius: '24px',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                }}>
-                  {/* Identity */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: completionStatus.identityVerified ? '#7DBB7D' : '#e2e8f0'
-                    }} />
-                    <span style={{
-                      fontSize: '11px',
-                      color: '#475569',
-                      fontWeight: '500',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}>
-                      ID
-                    </span>
-                  </div>
-                  
-                  {/* Payment */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: completionStatus.paymentCompleted ? '#7DBB7D' : '#e2e8f0'
-                    }} />
-                    <span style={{
-                      fontSize: '11px',
-                      color: '#475569',
-                      fontWeight: '500',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}>
-                      Payment
-                    </span>
-                  </div>
-                  
-                  {/* Documents */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: completionStatus.documentsUploaded ? '#7DBB7D' : '#e2e8f0'
-                    }} />
-                    <span style={{
-                      fontSize: '11px',
-                      color: '#475569',
-                      fontWeight: '500',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}>
-                      Documents
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
+            {/* Compact completion status pill removed per request */}
           </div>
         </div>
       </div>

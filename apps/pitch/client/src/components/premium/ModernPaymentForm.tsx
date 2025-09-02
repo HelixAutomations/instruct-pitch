@@ -53,7 +53,7 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
         iconColor: '#e53e3e'
       },
       complete: {
-        color: '#059669',
+  color: '#14B07A',
       }
     },
     hidePostalCode: false,
@@ -319,25 +319,32 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
               <div className="bank-details-grid">
                 <div className="bank-detail-item">
                   <span className="detail-label">Account Name</span>
-                  <span className="detail-value" onClick={() => handleCopy('accountName','Helix Legal Solutions Ltd')}>
-                    Helix Legal Solutions Ltd
+                  <span className="detail-value" onClick={() => handleCopy('accountName','Helix Law General Client Account')}>
+                    Helix Law General Client Account
                   </span>
-                  <button type="button" className="copy-btn" onClick={() => handleCopy('accountName','Helix Legal Solutions Ltd')}>{copiedField==='accountName' ? 'Copied' : 'Copy'}</button>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('accountName','Helix Law General Client Account')}>{copiedField==='accountName' ? 'Copied' : 'Copy'}</button>
+                </div>
+                <div className="bank-detail-item">
+                  <span className="detail-label">Bank</span>
+                  <span className="detail-value" onClick={() => handleCopy('bank','Barclays Bank, Eastbourne')}>
+                    Barclays Bank, Eastbourne
+                  </span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('bank','Barclays Bank, Eastbourne')}>{copiedField==='bank' ? 'Copied' : 'Copy'}</button>
                 </div>
                 <div className="bank-detail-item">
                   <span className="detail-label">Sort Code</span>
-                  <span className="detail-value" onClick={() => handleCopy('sortCode','04-00-04')}>04-00-04</span>
-                  <button type="button" className="copy-btn" onClick={() => handleCopy('sortCode','04-00-04')}>{copiedField==='sortCode' ? 'Copied' : 'Copy'}</button>
+                  <span className="detail-value" onClick={() => handleCopy('sortCode','20-27-91')}>20-27-91</span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('sortCode','20-27-91')}>{copiedField==='sortCode' ? 'Copied' : 'Copy'}</button>
                 </div>
                 <div className="bank-detail-item">
                   <span className="detail-label">Account Number</span>
-                  <span className="detail-value" onClick={() => handleCopy('accountNumber','12345678')}>12345678</span>
-                  <button type="button" className="copy-btn" onClick={() => handleCopy('accountNumber','12345678')}>{copiedField==='accountNumber' ? 'Copied' : 'Copy'}</button>
+                  <span className="detail-value" onClick={() => handleCopy('accountNumber','9347 2434')}>9347 2434</span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('accountNumber','9347 2434')}>{copiedField==='accountNumber' ? 'Copied' : 'Copy'}</button>
                 </div>
-                <div className="bank-detail-item ref-item">
+                <div className="bank-detail-item">
                   <span className="detail-label">Reference</span>
-                  <span className="detail-value ref-value" onClick={() => handleCopy('reference', instructionRef)}>{instructionRef}</span>
-                  <button type="button" className="copy-btn primary" onClick={() => handleCopy('reference', instructionRef)}>{copiedField==='reference' ? 'Copied' : 'Copy'}</button>
+                  <span className="detail-value" onClick={() => handleCopy('reference', instructionRef)}>{instructionRef}</span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('reference', instructionRef)}>{copiedField==='reference' ? 'Copied' : 'Copy'}</button>
                 </div>
                 <div className="bank-detail-item">
                   <span className="detail-label">Amount (GBP)</span>
@@ -348,7 +355,6 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
               <div className="bank-hints">
                 <div className="hint-item">Use the reference exactly – it links your payment to your matter.</div>
                 <div className="hint-item">Faster Payments usually arrive within minutes; some banks may take up to 2 hours.</div>
-                <div className="hint-item">We’ll email you as soon as funds are matched.</div>
               </div>
             </div>
           </div>
@@ -482,23 +488,26 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
         .bank-header-row h4 { font-size:1rem; font-weight:600; color:#0D2F60; letter-spacing:.3px; margin:0; }
         .bank-badge { background:#0D2F6010; color:#0D2F60; font-size:.625rem; font-weight:600; letter-spacing:.5px; padding:4px 8px; border-radius:6px; text-transform:uppercase; }
         .bank-intro { font-size:.75rem; line-height:1.3; color:#475569; margin:0 0 .875rem; }
-        .bank-details-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem .85rem; margin-bottom:1rem; }
-        .bank-detail-item { position:relative; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:.6rem .65rem .55rem; display:flex; flex-direction:column; gap:2px; transition:border-color .15s ease, box-shadow .15s ease; }
+        .bank-details-grid { display:grid; grid-template-columns:1fr; gap:.75rem; margin-bottom:1rem; }
+        .bank-detail-item { position:relative; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:.8rem .75rem .7rem; display:flex; flex-direction:column; gap:4px; transition:border-color .15s ease, box-shadow .15s ease; }
         .bank-detail-item:hover { border-color:#cbd5e1; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
         .detail-label { font-size:.575rem; font-weight:600; letter-spacing:.7px; text-transform:uppercase; color:#64748b; }
-        .detail-value { font-size:.8rem; font-weight:600; color:#0f172a; word-break:break-all; cursor:pointer; }
-        .ref-item { border-color:#0D2F60; }
-        .ref-item .detail-value { color:#0D2F60; }
-        .ref-item .detail-label { color:#0D2F60; }
-        .copy-btn { position:absolute; top:6px; right:6px; background:#f1f5f9; border:1px solid #e2e8f0; font-size:.55rem; font-weight:600; letter-spacing:.5px; padding:3px 6px; border-radius:4px; cursor:pointer; color:#475569; transition:all .15s ease; }
+        .detail-value { font-size:.85rem; font-weight:600; color:#0f172a; word-break:break-all; cursor:pointer; padding-right:50px; line-height:1.3; }
+  /* Removed special ref-item styling so Reference appears like others */
+        .copy-btn { position:absolute; top:8px; right:8px; background:#f1f5f9; border:1px solid #e2e8f0; font-size:.55rem; font-weight:600; letter-spacing:.5px; padding:4px 8px; border-radius:4px; cursor:pointer; color:#475569; transition:all .15s ease; }
         .copy-btn:hover { background:#e2e8f0; }
         .copy-btn.primary { background:#0D2F60; border-color:#0D2F60; color:#fff; }
         .copy-btn.primary:hover { background:#061733; }
         .bank-hints { display:flex; flex-direction:column; gap:6px; }
         .hint-item { font-size:.65rem; line-height:1.25; color:#475569; padding:6px 8px; background:#fff; border:1px dashed #e2e8f0; border-radius:6px; }
+        @media (min-width:768px){
+          .bank-details-grid { grid-template-columns:repeat(2,1fr); gap:.75rem .85rem; }
+          .bank-detail-item { padding:.6rem .65rem .55rem; gap:2px; }
+          .detail-value { font-size:.8rem; padding-right:40px; }
+          .copy-btn { top:6px; right:6px; padding:3px 6px; }
+        }
         @media (max-width:520px){
-          .bank-details-grid { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
-          .detail-value { font-size:.75rem; }
+          .detail-value { font-size:.8rem; }
         }
 
         .payment-element-container {
@@ -633,11 +642,11 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
         }
 
         .pay-button.ready {
-          background: #059669;
+          background: #14B07A; /* mid-tone unified green */
         }
 
         .pay-button.ready:hover:not(:disabled) {
-          background: #047857;
+          background: #129869; /* darker hover derived from mid-tone */
           transform: translateY(-1px);
         }
 
@@ -685,8 +694,8 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
   .trust-logo-mask.chambers-size { flex:0 0 82px; height:22px; }
   .trust-logo-mask:hover { opacity:.75; transform:translateY(-3px); }
   .payment-security-inline { display:flex; align-items:center; justify-content:center; gap:48px; }
-  .security-signal { display:inline-flex; align-items:center; gap:10px; padding:4px 8px; border-radius:6px; color:#7DBB7D; position:relative; }
-  .fluent-icon { width:26px; height:26px; stroke:currentColor; color:#7DBB7D; opacity:.9; transition:opacity .3s ease, transform .4s cubic-bezier(0.16,1,0.3,1); }
+  .security-signal { display:inline-flex; align-items:center; gap:10px; padding:4px 8px; border-radius:6px; color:#14B07A; position:relative; }
+  .fluent-icon { width:26px; height:26px; stroke:currentColor; color:#14B07A; opacity:.9; transition:opacity .3s ease, transform .4s cubic-bezier(0.16,1,0.3,1); }
   .security-signal:hover .fluent-icon { opacity:1; transform:translateY(-2px); }
   .signal-label { font-size:0.6875rem; letter-spacing:.05em; font-weight:600; text-transform:uppercase; color:#64748b; opacity:.7; line-height:1; white-space:nowrap; font-family:'Raleway',sans-serif; }
   .security-signal:hover .signal-label { opacity:1; }

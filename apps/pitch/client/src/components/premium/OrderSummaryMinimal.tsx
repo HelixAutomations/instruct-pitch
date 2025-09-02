@@ -60,7 +60,7 @@ const OrderSummaryMinimal: React.FC<OrderSummaryMinimalProps> = ({
         <div className="service-line">
           <div className="service-info">
             <div className="service-title">Payment on Account of Costs</div>
-            <div className="service-desc">{dealData.ServiceDescription}</div>
+            {/* <div className="service-desc">{dealData.ServiceDescription}</div> */}
           </div>
           <div className="service-amount">{formatAmount(totalAmount)}</div>
         </div>

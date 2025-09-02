@@ -26,14 +26,14 @@ export const premiumTheme = {
     textMuted: '#9CA3AF',
     
     // Trust & security colors
-    success: '#10B981',
+  success: '#14B07A',
     warning: '#F59E0B',
     error: '#EF4444',
     
     // Payment specific
     cardBorder: '#E5E7EB',
     cardBorderFocus: colours.helixHighlight,
-    securityGreen: '#10B981',
+  securityGreen: '#14B07A',
     loadingSkeleton: '#F3F4F6',
   },
   

@@ -108,19 +108,30 @@
 /* Payment Section */
 .payment-section {
   margin-top: 0;
-  padding-top: 0;
+  padding: 0 !important;
   border-top: none;
   width: 100%;
 }
 
+/* Remove padding from all nested payment elements */
+.payment-section * {
+  box-sizing: border-box;
+}
+
+.payment-section > div {
+  padding: 0 !important;
+}
+
 /* Override ModernPaymentForm styles for minimal integration */
 .payment-section .modern-payment-form {
-  margin: 0;
+  margin: 0 !important;
   width: 100%;
+  padding: 0 !important;
 }
 
 .payment-section .payment-form {
   gap: 1rem;
+  padding: 0 !important;
 }
 
 /* Payment Method Tabs */
@@ -290,7 +301,6 @@
 
 .payment-section {
   width: 100%;
-  max-width: 500px;
   margin: 0 auto;
   padding: 0;
 }
@@ -299,6 +309,7 @@
   max-width: none;
   width: 100%;
   margin: 0;
+  padding: 0;
 }
 
 /* Desktop Layout - Side by Side */
@@ -346,7 +357,23 @@
   }
   
   .payment-section {
-    max-width: 600px;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    max-width: none;
+  }
+  
+  .payment-section .modern-payment-form {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100%;
+  }
+  
+  .payment-section .payment-form {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
   }
   
   .order-summary-minimal .summary-card {
@@ -387,5 +414,20 @@
 /* --- Explicit override (fallback) in case earlier duplicate rules reintroduce margin --- */
 @media (max-width: 767px) {
   .order-summary-minimal.full-bleed { margin: 0 !important; }
+}
+
+/* iPad specific override to ensure no margins */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .payment-section,
+  .payment-section .modern-payment-form,
+  .payment-section .payment-form {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .payment-section > div {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }
 

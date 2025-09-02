@@ -163,6 +163,78 @@ const PremiumFailurePage: React.FC = () => {
     }
   };
 
+  const [showBank, setShowBank] = React.useState(false);
+  const [emailStatus, setEmailStatus] = React.useState<'idle'|'sending'|'sent'|'error'>('idle');
+  const [copiedField, setCopiedField] = React.useState<string | null>(null);
+  const [showEmailPrompt, setShowEmailPrompt] = React.useState(false);
+  // Resolve earlier-captured email (from client details, instruction summary, or payment data), else dev fallback
+  const resolvedClientEmail = React.useMemo(() => {
+    const candidate = summary.clientDetails?.email || instructionSummary?.clientDetails?.email || paymentData?.clientEmail;
+    if (candidate && candidate.includes('@')) return candidate.trim();
+    // Local/dev fallback
+    return 'lz@helix-law.com';
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summary.clientDetails?.email, instructionSummary?.clientDetails?.email, paymentData?.clientEmail]);
+  const [emailInput, setEmailInput] = React.useState<string>(resolvedClientEmail);
+  const [emailEdited, setEmailEdited] = React.useState(false);
+  const [emailError, setEmailError] = React.useState<string>('');
+  const clientEmail = resolvedClientEmail; // unified source
+
+  const handleCopy = (label: string, value: string) => {
+    try {
+      navigator.clipboard.writeText(value);
+      setCopiedField(label);
+      setTimeout(() => setCopiedField(null), 1800);
+    } catch (err) {
+      console.warn('Clipboard copy failed', err);
+    }
+  };
+
+  // Initialise email input when prompt first opened (lazy to ensure latest clientEmail)
+  React.useEffect(() => {
+    // If a better email arrives later (async fetch) and user hasn't edited, update the input
+    if (!emailEdited && emailInput !== clientEmail) {
+      setEmailInput(clientEmail);
+    }
+  }, [clientEmail, emailEdited, emailInput]);
+
+  const handleEmailBankDetails = async () => {
+    if (emailStatus === 'sending') return;
+    const target = emailInput.trim();
+    if (!target) return; // basic guard
+    // Validate before send
+    const valid = /.+@.+\..+/.test(target);
+    if (!valid) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+    try {
+      setEmailStatus('sending');
+      const resp = await fetch('/api/email/bank-details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: target, instructionRef: summary.instructionRef, amount: summary.serviceDetails?.amount })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (resp.ok && data.success) {
+        setEmailStatus('sent');
+        setShowEmailPrompt(false);
+      } else if (resp.ok && data.warning) {
+        // Dev fallback: treat as sent but surface warning briefly
+        setEmailStatus('sent');
+        setShowEmailPrompt(false);
+        console.warn('Bank details email dev warning:', data.warning, data.detail);
+      } else {
+        console.error('Bank details email error payload:', data);
+        setEmailStatus('error');
+        setEmailError(data?.error || 'Failed to send – please try again.');
+      }
+    } catch (e) {
+      setEmailStatus('error');
+      setEmailError('Network issue – please retry.');
+    }
+  };
+
   // Map error codes to user-friendly messages
   const getErrorInfo = (code: string | null) => {
     switch (code) {
@@ -193,12 +265,11 @@ const PremiumFailurePage: React.FC = () => {
       default:
         return {
           title: 'Payment Failed',
-          message: errorMessage || 'We were unable to process your payment. Your information has been saved and we will contact you to resolve this.',
+          message: errorMessage || '',
           icon: '⚠️'
         };
     }
   };
-
   const errorInfo = getErrorInfo(errorCode);
 
   const formatAmount = (amount: number | undefined, currency: string = 'GBP') => {
@@ -213,17 +284,17 @@ const PremiumFailurePage: React.FC = () => {
 
   return (
     <>
+  <style>{`@keyframes fadeEmailIn { from { opacity:0; transform: translateY(4px) scale(.985);} to { opacity:1; transform: translateY(0) scale(1);} }`}</style>
       {/* Header with progress showing failure state */}
       <CheckoutHeader
-        currentIndex={2} // Final step (error state)
+        currentIndex={1} // Final visible step index after collapsing flow
         steps={[
           { key: 'identity', label: 'Prove Your Identity' },
-          { key: 'documents', label: 'Upload Documents' },
           { key: 'payment', label: 'Pay' }
         ]}
         instructionRef={summary.instructionRef}
         currentStep="error" // Special error state
-        completionStatus={summary.completedSteps}
+        showInstructionRef={false}
       />
 
       {/* Clean Failure Content - Matches Success Page Layout */}
@@ -244,15 +315,15 @@ const PremiumFailurePage: React.FC = () => {
               width: '100%'
             }}>
               
-              {/* Payment Failed Message - Clean & Simple */}
+              {/* Unified Failure Card: message + reference + next actions */}
               <div style={{ 
                 background: 'white',
                 borderRadius: '16px',
-                padding: 'clamp(32px, 6vw, 48px)',
+                padding: 'clamp(24px, 5vw, 36px)',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)',
                 border: '1px solid #f1f5f9',
-                marginTop: 'clamp(24px, 5vw, 40px)',
-                marginBottom: 'clamp(32px, 6vw, 48px)',
+                marginTop: 'clamp(16px, 4vw, 32px)',
+                marginBottom: 'clamp(24px, 5vw, 36px)',
                 textAlign: 'center'
               }}>
                 {/* Error Icon */}
@@ -284,104 +355,63 @@ const PremiumFailurePage: React.FC = () => {
                 }}>
                   {errorInfo.title}
                 </h1>
-                <p style={{
-                  fontSize: 'clamp(16px, 3.8vw, 18px)',
-                  color: '#475569',
-                  textAlign: 'center',
-                  margin: '0 0 clamp(32px, 7vw, 40px) 0',
-                  lineHeight: '1.6',
-                  padding: '0 clamp(16px, 3vw, 24px)',
-                  fontWeight: '400'
-                }}>
-                  {errorInfo.message}
-                </p>
-              </div>
-
-              {/* Combined Service Summary & Solicitor Card */}
-              <div style={{
-                background: 'white',
-                borderRadius: '12px',
-                padding: 'clamp(20px, 5vw, 40px)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                border: '1px solid #e5e7eb',
-                position: 'relative',
-                overflow: 'hidden',
-                marginBottom: 'clamp(16px, 4vw, 24px)'
-              }}>
-                {/* Reference and Service Info */}
-                <div style={{
-                  marginBottom: 'clamp(24px, 5vw, 32px)',
-                  paddingBottom: 'clamp(20px, 4vw, 24px)',
-                  borderBottom: '1px solid #e5e7eb'
-                }}>
-                  <div style={{
-                    background: 'linear-gradient(135deg, #fef2f2 0%, #fecaca 100%)',
-                    border: '1px solid #fca5a5',
-                    borderRadius: 'clamp(12px, 3vw, 16px)',
-                    padding: 'clamp(20px, 4.5vw, 28px)',
+                {errorInfo.message && (
+                  <p style={{
+                    fontSize: 'clamp(16px, 3.8vw, 18px)',
+                    color: '#475569',
                     textAlign: 'center',
-                    margin: '0 0 clamp(20px, 4vw, 24px) 0',
-                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.1)'
+                    margin: '0 0 clamp(20px, 5vw, 28px) 0',
+                    lineHeight: '1.6',
+                    padding: '0 clamp(16px, 3vw, 24px)',
+                    fontWeight: '400'
                   }}>
-                    <span style={{
-                      fontSize: 'clamp(12px, 2.8vw, 14px)',
-                      fontWeight: '700',
-                      color: '#991b1b',
-                      display: 'block',
-                      marginBottom: 'clamp(6px, 1.5vw, 8px)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em'
-                    }}>
-                      Your Reference
-                    </span>
-                    <span style={{
-                      fontSize: 'clamp(18px, 4.5vw, 22px)',
-                      fontWeight: '800',
-                      color: '#991b1b',
-                      fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                      letterSpacing: '0.05em',
-                      wordBreak: 'break-all',
-                      display: 'block',
-                      padding: 'clamp(4px, 1vw, 6px) 0'
-                    }}>
-                      HLX-{summary.instructionRef}
-                    </span>
-                  </div>
-                  
+                    {errorInfo.message}
+                  </p>
+                )}
+
+                {/* Reference + Service Summary */}
+                <div style={{
+                  padding: '0 0 clamp(16px, 4vw, 24px) 0',
+                  textAlign: 'center',
+                  margin: '0 0 clamp(8px, 3vw, 16px) 0',
+                  borderBottom: '1px solid #f1f5f9'
+                }}>
+                  <span style={{
+                    fontSize: 'clamp(12px, 2.8vw, 14px)',
+                    fontWeight: '700',
+                    color: '#991b1b',
+                    display: 'block',
+                    marginBottom: 'clamp(6px, 1.5vw, 8px)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em'
+                  }}>
+                    Your Reference
+                  </span>
+                  <span style={{
+                    fontSize: 'clamp(18px, 4.5vw, 22px)',
+                    fontWeight: '800',
+                    color: '#991b1b',
+                    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    letterSpacing: '0.05em',
+                    wordBreak: 'break-all',
+                    display: 'block',
+                    padding: 'clamp(4px, 1vw, 6px) 0'
+                  }}>
+                    HLX-{summary.instructionRef}
+                  </span>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'flex-start',
                     flexWrap: 'wrap',
-                    gap: '16px'
+                    gap: '16px',
+                    marginTop: 'clamp(12px, 3vw, 16px)'
                   }}>
-                    <div>
-                      <h3 style={{
-                        fontSize: 'clamp(22px, 5vw, 26px)',
-                        fontWeight: '700',
-                        color: '#1e293b',
-                        margin: '0 0 8px 0',
-                        letterSpacing: '-0.015em',
-                        lineHeight: '1.3'
-                      }}>
-                        {summary.serviceDetails?.description || 'Payment on Account of Costs'}
-                      </h3>
-                      <p style={{
-                        fontSize: 'clamp(14px, 3.2vw, 16px)',
-                        color: colours.cta,
-                        margin: 0,
-                        fontWeight: '500'
-                      }}>
-                        Payment processing failed
-                      </p>
-                    </div>
-                    
+                    {/* Service description removed per request */}
                     {summary.serviceDetails?.amount && (
-                      <div style={{
-                        textAlign: 'right'
-                      }}>
+                      <div style={{ textAlign: 'right' }}>
                         <div style={{
-                          fontSize: 'clamp(20px, 5vw, 24px)',
+                          fontSize: 'clamp(18px, 4.5vw, 22px)',
                           fontWeight: '800',
                           color: colours.cta,
                           lineHeight: '1.2',
@@ -390,7 +420,7 @@ const PremiumFailurePage: React.FC = () => {
                           {formatAmount(summary.serviceDetails.amount, summary.serviceDetails.currency)}
                         </div>
                         <div style={{
-                          fontSize: 'clamp(12px, 2.8vw, 14px)',
+                          fontSize: 'clamp(11px, 2.8vw, 13px)',
                           color: '#64748b',
                           fontWeight: '600',
                           textTransform: 'uppercase',
@@ -401,378 +431,226 @@ const PremiumFailurePage: React.FC = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Service Assignment */}
-                  <div style={{
-                    background: '#f8fafc',
-                    borderRadius: 'clamp(12px, 3vw, 16px)',
-                    padding: 'clamp(20px, 4.5vw, 28px)',
-                    border: '1px solid #e2e8f0',
-                    marginTop: 'clamp(20px, 4vw, 24px)'
-                  }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      gap: 'clamp(12px, 2.5vw, 16px)'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}>
-                        <span style={{
-                          fontSize: 'clamp(14px, 3.2vw, 16px)',
-                          color: '#64748b',
-                          fontWeight: '600'
-                        }}>
-                          Assigned Solicitor
-                        </span>
-                        <span style={{
-                          fontSize: 'clamp(14px, 3.2vw, 16px)',
-                          color: '#1e293b',
-                          fontWeight: '700'
-                        }}>
-                          {summary.solicitorDetails?.name || 'Lukasz Zemanek'}
-                        </span>
-                      </div>
-                      
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}>
-                        <span style={{
-                          fontSize: 'clamp(14px, 3.2vw, 16px)',
-                          color: '#64748b',
-                          fontWeight: '600'
-                        }}>
-                          Supervising Partner
-                        </span>
-                        <span style={{
-                          fontSize: 'clamp(14px, 3.2vw, 16px)',
-                          color: '#1e293b',
-                          fontWeight: '700'
-                        }}>
-                          Rebecca Johnson
-                        </span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
-                {/* Detailed Solicitor Information */}
+                {/* Next Steps (merged) */}
                 <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  width: '80px',
-                  backgroundImage: 'url("/assets/markwhite.svg")',
-                  backgroundSize: '40px auto',
-                  backgroundPosition: 'right 15px center',
-                  backgroundRepeat: 'no-repeat',
-                  opacity: 0.6,
-                  pointerEvents: 'none',
-                  zIndex: 0
-                }} />
-                
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '16px',
-                  marginBottom: '20px',
-                  position: 'relative',
-                  zIndex: 1
+                  textAlign: 'center',
+                  paddingTop: '4px'
                 }}>
-                  <div style={{
-                    position: 'relative',
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    background: '#f3f4f6',
-                    border: '2px solid #e5e7eb',
-                    flexShrink: 0,
-                    transition: 'all 0.3s ease'
-                  }}>
-                    <img 
-                      src="/assets/dark blue mark.svg" 
-                      alt="Helix Law"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        padding: '8px',
-                        transition: 'opacity 0.3s ease',
-                        opacity: 1
-                      }}
-                    />
-                  </div>
-                  
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{
-                      fontFamily: 'Raleway, sans-serif',
-                      fontSize: '18px',
-                      fontWeight: '600',
-                      color: '#0D2F60',
-                      margin: '0 0 4px 0',
-                      lineHeight: '1.3'
-                    }}>
-                      {summary.solicitorDetails?.name || 'Lukasz Zemanek'}
-                    </h3>
-                    
-                    <p style={{
-                      fontFamily: 'Raleway, sans-serif',
-                      fontSize: '14px',
-                      fontWeight: '400',
-                      color: '#6b7280',
-                      margin: '0 0 12px 0',
-                      lineHeight: '1.4'
-                    }}>
-                      {summary.solicitorDetails?.title || 'Solicitor'}
-                    </p>
-                    
-                    <div style={{
-                      display: 'flex',
-                      gap: '8px',
-                      flexWrap: 'wrap'
-                    }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '4px 8px',
-                        backgroundColor: '#f0f9ff',
-                        color: '#0369a1',
-                        borderRadius: '6px',
-                        fontSize: '11px',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}>
-                        LLB (Hons)
-                      </span>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '4px 8px',
-                        backgroundColor: '#f0f9ff',
-                        color: '#0369a1',
-                        borderRadius: '6px',
-                        fontSize: '11px',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}>
-                        SRA Qualified
-                      </span>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '4px 8px',
-                        backgroundColor: '#f0fdf4',
-                        color: '#15803d',
-                        borderRadius: '6px',
-                        fontSize: '11px',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}>
-                        8+ Years Experience
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div style={{
-                  marginBottom: '16px'
-                }}>
-                  <p style={{
-                    fontSize: 'clamp(13px, 3.25vw, 14px)',
-                    color: '#64748b',
-                    margin: '0',
-                    lineHeight: '1.5'
-                  }}>
-                    Specialist in commercial litigation with extensive experience in contract disputes, 
-                    professional negligence claims, and debt recovery. Successfully handled cases ranging 
-                    from £5,000 to £2M+ with a 95% success rate.
-                  </p>
-                </div>
-                
-                <div style={{
-                  display: 'flex',
-                  gap: '16px',
-                  flexWrap: 'wrap'
-                }}>
-                  <a 
-                    href={`mailto:${summary.solicitorDetails?.email || 'lz@helix-law.com'}`}
-                    className="contact-item"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" fill="none"/>
-                      <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                    <span>{summary.solicitorDetails?.email || 'lz@helix-law.com'}</span>
-                  </a>
-                  
-                  <a 
-                    href={`tel:${summary.solicitorDetails?.phone || '03453142044'}`}
-                    className="contact-item"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="contact-icon">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" strokeWidth="2" fill="none"/>
-                    </svg>
-                    <span>{summary.solicitorDetails?.phone || '0345 314 2044'}</span>
-                  </a>
-                </div>
-              </div>
-
-              {/* Error Details Section */}
-              <div style={{
-                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                borderRadius: 'clamp(12px, 3vw, 16px)',
-                padding: 'clamp(28px, 6vw, 40px)',
-                border: `1px solid ${colours.cta}`,
-                marginBottom: 'clamp(16px, 4vw, 24px)',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-              }}>
-                <h3 style={{
-                  fontSize: 'clamp(20px, 4.5vw, 24px)',
-                  fontWeight: '700',
-                  color: '#1e293b',
-                  margin: '0 0 20px 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                    <circle cx="12" cy="12" r="10" fill={colours.cta}/>
-                    <line x1="12" y1="8" x2="12" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Payment Issue
-                </h3>
-                
-                <p style={{
-                  fontSize: 'clamp(15px, 3.5vw, 16px)',
-                  color: '#64748b',
-                  margin: '0 0 24px 0',
-                  lineHeight: '1.6'
-                }}>
-                  We encountered an issue processing your payment. Please try again or contact us for assistance.
-                </p>
-                
-                <div style={{
-                  background: 'rgba(255, 255, 255, 0.8)',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  border: '1px solid rgba(239, 68, 68, 0.2)'
-                }}>
-                  <h4 style={{
-                    fontSize: 'clamp(16px, 4vw, 18px)',
+                  <h3 style={{
+                    fontSize: 'clamp(18px, 4.5vw, 22px)',
                     fontWeight: '600',
-                    color: colours.cta,
-                    margin: '0 0 8px 0'
+                    color: '#1e293b',
+                    margin: '0 0 12px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px'
                   }}>
-                    What this means:
-                  </h4>
-                  <ul style={{
-                    margin: '0',
-                    paddingLeft: '20px',
-                    color: '#4b5563'
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 12l2 2 4-4" stroke="#3690CE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="12" r="10" stroke="#3690CE" strokeWidth="2" fill="none"/>
+                    </svg>
+                    Next Steps
+                  </h3>
+                  <p style={{
+                    fontSize: 'clamp(14px, 3.5vw, 15px)',
+                    color: '#64748b',
+                    margin: '0 0 16px 0',
+                    lineHeight: '1.5',
+                    textAlign: 'center'
                   }}>
-                    <li style={{ marginBottom: '4px' }}>Your payment could not be processed</li>
-                    <li style={{ marginBottom: '4px' }}>Your instruction has not been submitted yet</li>
-                    <li style={{ marginBottom: '4px' }}>No charges have been made to your account</li>
-                  </ul>
+                    Your payment has failed. Use the bank transfer option below or have the bank details emailed to you.
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
+                    <button
+                      style={{
+                        background: '#fff',
+                        color: colours.cta,
+                        border: `2px solid ${colours.cta}`,
+                        borderRadius: '8px',
+                        padding: '12px 18px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => setShowBank(v => !v)}
+                    >{showBank ? 'Hide Bank Details' : 'Use Bank Transfer Instead'}</button>
+                  </div>
+                  {showBank && (
+                    <div style={{ marginTop: '18px' }}>
+                      <div style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        padding: '18px 18px 22px',
+                        animation: 'fadeInBank 400ms ease'
+                      }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:'.75rem', margin:'0 0 .5rem' }}>
+                          <h4 style={{ fontSize:'1rem', fontWeight:600, color:'#0D2F60', letterSpacing:'.3px', margin:0 }}>Bank Transfer Details</h4>
+                          <span style={{ background:'#0D2F6010', color:'#0D2F60', fontSize:'.625rem', fontWeight:600, letterSpacing:'.5px', padding:'4px 8px', borderRadius:'6px', textTransform:'uppercase' }}>Manual Settlement</span>
+                        </div>
+                        <p style={{ fontSize:'.75rem', lineHeight:1.3, color:'#475569', margin:'0 0 .875rem' }}>Send a transfer using your online banking. Use the exact reference so we can match your payment instantly.</p>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:'.75rem', marginBottom:'1rem' }}>
+                          {/* Account Name */}
+                          <div style={{ position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'.8rem .75rem .7rem', display:'flex', flexDirection:'column', gap:'4px' }}>
+                            <span style={{ fontSize:'.575rem', fontWeight:600, letterSpacing:'.7px', textTransform:'uppercase', color:'#64748b' }}>Account Name</span>
+                            <span style={{ fontSize:'.85rem', fontWeight:600, color:'#0f172a', wordBreak:'break-all', cursor:'pointer', paddingRight:'50px', lineHeight:1.3 }} onClick={() => handleCopy('accountName','Helix Law General Client Account')}>Helix Law General Client Account</span>
+                            <button type="button" onClick={() => handleCopy('accountName','Helix Law General Client Account')} style={{ position:'absolute', top:8, right:8, background:'#f1f5f9', border:'1px solid #e2e8f0', fontSize:'.55rem', fontWeight:600, letterSpacing:'.5px', padding:'4px 8px', borderRadius:'4px', cursor:'pointer', color:'#475569' }}>{copiedField==='accountName' ? 'Copied' : 'Copy'}</button>
+                          </div>
+                          {/* Bank */}
+                          <div style={{ position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'.8rem .75rem .7rem', display:'flex', flexDirection:'column', gap:'4px' }}>
+                            <span style={{ fontSize:'.575rem', fontWeight:600, letterSpacing:'.7px', textTransform:'uppercase', color:'#64748b' }}>Bank</span>
+                            <span style={{ fontSize:'.85rem', fontWeight:600, color:'#0f172a', wordBreak:'break-all', cursor:'pointer', paddingRight:'50px', lineHeight:1.3 }} onClick={() => handleCopy('bank','Barclays Bank, Eastbourne')}>Barclays Bank, Eastbourne</span>
+                            <button type="button" onClick={() => handleCopy('bank','Barclays Bank, Eastbourne')} style={{ position:'absolute', top:8, right:8, background:'#f1f5f9', border:'1px solid #e2e8f0', fontSize:'.55rem', fontWeight:600, letterSpacing:'.5px', padding:'4px 8px', borderRadius:'4px', cursor:'pointer', color:'#475569' }}>{copiedField==='bank' ? 'Copied' : 'Copy'}</button>
+                          </div>
+                          {/* Sort Code */}
+                          <div style={{ position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'.8rem .75rem .7rem', display:'flex', flexDirection:'column', gap:'4px' }}>
+                            <span style={{ fontSize:'.575rem', fontWeight:600, letterSpacing:'.7px', textTransform:'uppercase', color:'#64748b' }}>Sort Code</span>
+                            <span style={{ fontSize:'.85rem', fontWeight:600, color:'#0f172a', wordBreak:'break-all', cursor:'pointer', paddingRight:'50px', lineHeight:1.3 }} onClick={() => handleCopy('sortCode','20-27-91')}>20-27-91</span>
+                            <button type="button" onClick={() => handleCopy('sortCode','20-27-91')} style={{ position:'absolute', top:8, right:8, background:'#f1f5f9', border:'1px solid #e2e8f0', fontSize:'.55rem', fontWeight:600, letterSpacing:'.5px', padding:'4px 8px', borderRadius:'4px', cursor:'pointer', color:'#475569' }}>{copiedField==='sortCode' ? 'Copied' : 'Copy'}</button>
+                          </div>
+                          {/* Account Number */}
+                          <div style={{ position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'.8rem .75rem .7rem', display:'flex', flexDirection:'column', gap:'4px' }}>
+                            <span style={{ fontSize:'.575rem', fontWeight:600, letterSpacing:'.7px', textTransform:'uppercase', color:'#64748b' }}>Account Number</span>
+                            <span style={{ fontSize:'.85rem', fontWeight:600, color:'#0f172a', wordBreak:'break-all', cursor:'pointer', paddingRight:'50px', lineHeight:1.3 }} onClick={() => handleCopy('accountNumber','9347 2434')}>9347 2434</span>
+                            <button type="button" onClick={() => handleCopy('accountNumber','9347 2434')} style={{ position:'absolute', top:8, right:8, background:'#f1f5f9', border:'1px solid #e2e8f0', fontSize:'.55rem', fontWeight:600, letterSpacing:'.5px', padding:'4px 8px', borderRadius:'4px', cursor:'pointer', color:'#475569' }}>{copiedField==='accountNumber' ? 'Copied' : 'Copy'}</button>
+                          </div>
+                          {/* Reference */}
+                          <div style={{ position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'.8rem .75rem .7rem', display:'flex', flexDirection:'column', gap:'4px' }}>
+                            <span style={{ fontSize:'.575rem', fontWeight:600, letterSpacing:'.7px', textTransform:'uppercase', color:'#64748b' }}>Reference</span>
+                            <span style={{ fontSize:'.85rem', fontWeight:600, color:'#0f172a', wordBreak:'break-all', cursor:'pointer', paddingRight:'50px', lineHeight:1.3 }} onClick={() => handleCopy('reference', `HLX-${summary.instructionRef}`)}>HLX-{summary.instructionRef}</span>
+                            <button type="button" onClick={() => handleCopy('reference', `HLX-${summary.instructionRef}`)} style={{ position:'absolute', top:8, right:8, background:'#f1f5f9', border:'1px solid #e2e8f0', fontSize:'.55rem', fontWeight:600, letterSpacing:'.5px', padding:'4px 8px', borderRadius:'4px', cursor:'pointer', color:'#475569' }}>{copiedField==='reference' ? 'Copied' : 'Copy'}</button>
+                          </div>
+                          {/* Amount */}
+                          {summary.serviceDetails?.amount && (
+                            <div style={{ position:'relative', background:'#fff', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'.8rem .75rem .7rem', display:'flex', flexDirection:'column', gap:'4px' }}>
+                              <span style={{ fontSize:'.575rem', fontWeight:600, letterSpacing:'.7px', textTransform:'uppercase', color:'#64748b' }}>Amount (GBP)</span>
+                              <span style={{ fontSize:'.85rem', fontWeight:600, color:'#0f172a', wordBreak:'break-all', cursor:'pointer', paddingRight:'50px', lineHeight:1.3 }} onClick={() => handleCopy('amount', formatAmount(summary.serviceDetails!.amount))}>{formatAmount(summary.serviceDetails.amount)}</span>
+                              <button type="button" onClick={() => handleCopy('amount', formatAmount(summary.serviceDetails!.amount))} style={{ position:'absolute', top:8, right:8, background:'#f1f5f9', border:'1px solid #e2e8f0', fontSize:'.55rem', fontWeight:600, letterSpacing:'.5px', padding:'4px 8px', borderRadius:'4px', cursor:'pointer', color:'#475569' }}>{copiedField==='amount' ? 'Copied' : 'Copy'}</button>
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                          <div style={{ fontSize:'.65rem', lineHeight:1.25, color:'#475569', padding:'6px 8px', background:'#fff', border:'1px dashed #e2e8f0', borderRadius:'6px' }}>Use the reference exactly – it links your payment to your matter.</div>
+                          <div style={{ fontSize:'.65rem', lineHeight:1.25, color:'#475569', padding:'6px 8px', background:'#fff', border:'1px dashed #e2e8f0', borderRadius:'6px' }}>Faster Payments usually arrive within minutes; some banks may take up to 2 hours.</div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', flexDirection:'column', alignItems:'center', gap:'12px' }}>
+                          {!showEmailPrompt && (
+                            <>
+                              <button
+                                disabled={emailStatus === 'sending' || emailStatus === 'sent'}
+                                style={{
+                                  background: emailStatus==='sent' ? '#14B07A' : '#fff',
+                                  color: emailStatus==='sent' ? '#fff' : colours.cta,
+                                  border: emailStatus==='sent' ? '2px solid #14B07A' : `2px solid ${colours.cta}`,
+                                  borderRadius: '8px',
+                                  padding: '12px 18px',
+                                  fontSize: '15px',
+                                  fontWeight: '600',
+                                  cursor: emailStatus==='sent' ? 'default' : 'pointer',
+                                  transition: 'all 0.2s ease'
+                                }}
+                                onClick={() => { setShowEmailPrompt(true); setEmailStatus('idle'); setEmailError(''); }}
+                              >{emailStatus==='sent' ? 'Bank Details Sent' : 'Email Me These Details'}</button>
+                              {emailStatus==='sent' && (
+                                <div style={{ fontSize:'12px', color:'#16a34a', fontWeight:600, marginTop:'6px' }} aria-live="polite">Sent – check your inbox (and spam just in case).</div>
+                              )}
+                            </>
+                          )}
+                          {showEmailPrompt && (
+                            <form onSubmit={(e) => { e.preventDefault(); handleEmailBankDetails(); }} style={{
+                              display:'flex', flexDirection:'column', gap:'10px',
+                              background:'#f8fafc', border:'1px solid #e2e8f0', padding:'16px 16px 14px', borderRadius:'12px', width:'100%', maxWidth:'420px',
+                              boxShadow:'0 1px 2px rgba(0,0,0,0.04)',
+                              animation:'fadeEmailIn 260ms ease'
+                            }}>
+                              <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" stroke="#0D2F60" fill="none" strokeWidth="1.6"><path d="M4 6.5c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v.4l-8 5-8-5v-.4Z"/><path d="M4 8.8V17.5c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8.8l-8 5-8-5Z"/></svg>
+                                <div style={{ fontSize:'13px', fontWeight:600, color:'#0D2F60' }}>Send Secure Bank Details</div>
+                              </div>
+                              <label htmlFor="email-confirm" style={{ fontSize:'11px', fontWeight:600, letterSpacing:'.5px', textTransform:'uppercase', color:'#475569', marginTop:'4px' }}>Email Address</label>
+                              <input
+                                id="email-confirm"
+                                type="email"
+                                required
+                                autoFocus
+                                value={emailInput}
+                                onChange={(e) => { if (!emailEdited) setEmailEdited(true); const v=e.target.value; setEmailInput(v); if (emailStatus!=='idle') setEmailStatus('idle'); if (emailError) setEmailError(''); if(v && !/.+@.+\..+/.test(v)) setEmailError('Invalid email format'); }}
+                                placeholder="you@example.com"
+                                style={{
+                                  fontSize:'14px', padding:'10px 12px', border:`1px solid ${emailError? '#dc2626':'#cbd5e1'}`, borderRadius:'6px', outline:'none',
+                                  boxShadow:'0 1px 1px rgba(0,0,0,0.02)'
+                                }}
+                              />
+                              {emailError && <div style={{ fontSize:'11px', color:'#dc2626', fontWeight:600 }} aria-live="polite">{emailError}</div>}
+                              {/* Informational bullet list removed per request */}
+                              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+                                <button type="submit" disabled={emailStatus==='sending'} style={{
+                                  background: emailStatus==='sending' ? '#0D2F60' : '#14B07A',
+                                  color:'#fff', border:'none', borderRadius:'6px', padding:'10px 16px', fontSize:'14px', fontWeight:600,
+                                  cursor: emailStatus==='sending' ? 'progress' : 'pointer', flex:1, minWidth:'140px'
+                                }}>
+                                  {emailStatus==='sending' && 'Sending...'}
+                                  {emailStatus==='idle' && 'Send Now'}
+                                  {emailStatus==='error' && 'Retry Send'}
+                                  {emailStatus==='sent' && 'Sent'}
+                                </button>
+                                <button type="button" onClick={() => { setShowEmailPrompt(false); setEmailStatus('idle'); setEmailError(''); }} style={{
+                                  background:'#fff', color:'#475569', border:'1px solid #cbd5e1', borderRadius:'6px', padding:'10px 16px', fontSize:'14px', fontWeight:600,
+                                  cursor:'pointer'
+                                }}>Cancel</button>
+                              </div>
+                              {emailStatus==='error' && <div style={{ fontSize:'12px', color:'#dc2626', fontWeight:600 }} aria-live="polite">Failed to send. Please adjust the email or retry.</div>}
+                            </form>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Retry Options Section */}
+              {/* Lightweight Info Strip to reduce whitespace */}
               <div style={{
-                background: 'white',
-                borderRadius: 'clamp(12px, 3vw, 16px)',
-                padding: 'clamp(28px, 6vw, 40px)',
-                border: '1px solid #e2e8f0',
-                marginBottom: 'clamp(16px, 4vw, 24px)',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                maxWidth: '880px',
+                margin: 'clamp(12px,3vw,28px) auto clamp(8px,3vw,32px)',
+                display: 'grid',
+                gap: '14px',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))'
               }}>
-                <h3 style={{
-                  fontSize: 'clamp(20px, 4.5vw, 24px)',
-                  fontWeight: '700',
-                  color: '#1e293b',
-                  margin: '0 0 20px 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                    <path d="M9 12l2 2 4-4" stroke="#3690CE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="12" cy="12" r="10" stroke="#3690CE" strokeWidth="2" fill="none"/>
-                  </svg>
-                  Next Steps
-                </h3>
-                
-                <p style={{
-                  fontSize: 'clamp(15px, 3.5vw, 16px)',
-                  color: '#64748b',
-                  margin: '0 0 24px 0',
-                  lineHeight: '1.6'
-                }}>
-                  You can try your payment again or contact us for assistance with the payment issue.
-                </p>
-                
                 <div style={{
-                  display: 'grid',
-                  gap: '16px',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
+                  background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:12, padding:'16px 18px',
+                  display:'flex', flexDirection:'row', gap:12, alignItems:'flex-start'
                 }}>
-                  <button 
-                    style={{
-                      background: colours.cta,
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '16px 24px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px'
-                    }}
-                    onClick={() => window.location.reload()}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M1 4v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <div style={{ width:34, height:34, borderRadius:8, background:'#0D2F6010', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    {/* Strategy / planning icon replacing shield */}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D2F60" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="7" cy="6" r="2" />
+                      <circle cx="17" cy="18" r="2" />
+                      <path d="M7 8v3c0 2 1 3 3 3h4c2 0 3 1 3 3v1" />
+                      <path d="M13 6h4" />
+                      <path d="M15 4v4" />
                     </svg>
-                    Try Payment Again
-                  </button>
-                  
-                  <a 
-                    href={`mailto:${summary.solicitorDetails?.email || 'lz@helix-law.com'}?subject=Payment Issue - ${summary.instructionRef || 'Unknown'}`}
-                    style={{
-                      background: 'white',
-                      color: colours.cta,
-                      border: `2px solid ${colours.cta}`,
-                      borderRadius: '8px',
-                      padding: '16px 24px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      textDecoration: 'none'
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    Contact Support
-                  </a>
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:600, letterSpacing:'.3px', color:'#0D2F60', marginBottom:4 }}>After You Transfer</div>
+                    <div style={{ fontSize:12, lineHeight:1.45, color:'#475569' }}>Funds usually appear within minutes. We reconcile automatically using your reference.</div>
+                  </div>
+                </div>
+                <div style={{
+                  background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:12, padding:'16px 18px',
+                  display:'flex', flexDirection:'row', gap:12, alignItems:'flex-start'
+                }}>
+                  <div style={{ width:34, height:34, borderRadius:8, background:'#14B07A10', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" stroke="#14B07A" fill="none" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M8.5 12.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:600, letterSpacing:'.3px', color:'#0D2F60', marginBottom:4 }}>What Happens Next</div>
+                    <div style={{ fontSize:12, lineHeight:1.45, color:'#475569' }}>Once received we allocate funds and progress without further action from you.</div>
+                  </div>
                 </div>
               </div>
 

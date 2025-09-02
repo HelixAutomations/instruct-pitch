@@ -24,17 +24,16 @@ interface PremiumHomePageProps {
 
 const PremiumHomePage: React.FC<PremiumHomePageProps> = (props) => {
   // Track the current step from HomePage
-  const [currentStep, setCurrentStep] = useState<'identity' | 'documents' | 'payment'>('identity');
+  const [currentStep, setCurrentStep] = useState<'identity' | 'payment'>('identity');
 
   // Safety: ensure currentStep is valid, fallback to identity if not
-  const safeCurrentStep = ['identity', 'documents', 'payment'].includes(currentStep) ? currentStep : 'identity';
+  const safeCurrentStep = ['identity', 'payment'].includes(currentStep) ? currentStep : 'identity';
 
   // For now, use basic values for the header
   // These should be synchronized with HomePage's internal state in a future update
   const checkoutSteps = [
     { key: 'identity', label: 'Prove Your Identity' },
-    { key: 'payment', label: 'Pay' },
-    { key: 'documents', label: 'Upload Documents' }
+    { key: 'payment', label: 'Pay' }
   ];
   
   // Prepare checkout header props
@@ -52,7 +51,10 @@ const PremiumHomePage: React.FC<PremiumHomePageProps> = (props) => {
       {/* Render existing HomePage with premium styling */}
       <HomePage 
         {...props} 
-        onCurrentStepChange={setCurrentStep}
+        onCurrentStepChange={(s: any) => {
+          // Collapse legacy 'documents' into 'payment' since upload now lives on success
+          if (s === 'documents') setCurrentStep('payment'); else setCurrentStep(s);
+        }}
       />
     </PaymentLayout>
   );

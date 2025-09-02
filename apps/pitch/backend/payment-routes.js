@@ -548,4 +548,38 @@ router.post('/admin/payment-failure-notification', async (req, res) => {
   }
 });
 
+/**
+ * POST /email/bank-details
+ * Email bank transfer details to client upon request
+ */
+router.post('/email/bank-details', async (req, res) => {
+  try {
+    const { email, instructionRef, amount } = req.body || {};
+    if (!email || !instructionRef) {
+      return res.status(400).json({ error: 'email and instructionRef required' });
+    }
+    console.log(`[bank-details] Incoming request for instructionRef=${instructionRef} to ${email} (amount=${amount ?? 'n/a'}) bodyKeys=${Object.keys(req.body||{}).join(',')}`);
+    // Basic email sanity
+    const emailOk = /.+@.+\..+/.test(email);
+    if (!emailOk) {
+      return res.status(400).json({ error: 'invalid email format' });
+    }
+    const { sendBankDetailsEmail } = require('./email');
+    try {
+      await sendBankDetailsEmail({ Email: email, InstructionRef: instructionRef, Amount: amount });
+      return res.json({ success: true });
+    } catch (innerErr) {
+      console.error('[bank-details] sendBankDetailsEmail failed:', innerErr);
+      // In non-production environments, don't block flow; surface degraded warning
+      if (process.env.NODE_ENV !== 'production') {
+        return res.status(200).json({ success: false, warning: 'email not dispatched (dev fallback)', detail: innerErr.message });
+      }
+      throw innerErr; // escalate to outer catch for prod
+    }
+  } catch (err) {
+    console.error('Failed to send bank details email:', err);
+    res.status(500).json({ error: 'Failed to send bank details email', detail: err.message });
+  }
+});
+
 module.exports = router;

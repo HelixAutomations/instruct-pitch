@@ -279,11 +279,33 @@ async function sendAccountsEmail(record) {
   await sendMail(FROM_ADDRESS, `Pending Bank Transfer – ${record.InstructionRef}`, body);
 }
 
+// Send bank details to client upon request from failure page
+async function sendBankDetailsEmail({ Email, InstructionRef, Amount }) {
+  if (!Email) return;
+  const amountStr = Amount != null ? Number(Amount).toFixed(2) : '';
+  const html = `
+    <p>Dear Client,</p>
+    <p>As requested, here are the bank transfer details to complete your payment for instruction <strong>${InstructionRef}</strong>.</p>
+    <table style="border-collapse:collapse; margin:16px 0; width:100%; max-width:480px;">
+      <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600; width:40%">Account Name</td><td style="padding:8px; border:1px solid #e2e8f0;">Helix Law General Client Account</td></tr>
+      <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Bank</td><td style="padding:8px; border:1px solid #e2e8f0;">Barclays Bank, Eastbourne</td></tr>
+      <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Sort Code</td><td style="padding:8px; border:1px solid #e2e8f0;">20-27-91</td></tr>
+      <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Account Number</td><td style="padding:8px; border:1px solid #e2e8f0;">9347 2434</td></tr>
+      <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Reference</td><td style="padding:8px; border:1px solid #e2e8f0;">HLX-${InstructionRef}</td></tr>
+      ${amountStr ? `<tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Amount (GBP)</td><td style="padding:8px; border:1px solid #e2e8f0;">£${amountStr}</td></tr>` : ''}
+    </table>
+    <p>Please use the reference exactly so we can match your payment. Faster Payments usually arrive within minutes.</p>
+    <p>If you have already paid, you can ignore this email.</p>
+  `;
+  await sendMail(Email, 'Bank Transfer Details – Helix Law', html);
+}
+
 module.exports = {
   sendClientSuccessEmail,
   sendClientFailureEmail,
   sendFeeEarnerEmail,
   sendAccountsEmail,
+  sendBankDetailsEmail,
   sendMail,
   deriveEmail,
   wrapSignature,

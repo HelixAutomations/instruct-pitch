@@ -28,6 +28,7 @@
 
 .upload-zone.empty {
   padding: 3rem 2rem;
+  margin-bottom: 0; /* Removed extra space when no files yet */
 }
 
 .upload-zone:not(.empty) {
@@ -59,6 +60,17 @@
   color: #1a202c;
   transition: all 0.3s ease;
 }
+
+/* Enhanced stateful icon wrapper */
+.upload-icon-wrapper { position: relative; display:flex; align-items:center; justify-content:center; width:4.25rem; height:4.25rem; border-radius: 1rem; background:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.06), 0 0 0 1px #e2e8f0; margin-bottom:.5rem; }
+.upload-icon-wrapper .upload-icon { font-size:2.3rem; }
+.upload-icon-wrapper.state-uploading { background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%); box-shadow:0 0 0 2px #3690CE33,0 4px 12px rgba(54,144,206,.25); }
+.upload-icon-wrapper.state-complete { background:linear-gradient(135deg,#ecfdf5 0%,#f0fdf4 100%); box-shadow:0 0 0 2px #14B07A33,0 4px 12px rgba(20,176,122,.25); }
+.upload-icon-wrapper.state-error { background:linear-gradient(135deg,#fef2f2 0%,#fee2e2 100%); box-shadow:0 0 0 2px #EF444433,0 4px 12px rgba(239,68,68,.25); }
+.upload-icon.spinning { animation: spin 1s linear infinite; color:#0D2F60; }
+.upload-icon.success { color:#14B07A; }
+.upload-icon.error { color:#EF4444; }
+.upload-icon.idle { color:#3690CE; }
 
 .upload-zone:hover .upload-icon,
 .upload-zone.drag-over .upload-icon {
@@ -219,20 +231,24 @@
   border: 1px solid #e2e8f0;
 }
 
+/* Base icon now uses highlight blue instead of dark navy */
 .file-icon {
   font-size: 1.5rem;
-  color: #4a5568;
+  color: #3690CE; /* highlight blue */
 }
 
-.file-icon.pdf { color: #e53e3e; }
-.file-icon.word { color: #3182ce; }
-.file-icon.excel { color: #38a169; }
-.file-icon.powerpoint { color: #d69e2e; }
-.file-icon.image { color: #805ad5; }
-.file-icon.archive { color: #dd6b20; }
-.file-icon.audio { color: #e53e3e; }
-.file-icon.video { color: #3182ce; }
-.file-icon.text { color: #4a5568; }
+/* Brand harmonised variants */
+.file-icon.pdf { color: #B02020; }
+.file-icon.word { color: #123d7a; }
+.file-icon.excel { color: #14854f; }
+.file-icon.powerpoint { color: #c2780d; }
+/* Variant colors updated to maintain highlight blue consistency */
+.file-icon.image { color: #3690CE; }
+.file-icon.archive { color: #3690CE; }
+.file-icon.audio { color: #123d7a; }
+.file-icon.video { color: #3690CE; }
+.file-icon.text { color: #3690CE; }
+.file-icon.default { color: #3690CE; }
 
 .file-details {
   flex: 1;
@@ -316,9 +332,57 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #1a202c 0%, #2d3748 100%);
+  background: linear-gradient(90deg, #0D2F60 0%, #123d7a 100%);
   border-radius: 3px;
   transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 45%, rgba(255,255,255,0) 80%);
+  animation: progressSheen 1.2s linear infinite;
+}
+
+@keyframes progressSheen {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Uploading state highlight */
+.file-item.uploading {
+  border-color: #0D2F60;
+  box-shadow: 0 0 0 3px rgba(13,47,96,0.08), 0 4px 12px rgba(13,47,96,0.12);
+}
+
+.file-item.uploading .file-icon-container {
+  background: #0D2F60;
+  border-color: #0D2F60;
+  animation: pulseUpload 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseUpload {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .6; }
+}
+
+/* Upload success subtle pulse */
+.file-item.uploaded {
+  border-color: #14B07A;
+  box-shadow: 0 0 0 2px rgba(20,176,122,0.12);
+}
+
+.file-item.uploaded .upload-success {
+  animation: popIn .4s ease;
+}
+
+@keyframes popIn {
+  0% { transform: scale(.85); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 .progress-text {
@@ -505,6 +569,7 @@
 
   .upload-zone.empty {
     padding: 2rem 1.5rem;
+    margin-bottom: 0; /* Mobile: also remove bottom margin when empty */
   }
 
   .upload-icon {

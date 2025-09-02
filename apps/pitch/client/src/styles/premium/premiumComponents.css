@@ -577,7 +577,11 @@
 /* Mobile phones - up to 768px */
 @media (max-width: 768px) {
   .premium-footer-container {
-    padding: 8px 2rem;
+    padding: 4px 1rem;
+  }
+  
+  .premium-payment-footer {
+    padding: 16px 0;
   }
   
   .premium-grid {
@@ -595,6 +599,14 @@
       flex-direction: column;
       align-items: flex-start;
     }
+    
+    .premium-footer-container {
+      padding: 2px 0.75rem;
+    }
+    
+    .premium-payment-footer {
+      padding: 12px 0;
+    }
   }
 }
 
@@ -605,7 +617,11 @@
   }
   
   .premium-footer-container {
-    padding: 8px 2rem;
+    padding: 6px 1.5rem;
+  }
+  
+  .premium-payment-footer {
+    padding: 20px 0;
   }
   
   .premium-grid--sidebar {
@@ -625,6 +641,10 @@
   
   .premium-footer-container {
     padding: 8px 2rem;
+  }
+  
+  .premium-payment-footer {
+    padding: 24px 0;
   }
   
   .premium-card {

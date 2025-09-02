@@ -38,23 +38,25 @@ const PremiumSuccessPage: React.FC = () => {
         <div className="premium-card premium-card--elevated premium-fade-in">
           {/* Success Header */}
           <div style={{ textAlign: 'center', marginBottom: 'clamp(24px, 6vw, 40px)' }}>
-            <div style={{ 
-              width: 'clamp(64px, 15vw, 80px)', 
+            <div style={{
+              width: 'clamp(64px, 15vw, 80px)',
               height: 'clamp(64px, 15vw, 80px)',
-              backgroundColor: '#10B981',
+              backgroundColor: 'var(--helix-success)',
               borderRadius: '50%',
               margin: '0 auto clamp(16px, 4vw, 24px) auto',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                <polyline points="9,11 12,14 22,4" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="m21,11.5a8.5,8.5 0 1,1 -2.5,-6.5" strokeLinecap="round" strokeLinejoin="round"/>
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px -2px rgba(0,0,0,0.15), 0 0 0 4px rgba(20,176,122,0.15)'
+            }} role="img" aria-label="Payment successful">
+              {/* Unified success tick icon */}
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.75" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                <path d="M8 12.5l3 3.2 5.5-6.7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            
-            <h1 className="premium-heading" style={{ color: '#10B981', marginBottom: '8px' }}>
+
+            <h1 className="premium-heading" style={{ color: 'var(--helix-success)', marginBottom: '8px' }}>
               Payment Successful
             </h1>
             <p className="premium-body" style={{ color: '#6B7280', margin: '0' }}>
@@ -116,28 +118,69 @@ const PremiumSuccessPage: React.FC = () => {
             </div>
           )}
 
-          {/* Next Steps */}
-          <div style={{ marginBottom: 'clamp(20px, 5vw, 32px)' }}>
-            <h2 style={{ 
-              fontSize: 'clamp(1rem, 3.5vw, 1.125rem)', 
-              fontWeight: '600', 
-              margin: '0 0 16px 0',
-              color: '#374151'
+          {/* Next Steps (Vertical Centered Design) */}
+          <div style={{ marginBottom: 'clamp(20px, 5vw, 40px)' }}>
+            <h2 style={{
+              fontSize: 'clamp(1rem, 3.5vw, 1.125rem)',
+              fontWeight: 600,
+              margin: '0 0 clamp(18px,3.5vw,24px) 0',
+              color: '#374151',
+              textAlign: 'center'
+            }}>What Happens Next</h2>
+            <div aria-label="Post payment steps" role="list" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'clamp(18px,3.5vw,22px)',
+              maxWidth: 760,
+              margin: '0 auto',
+              alignItems: 'center'
             }}>
-              What happens next?
-            </h2>
-            
-            <ul style={{ 
-              margin: '0', 
-              paddingLeft: '20px', 
-              color: '#6B7280',
-              lineHeight: '1.6'
-            }}>
-              <li>You will receive an email confirmation shortly</li>
-              <li>Your allocated solicitor will contact you within 1 business day</li>
-              <li>Any additional documents will be requested as needed</li>
-              <li>We will keep you updated throughout the process</li>
-            </ul>
+              {/* Step 1 */}
+              <div role="listitem" style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 10, padding: '4px 0'
+              }}>
+                <div style={{
+                  width: 30, height: 30, background: 'linear-gradient(135deg,var(--helix-success) 0%,#129869 100%)', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(20,176,122,0.3)'
+                }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>1</span>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 'clamp(15px, 3.4vw, 17px)', fontWeight: 600, color: '#1e293b', margin: '0 0 4px', lineHeight: 1.35 }}>Confirmation on its way</h4>
+                  <p style={{ fontSize: 'clamp(13px, 3.1vw, 15px)', color: '#64748b', margin: 0, lineHeight: 1.55, maxWidth: 520 }}>Your confirmation documents and next steps are being prepared.</p>
+                </div>
+              </div>
+              {/* Step 2 */}
+              <div role="listitem" style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 10, padding: '4px 0'
+              }}>
+                <div style={{
+                  width: 30, height: 30, background: 'linear-gradient(135deg,#64748b 0%,#475569 100%)', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(71,85,105,0.28)'
+                }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>2</span>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 'clamp(15px, 3.4vw, 17px)', fontWeight: 600, color: '#1e293b', margin: '0 0 4px', lineHeight: 1.35 }}>Legal strategy planning</h4>
+                  <p style={{ fontSize: 'clamp(13px, 3.1vw, 15px)', color: '#64748b', margin: 0, lineHeight: 1.55, maxWidth: 520 }}>Your solicitor will assess your matter and advise on the optimal path forward.</p>
+                </div>
+              </div>
+              {/* Step 3 */}
+              <div role="listitem" style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 10, padding: '4px 0'
+              }}>
+                <div style={{
+                  width: 30, height: 30, background: 'linear-gradient(135deg,#64748b 0%,#475569 100%)', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(71,85,105,0.28)'
+                }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>3</span>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 'clamp(15px, 3.4vw, 17px)', fontWeight: 600, color: '#1e293b', margin: '0 0 4px', lineHeight: 1.35 }}>Direct solicitor contact</h4>
+                  <p style={{ fontSize: 'clamp(13px, 3.1vw, 15px)', color: '#64748b', margin: 0, lineHeight: 1.55, maxWidth: 520 }}>Your assigned solicitor will be your dedicated point of contact throughout.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Trust Indicators */}

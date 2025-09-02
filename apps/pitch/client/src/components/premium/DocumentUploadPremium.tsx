@@ -28,13 +28,20 @@ interface DocumentUploadPremiumProps {
   setIsComplete: Dispatch<SetStateAction<boolean>>;
   onBack: () => void;
   onNext: () => void;
-  setUploadSkipped: Dispatch<SetStateAction<boolean>>;
-  isUploadSkipped: boolean;
+  // Skip functionality removed; props retained in interface previously are now deprecated.
   clientId: string;
   passcode: string;
   instructionRef: string;
   instructionReady: boolean;
   instructionError?: string | null;
+  /** When true hides navigation/skip buttons so component can be embedded inline (e.g. success page) */
+  hideNavButtons?: boolean;
+  /** Override label when ready to continue (defaults to Continue) */
+  continueLabel?: string;
+  /** Hide only the Back button while keeping Skip/Continue */
+  hideBackButton?: boolean;
+  /** Align action buttons to the right */
+  alignButtonsRight?: boolean;
 }
 
 interface DocItem {
@@ -105,13 +112,16 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
   setIsComplete,
   onBack,
   onNext,
-  setUploadSkipped,
-  isUploadSkipped,
+  // skip props removed
   clientId,
   passcode,
   instructionRef,
   instructionReady,
-  instructionError
+  instructionError,
+  hideNavButtons = false,
+  continueLabel,
+  hideBackButton = false,
+  alignButtonsRight = false
 }) => {
   const [documents, setDocuments] = useState<DocItem[]>(() =>
     uploadedFiles.length
@@ -132,7 +142,11 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
   const [showSupportedTypes, setShowSupportedTypes] = useState(false);
   
   const allUploaded = documents.length > 0 && documents.every(d => (!!d.blobUrl || !d.file) && !d.hasError);
-  const readyToSubmit = isUploadSkipped || allUploaded;
+  // Ready when all current documents are uploaded (skip removed)
+  const readyToSubmit = allUploaded;
+  const hasErrors = documents.some(d => d.hasError);
+  const isUploadingAny = documents.some(d => d.isUploading);
+  const uploadState: 'idle' | 'uploading' | 'complete' | 'error' = hasErrors ? 'error' : isUploadingAny ? 'uploading' : allUploaded ? 'complete' : 'idle';
 
   // Enhanced drag and drop handlers
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -227,24 +241,33 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
 
     try {
       const xhr = new XMLHttpRequest();
-      
-      return new Promise((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            const progress = (e.loaded / e.total) * 100;
-            setDocuments(docs =>
-              docs.map(d => d.id === doc.id ? { ...d, uploadProgress: progress } : d)
-            );
-          }
-        });
+      xhr.timeout = 30000; // 30s network timeout safeguard
+      console.debug('[upload] starting XHR for', doc.title, { size: doc.file.size, type: doc.file.type });
 
+      return new Promise((resolve, reject) => {
+        const fail = (reason: string) => {
+          console.warn('[upload] failure for', doc.title, reason, { status: xhr.status });
+          reject(new Error(reason));
+        };
+
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              const progress = (e.loaded / e.total) * 100;
+              setDocuments(docs => docs.map(d => d.id === doc.id ? { ...d, uploadProgress: progress } : d));
+            }
+        });
+        xhr.addEventListener('timeout', () => fail('Upload timed out'));
+        xhr.addEventListener('abort', () => fail('Upload aborted'));
+        xhr.addEventListener('error', () => fail('Network error during upload'));
         xhr.addEventListener('load', () => {
           if (xhr.status === 200) {
             try {
-              const data = JSON.parse(xhr.responseText);
-              setUploadedFiles(prev =>
-                prev.map(u => (u.file === doc.file ? { ...u, uploaded: true } : u))
-              );
+              const data = JSON.parse(xhr.responseText || '{}');
+              if (!data.url) {
+                return fail('Missing url in response');
+              }
+              setUploadedFiles(prev => prev.map(u => (u.file === doc.file ? { ...u, uploaded: true } : u)));
+              console.debug('[upload] success for', doc.title, data.url);
               resolve({
                 ...doc,
                 blobUrl: data.url,
@@ -254,17 +277,17 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
                 uploadProgress: 100
               });
             } catch (parseErr) {
-              reject(new Error('Invalid server response'));
+              fail('Invalid server response');
             }
-          } else {
-            reject(new Error(`Upload failed (${xhr.status}): ${xhr.statusText}`));
+          } else if (xhr.status >= 400) {
+            let msg = `Upload failed (${xhr.status})`;
+            try {
+              const errJson = JSON.parse(xhr.responseText || '{}');
+              if (errJson.error) msg += ': ' + errJson.error;
+            } catch(_) {}
+            fail(msg);
           }
         });
-
-        xhr.addEventListener('error', () => {
-          reject(new Error('Network error during upload'));
-        });
-
         xhr.open('POST', '/api/upload');
         xhr.send(formData);
       });
@@ -362,23 +385,21 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
     const uploaded = documents.filter(d => d.blobUrl && !d.hasError);
     const allSuccess = uploaded.length > 0 && documents.every(d => (!!d.blobUrl || !d.file) && !d.hasError);
 
-    if (isUploadSkipped || allSuccess) {
+    if (allSuccess) {
       setIsComplete(true);
       sessionStorage.setItem(`uploadedDocs-${passcode}-${instructionRef}`, 'true');
     } else {
       setIsComplete(false);
     }
 
-    if (documents.some(doc => !!doc.file || !!doc.blobUrl)) {
-      setUploadSkipped(false);
-    }
+    // Previously toggled skip state; skip removed.
 
     setUploadedFiles(
       documents
         .filter(d => d.file)
         .map(d => ({ file: d.file!, uploaded: !!d.blobUrl }))
     );
-  }, [documents, isUploadSkipped, setUploadedFiles, setIsComplete, setUploadSkipped, passcode, instructionRef]);
+  }, [documents, setUploadedFiles, setIsComplete, passcode, instructionRef]);
 
   if (!instructionReady) {
     return (
@@ -422,11 +443,16 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
             }}
           />
           
-          <label htmlFor="fileUpload" className="upload-label">
+          <label htmlFor="fileUpload" className="upload-label" aria-live="polite">
             <div className="upload-content">
-              <FaFileUpload className="upload-icon" />
+              <div className={`upload-icon-wrapper state-${uploadState}`}> 
+                {uploadState === 'uploading' && <FaSyncAlt className="upload-icon spinning" aria-label="Uploading documents" />}
+                {uploadState === 'complete' && <FaCheck className="upload-icon success" aria-label="All documents uploaded" />}
+                {uploadState === 'error' && <FaTimes className="upload-icon error" aria-label="Some uploads failed" />}
+                {uploadState === 'idle' && <FaFileUpload className="upload-icon idle" aria-label="Select documents to upload" />}
+              </div>
               <h3>{documents.length === 0 ? 'Upload your first document' : 'Add more documents'}</h3>
-              <p>Drag and drop files here, or click to browse</p>
+              <p>{uploadState === 'uploading' ? 'Uploading in progress – you can add more.' : uploadState === 'complete' ? 'All documents uploaded. You can still add more.' : 'Drag and drop files here, or click to browse'}</p>
               <div className="upload-limits">
                 <span>Maximum file size: 10MB</span>
                 <button 
@@ -481,7 +507,7 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
               const showDraftStyle = !doc.title || doc.title.trim() === '' || doc.title === doc.file?.name || doc.title === fileBaseName;
               
               return (
-                <div key={doc.id} className="file-item">
+                <div key={doc.id} className={`file-item ${doc.isUploading ? 'uploading' : ''} ${doc.blobUrl && !doc.hasError ? 'uploaded' : ''}`}>
                   <div className="file-info">
                     <div className="file-icon-container">
                       {getFileIcon(doc.file)}
@@ -563,33 +589,19 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="action-buttons">
-          <button 
-            type="button" 
-            className="premium-button premium-button--secondary premium-button--nav premium-button--clean" 
-            onClick={onBack}
-            disabled={uploading}
-          >
-            <span>Back</span>
-          </button>
-          
-          {documents.length === 0 && !isUploadSkipped ? (
-            <button
-              type="button"
-              className="premium-button premium-button--secondary premium-button--nav premium-button--clean"
-              onClick={() => {
-                setUploadSkipped(true);
-                setIsComplete(true);
-                sessionStorage.setItem(`uploadedDocs-${passcode}-${instructionRef}`, 'true');
-                setUploadedFiles([]);
-                onNext();
-              }}
-              disabled={uploading}
-            >
-              <span>Skip Upload</span>
-            </button>
-          ) : (
+        {/* Action buttons: only show after at least one document present */}
+        {!hideNavButtons && documents.length > 0 && (
+          <div className="action-buttons" style={alignButtonsRight ? { justifyContent: 'flex-end' } : undefined}>
+            {!hideBackButton && (
+              <button
+                type="button"
+                className="premium-button premium-button--secondary premium-button--nav premium-button--clean"
+                onClick={onBack}
+                disabled={uploading}
+              >
+                <span>Back</span>
+              </button>
+            )}
             <button
               type="button"
               className="premium-button premium-button--primary premium-button--nav premium-button--clean"
@@ -597,11 +609,11 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
               disabled={uploading || !documents.every(d => !!d.file || !!d.blobUrl)}
             >
               <span>
-                {uploading ? 'Uploading...' : readyToSubmit ? 'Continue' : 'Upload & Continue'}
+                {uploading ? 'Uploading...' : readyToSubmit ? (continueLabel || 'Continue') : 'Upload & Continue'}
               </span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   };
