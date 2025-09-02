@@ -82,11 +82,6 @@ const SuccessPage: React.FC = () => {
     createdAt: new Date().toISOString()
   };
 
-  const formatAmount = (amount?: number, currency: string = 'GBP') => {
-    if (!amount) return null;
-    return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency.toUpperCase() }).format(amount);
-  };
-
   // Inline document upload integration state
   const [showUpload, setShowUpload] = useState(true); // start expanded
   const [uploadedFiles, setUploadedFiles] = useState<{ file: File; uploaded: boolean }[]>([]);
@@ -134,24 +129,10 @@ const SuccessPage: React.FC = () => {
                   </div>
                   <h1 style={{ fontSize: 'clamp(28px,6vw,36px)', fontWeight: 700, color: '#0f172a', margin: '0 0 clamp(16px,3.5vw,20px)', lineHeight: 1.2, letterSpacing: '-0.025em' }}>Payment Confirmed</h1>
                   <p style={{ fontSize: 'clamp(16px,3.8vw,18px)', color: '#475569', textAlign: 'center', margin: '0 auto clamp(24px,6vw,32px)', lineHeight: 1.6, padding: 0, fontWeight: 500, maxWidth: '620px' }}>Your payment has been successful.</p>
-                  {/* Integrated Reference & Amount Block */}
+                  {/* Integrated Reference Block */}
                   <div className="sp-ref-block" style={{ padding: '0 0 clamp(16px,4vw,24px)', textAlign: 'center', margin: '0 0 clamp(8px,3vw,16px)', borderBottom: '1px solid #f1f5f9' }}>
                     <span style={{ fontSize: 'clamp(12px,2.8vw,14px)', fontWeight: 700, color: '#15803d', display: 'block', marginBottom: 'clamp(6px,1.5vw,8px)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Your Reference</span>
-                    <span style={{ fontSize: 'clamp(18px,4.5vw,22px)', fontWeight: 800, color: '#1e293b', fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace', letterSpacing: '0.05em', wordBreak: 'break-all', display: 'block', padding: 'clamp(4px,1vw,6px) 0' }}>HLX-{summary.instructionRef}</span>
-                    {summary.serviceDetails?.amount && (
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '20px', marginTop: 'clamp(12px,3vw,16px)' }}>
-                        <div>
-                          <div style={{ fontSize: 'clamp(20px,5vw,24px)', fontWeight: 800, color: 'var(--helix-success)', lineHeight: 1.2, marginBottom: 4 }}>{formatAmount(summary.serviceDetails.amount, summary.serviceDetails.currency)}</div>
-                          <div style={{ fontSize: 'clamp(11px,2.8vw,13px)', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Paid</div>
-                        </div>
-                        {summary.serviceDetails?.description && (
-                          <div style={{ textAlign: 'left', maxWidth: '320px' }}>
-                            <div style={{ fontSize: 'clamp(14px,3.4vw,16px)', fontWeight: 600, color: '#1e293b', marginBottom: 4, lineHeight: 1.3 }}>{summary.serviceDetails.description}</div>
-                            <div style={{ fontSize: 'clamp(12px,3vw,14px)', color: '#64748b' }}>Payment successfully processed</div>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <span style={{ fontSize: 'clamp(18px,4.5vw,22px)', fontWeight: 800, color: '#1e293b', fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace', letterSpacing: '0.05em', wordBreak: 'break-all', display: 'block', padding: 'clamp(4px,1vw,6px) 0' }}>{summary.instructionRef}</span>
                   </div>
                   {/* Optional Document Upload Section (moved above next steps) */}
                   <div className="sp-upload" style={{ textAlign: 'left' }}>

@@ -117,16 +117,15 @@ Push-Location $packageRoot
  Compress-Archive -Path $paths -DestinationPath push-package.zip -Force
 Pop-Location
 
-# Deploy to Azure staging slot
+# Deploy to Azure PRODUCTION (NOT staging)
 az webapp deployment source config-zip `
   --resource-group Instructions `
   --name instruct-helixlaw-pitch `
-  --slot staging `
   --src (Join-Path $packageRoot 'push-package.zip')
 
 # Check deployment success before cleanup
 if ($LASTEXITCODE -eq 0) {
-  Write-Host "✅ Deployment successful"
+  Write-Host "✅ Deployment to PRODUCTION successful"
   # Optional cleanup after successful deployment
   $shouldClean = $true
   if ($shouldClean) {

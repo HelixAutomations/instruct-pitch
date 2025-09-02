@@ -37,6 +37,48 @@ const serviceClient = credential
   : null;
 const containerClient = serviceClient ? serviceClient.getContainerClient(container) : null;
 
+// Health check endpoint to test storage configuration
+router.get('/upload/health', async (req, res) => {
+  try {
+    const config = {
+      account: account || 'NOT_SET',
+      container: container || 'NOT_SET',
+      hasCredential: !!credential,
+      credentialType: credential?.constructor?.name || 'none',
+      hasServiceClient: !!serviceClient,
+      hasContainerClient: !!containerClient
+    };
+
+    if (!containerClient) {
+      return res.json({ 
+        status: 'unhealthy', 
+        reason: 'Storage client not initialized',
+        config 
+      });
+    }
+
+    // Test if container exists and is accessible
+    const exists = await containerClient.exists();
+    res.json({ 
+      status: exists ? 'healthy' : 'container-missing', 
+      config,
+      containerExists: exists
+    });
+  } catch (err) {
+    res.json({ 
+      status: 'error', 
+      error: err.message,
+      code: err.code,
+      config: {
+        account: account || 'NOT_SET',
+        container: container || 'NOT_SET',
+        hasCredential: !!credential,
+        credentialType: credential?.constructor?.name || 'none'
+      }
+    });
+  }
+});
+
 router.post('/upload', upload.single('file'), async (req, res) => {
   const started = Date.now();
   const marks = [];
@@ -116,11 +158,29 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       mark('blob-prepare');
       const blockBlob = containerClient.getBlockBlobClient(blobName);
 
-      await blockBlob.uploadData(req.file.buffer, {
-        blobHTTPHeaders: { blobContentType: req.file.mimetype }
-      });
-      mark('blob-uploaded');
-      console.log(`✅ Uploaded ${blobName}`);
+      try {
+        console.log(`🔧 Storage account: ${account}, container: ${container}`);
+        console.log(`🔧 Credential type: ${credential?.constructor?.name || 'none'}`);
+        console.log(`🔧 File size: ${req.file.buffer.length} bytes, mimetype: ${req.file.mimetype}`);
+        
+        await blockBlob.uploadData(req.file.buffer, {
+          blobHTTPHeaders: { blobContentType: req.file.mimetype }
+        });
+        mark('blob-uploaded');
+        console.log(`✅ Uploaded ${blobName}`);
+      } catch (blobErr) {
+        mark('blob-failed');
+        console.error(`❌ Blob upload failed:`, {
+          error: blobErr.message,
+          code: blobErr.code,
+          statusCode: blobErr.statusCode,
+          details: blobErr.details,
+          blobName,
+          account,
+          container
+        });
+        throw new Error(`Blob upload failed: ${blobErr.message}`);
+      }
 
       const insertReq = new sql.Request(transaction);
       insertReq.input('InstructionRef', sql.NVarChar, instructionRef)
