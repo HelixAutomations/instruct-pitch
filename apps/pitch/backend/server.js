@@ -508,11 +508,11 @@ app.get('/api/instruction', async (req, res) => {
           console.log('Looking up deal by ProspectId and passcode:', prospectId, passcode);
           const deal = await getDealByPasscodeIncludingLinked(passcode, prospectId);
           console.log('Found deal:', deal);
-          if (deal && deal.Amount) {
+          if (deal && deal.Amount && deal.Amount > 0) {
             console.log('Prefilling missing PaymentAmount from deal:', deal.Amount);
             data = { ...data, PaymentAmount: deal.Amount };
           } else {
-            console.log('No deal found or deal has no amount');
+            console.log('No deal found, deal has no amount, or amount is zero:', deal?.Amount);
           }
         } catch (prefillErr) {
           console.warn('⚠️ Failed to prefill PaymentAmount from deal:', prefillErr?.message || prefillErr);
