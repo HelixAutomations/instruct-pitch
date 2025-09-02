@@ -228,13 +228,36 @@ function buildFeeEarnerBody(record, docs) {
   const status = record.PaymentResult === 'successful' ? 'Succeeded' : (record.PaymentResult || '');
   const method = record.PaymentMethod === 'bank' ? 'Bank transfer confirmed by client' : `Card payment ${status}`;
   const docList = buildDocList(docs || []);
+  
   return `
-    <p>Instruction reference <strong>${record.InstructionRef}</strong> has been submitted.</p>
-    <p><strong>Client:</strong> ${name}<br/>Email: ${record.Email || 'N/A'}<br/>Phone: ${record.Phone || 'N/A'}</p>
-    <p><strong>Payment:</strong> £${amount} for ${product} – ${method}</p>
-    <p>Uploaded documents:</p>
-    <ul>${docList}</ul>
-    <p>Please review and contact the client.</p>
+    <div style="font-family:Segoe UI,Arial,sans-serif;color:#111">
+      <h2>✅ New Instruction Completed</h2>
+      <p><strong>Status:</strong> <span style="color:#22c55e;font-weight:600;">COMPLETED</span> - Client has finished the instructions process</p>
+      
+      <h3>Instruction Details</h3>
+      <table style="border-collapse:collapse;border:1px solid #ddd;margin:12px 0">
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Instruction Reference</td><td style="padding:8px;border:1px solid #ddd">${record.InstructionRef}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Client</td><td style="padding:8px;border:1px solid #ddd">${name}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Email</td><td style="padding:8px;border:1px solid #ddd">${record.Email || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Phone</td><td style="padding:8px;border:1px solid #ddd">${record.Phone || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment</td><td style="padding:8px;border:1px solid #ddd">£${amount} for ${product}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Method</td><td style="padding:8px;border:1px solid #ddd">${method}</td></tr>
+      </table>
+      
+      <h3>Uploaded Documents</h3>
+      <ul style="line-height:1.6">${docList}</ul>
+      
+      <h3>Next Steps</h3>
+      <ul style="line-height:1.6;color:#374151">
+        <li>Review client details and uploaded documents</li>
+        <li>Contact the client to proceed with the matter</li>
+        <li>Add to your case management system as needed</li>
+      </ul>
+      
+      <p style="margin-top:16px;padding:12px;background:#f0f9ff;border-left:4px solid #0ea5e9;color:#0c4a6e">
+        <strong>Action Required:</strong> Please review and contact the client to proceed with their instruction.
+      </p>
+    </div>
   `;
 }
 
@@ -269,7 +292,9 @@ async function sendFeeEarnerEmail(record) {
   const to = deriveEmail(record.HelixContact);
   const docs = await getDocumentsForInstruction(record.InstructionRef);
   const body = buildFeeEarnerBody(record, docs);
-  await sendMail(to, `New Instruction – ${record.InstructionRef}`, body);
+  const amount = record.PaymentAmount != null ? `£${Number(record.PaymentAmount).toFixed(2)}` : 'N/A';
+  const service = record.PaymentProduct || 'Unknown service';
+  await sendMail(to, `✅ New Instruction Complete: ${service} (${amount}) - ${record.InstructionRef}`, body);
 }
 
 async function sendAccountsEmail(record) {
@@ -300,12 +325,65 @@ async function sendBankDetailsEmail({ Email, InstructionRef, Amount }) {
   await sendMail(Email, 'Bank Transfer Details – Helix Law', html);
 }
 
+// Send admin monitoring email when client accesses instructions app
+async function sendInstructionsAccessedEmail(dealData, instructionRef) {
+  const to = 'lz@helix-law.com';
+  const feeEarnerEmail = deriveEmail(dealData.PitchedBy);
+  
+  const formatCurrency = (amount) => {
+    if (!amount) return 'N/A';
+    return `£${Number(amount).toFixed(2)}`;
+  };
+
+  const html = `
+    <div style="font-family:Segoe UI,Arial,sans-serif;color:#111">
+      <h2>🔄 Client Accessing Instructions App</h2>
+      <p><strong>Status:</strong> <span style="color:#3b82f6;font-weight:600;">IN PROGRESS</span> - Client has loaded instructions app with deal data</p>
+      
+      <h3>Deal Information</h3>
+      <table style="border-collapse:collapse;border:1px solid #ddd;margin:12px 0">
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Instruction Ref</td><td style="padding:8px;border:1px solid #ddd">${instructionRef || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Deal ID</td><td style="padding:8px;border:1px solid #ddd">${dealData.DealId || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Service</td><td style="padding:8px;border:1px solid #ddd">${dealData.ServiceDescription || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Amount</td><td style="padding:8px;border:1px solid #ddd">${formatCurrency(dealData.Amount)}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Area of Work</td><td style="padding:8px;border:1px solid #ddd">${dealData.AreaOfWork || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Pitched By</td><td style="padding:8px;border:1px solid #ddd">${dealData.PitchedBy || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Prospect ID</td><td style="padding:8px;border:1px solid #ddd">${dealData.ProspectId || 'N/A'}</td></tr>
+      </table>
+      
+      <h3>Next Steps</h3>
+      <ul style="line-height:1.6">
+        <li>Client will complete identity verification</li>
+        <li>Payment processing will begin</li>
+        <li>Documents will be uploaded</li>
+        <li>Fee earner will receive completion notification</li>
+      </ul>
+      
+      <p style="margin-top:16px;color:#666;font-size:12px">
+        📧 Delivered to: lz@helix-law.com${feeEarnerEmail ? ` | CC: ${feeEarnerEmail}` : ''} — this message is for monitoring only.
+      </p>
+    </div>
+  `;
+
+  try {
+    await sendMail(to, `🔄 Instructions Started: ${dealData.ServiceDescription || 'Unknown'} (${formatCurrency(dealData.Amount)})`, html);
+    
+    // Also CC the fee earner if we have their email
+    if (feeEarnerEmail && feeEarnerEmail !== to) {
+      await sendMail(feeEarnerEmail, `Client Started Instructions: ${dealData.ServiceDescription || 'Unknown'} (${formatCurrency(dealData.Amount)})`, html);
+    }
+  } catch (error) {
+    console.error('Failed to send instructions accessed email:', error);
+  }
+}
+
 module.exports = {
   sendClientSuccessEmail,
   sendClientFailureEmail,
   sendFeeEarnerEmail,
   sendAccountsEmail,
   sendBankDetailsEmail,
+  sendInstructionsAccessedEmail,
   sendMail,
   deriveEmail,
   wrapSignature,

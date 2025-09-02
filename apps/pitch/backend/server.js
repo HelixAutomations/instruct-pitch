@@ -10,18 +10,7 @@ let express;
 try {
   express = require('express');
 } catch (err) {
-  startupError = `Critical dependency missing: expres})().finally(() => {
-  // Start listening only after async initialization is complete
-  startListening();
-});
-
-// ─── Payment Integration - Prepared for Stripe ────────────────────────
-// TODO: Add Stripe payment endpoints here
-// - POST /pitch/create-payment-intent
-// - POST /pitch/confirm-payment-intent
-// - POST /pitch/webhook/stripe
-
-// ─── Instruction handlers ─────────────────────────────────────────────message})`;
+  startupError = `Critical dependency missing: express - ${err.message}`;
   console.error(startupError);
   // Minimal express stub so iisnode returns a helpful message instead of 500.1001
   express = function () {
@@ -424,6 +413,27 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
 })().finally(() => {
   // Start listening only after async initialization is complete
   startListening();
+});
+
+// ─── Admin notification when client accesses instructions app ────────
+app.post('/api/notify-instructions-accessed', async (req, res) => {
+  try {
+    const { dealData, instructionRef } = req.body;
+    
+    if (!dealData) {
+      return res.status(400).json({ error: 'Deal data is required' });
+    }
+
+    const { sendInstructionsAccessedEmail } = require('./email');
+    await sendInstructionsAccessedEmail(dealData, instructionRef);
+    
+    log(`✅ Instructions accessed notification sent for deal ${dealData.DealId}`);
+    res.json({ success: true, message: 'Notification sent' });
+    
+  } catch (err) {
+    console.error('❌ Failed to send instructions accessed notification:', err);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
 });
 
 // ─── Payment Integration - Prepared for Stripe ────────────────────────
