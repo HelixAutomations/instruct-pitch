@@ -459,15 +459,13 @@ app.post('/api/notify-instructions-accessed', async (req, res) => {
       return res.status(400).json({ error: 'Deal data is required' });
     }
 
-    const { sendInstructionsAccessedEmail } = require('./email');
-    await sendInstructionsAccessedEmail(dealData, instructionRef);
-    
-    log(`✅ Instructions accessed notification sent for deal ${dealData.DealId}`);
-    res.json({ success: true, message: 'Notification sent' });
+    // Email notifications for instructions accessed have been removed
+    log(`✅ Instructions accessed notification endpoint called for deal ${dealData.DealId} (emails disabled)`);
+    res.json({ success: true, message: 'Notification endpoint called (emails disabled)' });
     
   } catch (err) {
-    console.error('❌ Failed to send instructions accessed notification:', err);
-    res.status(500).json({ error: 'Failed to send notification' });
+    console.error('❌ Failed to process instructions accessed notification:', err);
+    res.status(500).json({ error: 'Failed to process notification' });
   }
 });
 
@@ -806,24 +804,35 @@ app.post('/api/instruction/send-emails', async (req, res) => {
         sendClientSuccessEmail,
         sendClientFailureEmail,
         sendFeeEarnerEmail,
-        sendAccountsEmail,
       } = require('./email');
 
-      if (record.PaymentMethod === 'bank') {
-        await sendAccountsEmail(record);
-      }
+      // Accounts email (Pending Bank Transfer) has been removed
 
       await sendFeeEarnerEmail(record);
 
-      // Safety net: while payments are disabled, suppress ALL client emails
-      // (success/failure/confirmation) to avoid confusing messaging.
-      if (paymentsOff) {
-        log('✉️  Client emails suppressed (payments disabled)');
+      // Send appropriate client email based on payment status
+      // Default to failure email if payment status is unclear
+      console.log('📧 Email decision for', instructionRef, ':', {
+        PaymentResult: record.PaymentResult,
+        PaymentMethod: record.PaymentMethod, 
+        InternalStatus: record.InternalStatus
+      });
+      
+      if (record.PaymentResult === 'successful' || record.PaymentMethod === 'bank' || record.InternalStatus === 'paid') {
+        console.log('📧 Sending client SUCCESS email');
+        await sendClientSuccessEmail(record);
       } else {
-        if (record.PaymentResult === 'successful' || record.PaymentMethod === 'bank') {
-          await sendClientSuccessEmail(record);
-        } else {
-          await sendClientFailureEmail(record);
+        // Send failure email for any other case (including undefined/null payment status)
+        console.log('📧 Sending client FAILURE email');
+        await sendClientFailureEmail(record);
+        
+        // Also send debug notification to dev team for potential stuck client
+        const { sendDebugStuckClientEmail } = require('./email');
+        try {
+          await sendDebugStuckClientEmail(record, 'Client reached completion but payment status unclear - may be stuck waiting for payment confirmation');
+          console.log('🔍 Debug notification sent for potentially stuck client:', instructionRef);
+        } catch (debugErr) {
+          console.error('❌ Failed to send debug stuck client notification:', debugErr);
         }
       }
     } catch (emailErr) {

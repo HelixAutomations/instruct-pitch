@@ -471,13 +471,36 @@ async function handleSuccessfulPayment(payment, paymentIntent, stripeEventId) {
     }
 
     // 3. Dispatch emails (fire and forget semantics with isolated error handling)
+    
+    // Get receipt URL from the latest charge
+    let receiptUrl = null;
+    try {
+      if (paymentIntent.latest_charge) {
+        // If we have latest_charge ID, retrieve the full charge object
+        const stripeService = require('./stripe-service');
+        const charge = await stripeService.stripe.charges.retrieve(paymentIntent.latest_charge);
+        receiptUrl = charge.receipt_url;
+        console.log(`📧 Retrieved receipt URL from charge ${paymentIntent.latest_charge}: ${receiptUrl ? 'Present' : 'Not available'}`);
+      } else if (paymentIntent.charges && paymentIntent.charges.data && paymentIntent.charges.data.length > 0) {
+        // Fallback: check if charges are included in the payment intent
+        const latestCharge = paymentIntent.charges.data[0];
+        receiptUrl = latestCharge.receipt_url;
+        console.log(`📧 Found receipt URL in charges data: ${receiptUrl ? 'Present' : 'Not available'}`);
+      } else {
+        console.warn('⚠️ No charge information available - receipt URL not available');
+      }
+    } catch (error) {
+      console.error('❌ Failed to retrieve receipt URL:', error.message);
+    }
+    
     const emailRecord = {
       ...instruction,
       InstructionRef: instructionRef,
       PaymentAmount: payment.amount,
       PaymentProduct: payment.metadata?.product || instruction.PaymentProduct || 'Legal Services',
       PaymentMethod: 'card',
-      PaymentResult: 'successful'
+      PaymentResult: 'successful',
+      ReceiptUrl: receiptUrl // Add the actual Stripe receipt URL
     };
     try { await sendClientSuccessEmail(emailRecord); } catch (e) { console.error('Client success email failed:', e.message); }
     try { await sendFeeEarnerEmail(emailRecord); } catch (e) { console.error('Fee earner email failed:', e.message); }
@@ -509,7 +532,7 @@ router.post('/admin/payment-failure-notification', async (req, res) => {
     const { sendMail } = require('./email');
     
     // Prepare admin notification email
-    const adminEmails = ['lz@helix-law.com'];
+    const adminEmails = ['lz@helix-law.com', 'cb@helix-law.com'];
     const subject = `Payment Failure Alert - ${instructionRef}`;
     
     const emailBody = `
@@ -599,6 +622,22 @@ router.post('/admin/payment-failure-notification', async (req, res) => {
         console.log(`✅ Client failure notification sent to ${clientEmail}`);
       } catch (clientEmailError) {
         console.error(`❌ Failed to send client notification:`, clientEmailError);
+      }
+      
+      // Send debug stuck client notification since payment failed
+      try {
+        const { sendDebugStuckClientEmail } = require('./email');
+        await sendDebugStuckClientEmail({
+          InstructionRef: instructionRef,
+          Email: clientEmail,
+          PaymentAmount: amount,
+          PaymentResult: 'failed',
+          InternalStatus: 'payment_failed',
+          Stage: 'payment_error'
+        }, `Payment failure - Error: ${errorMessage || errorCode || 'Unknown payment error'}`);
+        console.log(`🔍 Debug stuck client notification sent for payment failure: ${instructionRef}`);
+      } catch (debugErr) {
+        console.error(`❌ Failed to send debug stuck client notification:`, debugErr);
       }
     }
 
