@@ -1,16 +1,47 @@
 # Instruct Pitch
 
-This repository contains a React client and Express backend for legal instruction management and client onboarding. **The payment system is currently being migrated from Barclays ePDQ to Stripe** - see [barclays-to-stripe-migration.md](docs/barclays-to-stripe-migration.md) for details.
+This repository contains a React client and Express backend for legal instruction management and client onboarding. **The payment system has been fully migrated from Barclays ePDQ to Stripe** with comprehensive email notifications and diagnostic capabilities.
 
 Clients load the app using their **Client ID** in the URL (e.g. `/pitch/12345`). On first visit they must also supply a unique **passcode** from their invitation email. The passcode validates the deal and is required to generate an instruction reference and upload documents.
 
+## ✨ Latest Updates (September 2025)
+
+### Email System Overhaul
+- **Litigation-grade professional templates** - Clean, direct messaging suitable for legal practice
+- **Dual recipient support** - All emails now sent to both `lz@helix-law.com` and `cb@helix-law.com`
+- **Real Stripe receipt integration** - Clients receive actual Stripe receipt URLs in success emails
+- **Comprehensive diagnostic emails** - Full-stack technical reports for fee earners and developers
+- **Debug stuck client notifications** - Automated alerts when clients encounter issues
+- **Consistent reference formatting** - All emails use HLX-PASSCODE format for client references
+
+### UI Improvements
+- **Progress bar enhancement** - Removed width constraints for better visual expansion
+- **Typography standardization** - Consistent Raleway font usage across all email templates
+- **Logo refinement** - Removed excessive margin spacing in email signatures
+
+### Payment System
+- **Complete Stripe integration** - Full webhook handling for payment lifecycle
+- **Receipt URL extraction** - Automatic retrieval of Stripe receipt URLs for client emails
+- **Enhanced error handling** - Comprehensive payment failure notifications and diagnostics
+- **Bank transfer optimization** - Improved messaging and reference formatting
+
 For an overview of how these pieces fit together, see the [architecture diagram](docs/architecture.md).
 
-## Prerequisites
-- Node.js 18+
-- npm
-- SQL Server database with an `Instructions` table and connection variables (`DB_USER`, `DB_PASSWORD_SECRET`, `DB_SERVER`, `DB_NAME`)
-  where `DB_PASSWORD_SECRET` is the Key Vault secret name for the database password
+## 📚 Documentation
+
+### Core Documentation
+- **[Development Guide](docs/development-guide.md)** - Complete setup and development workflow
+- **[Architecture Overview](docs/architecture.md)** - System components and data flow
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
+
+### Feature Documentation
+- **[Email System](docs/email-system.md)** - Comprehensive email notification system
+- **[Stripe Integration](docs/stripe-integration-updated.md)** - Payment processing and webhook handling
+- **[UI Improvements](docs/ui-improvements.md)** - Interface enhancements and styling
+
+### Specialized Guides
+- **[Stripe Testing Guide](docs/stripe-testing-guide.md)** - Payment testing procedures
+- **[Local Development](docs/local-development.md)** - Development environment setup
 
 ## Installing dependencies
 Install backend and client dependencies:
