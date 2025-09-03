@@ -7,6 +7,9 @@ node_modules/
 logs/
 *.log
 
+# Local secrets file (do NOT commit real secrets)
+local-secrets.json
+
 # Ignore script-local node_modules and common script artifacts
 scripts/node_modules/
 scripts/**/node_modules/

@@ -78,6 +78,7 @@ let getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPa
 let normalizeInstruction;
 // Payment-related modules (declared here so later async init can see them)
 let stripeService, paymentDatabase, paymentRoutes;
+let cachedStripeSecretKey; // retrieved from Key Vault or local secrets file
 
 try {
   uploadRouter = require('./upload');
@@ -339,9 +340,7 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
 (async () => {
   try {
     if (!keyVaultName || !process.env.DB_PASSWORD_SECRET) {
-      console.warn('⚠️ KEY_VAULT_NAME or DB_PASSWORD_SECRET not set — skipping Key Vault fetch and starting server');
-      // Leave cached values undefined; server may rely on existing env vars.
-      return;
+      console.warn('⚠️ KEY_VAULT_NAME or DB_PASSWORD_SECRET not set — skipping Key Vault fetch for DB password');
     }
 
     // Attempt to load the legacy prefill function code. Historically this secret
@@ -370,22 +369,53 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
     }
 
     // Load the database password if available
-    try {
-      const dbPass = await secretClient.getSecret(process.env.DB_PASSWORD_SECRET);
-      cachedDbPassword = dbPass && dbPass.value;
-      if (cachedDbPassword) process.env.DB_PASSWORD = cachedDbPassword;
-    } catch (dbErr) {
-      console.warn('⚠️  Unable to load DB password from Key Vault:', dbErr.message);
+    if (process.env.DB_PASSWORD_SECRET) {
+      try {
+        const dbPass = await secretClient.getSecret(process.env.DB_PASSWORD_SECRET);
+        cachedDbPassword = dbPass && dbPass.value;
+        if (cachedDbPassword) process.env.DB_PASSWORD = cachedDbPassword;
+      } catch (dbErr) {
+        console.warn('⚠️  Unable to load DB password from Key Vault:', dbErr.message);
+      }
     }
 
-    console.log('✅ Key Vault secret retrieval complete');
+    // Always attempt to load Stripe secret key from Key Vault (name fixed: stripe-secret-key)
+    try {
+      const stripeSecret = await secretClient.getSecret('stripe-secret-key');
+      if (stripeSecret && stripeSecret.value) {
+        cachedStripeSecretKey = stripeSecret.value;
+        console.log('✅ Loaded stripe-secret-key from Key Vault');
+      } else {
+        console.warn('⚠️ stripe-secret-key secret empty');
+      }
+    } catch (stripeErr) {
+      console.warn('⚠️  Unable to load stripe-secret-key from Key Vault:', stripeErr.message);
+    }
+
+  console.log('✅ Key Vault secret retrieval complete');
 
     // ─── Initialize Payment System After Secrets Are Loaded ─────────────────
     // Now that DB password is available, initialize payment system
     try {
       if (stripeService && paymentDatabase && paymentRoutes) {
-        // Initialize Stripe service
-        await stripeService.initialize();
+        // Fallback: attempt to read local-secrets.json if running locally and vault secret missing
+        if (!cachedStripeSecretKey) {
+          try {
+            const localSecretsPath = path.join(__dirname, 'local-secrets.json');
+            if (fs.existsSync(localSecretsPath)) {
+              const raw = JSON.parse(fs.readFileSync(localSecretsPath, 'utf8'));
+              if (raw && raw.STRIPE_SECRET_KEY) {
+                cachedStripeSecretKey = raw.STRIPE_SECRET_KEY;
+                console.log('🧪 Using STRIPE_SECRET_KEY from local-secrets.json');
+              }
+            }
+          } catch (lsErr) {
+            console.warn('⚠️ Could not read local-secrets.json for STRIPE_SECRET_KEY:', lsErr.message);
+          }
+        }
+
+        // Initialize Stripe service with retrieved secret key (required)
+        await stripeService.initialize(cachedStripeSecretKey);
         
         // Initialize payment database tables (now that DB password is set)
         await paymentDatabase.initializeTables();

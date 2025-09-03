@@ -280,3 +280,48 @@ are ignored. Supported fields currently include:
 
 Fields like `idStatus`, `idNumber`, `idType` and `isCompanyClient` are currently
 ignored to prevent database errors.
+
+## Local Production Parity Mode
+
+To run the backend locally in a way that closely mirrors the production startup
+sequence (secret load → payment init → route mount) without contacting Azure
+Key Vault, enable the local secrets mode:
+
+1. Copy `apps/pitch/backend/local-secrets.example.json` to
+   `apps/pitch/backend/local-secrets.json` and fill in any secrets you need.
+2. Set environment variables (PowerShell):
+
+```powershell
+$env:KEY_VAULT_MODE='local'
+$env:LOCAL_SECRETS_FILE='apps/pitch/backend/local-secrets.json'
+$env:DB_PASSWORD_SECRET='DB_PASSWORD'        # so loader maps into DB_PASSWORD
+$env:EMAIL_REDIRECT_ALL='lz@helix-law.com'   # safety catch-all
+$env:EMAIL_LOG_ONLY='1'                      # optional: log instead of send
+```
+
+3. (Optional) Provide Stripe test keys in the local secrets file:
+```json
+{
+  "STRIPE_SECRET_KEY": "sk_test_xxx",
+  "STRIPE_WEBHOOK_SECRET": "whsec_xxx"
+}
+```
+
+4. Start the server:
+```powershell
+node apps/pitch/backend/server.js
+```
+
+5. (Optional) Start Stripe CLI to forward webhooks:
+```powershell
+stripe listen --forward-to localhost:3000/api/payments/webhook/stripe
+```
+
+Flags:
+- `KEY_VAULT_MODE=local` activates file-based secret resolution.
+- `LOCAL_SECRETS_FILE` path to JSON map of secret name -> value.
+- `EMAIL_LOG_ONLY` suppresses actual sending unless `EMAIL_FORCE_SEND=1`.
+- `EMAIL_FORCE_SEND=1` overrides log-only for a test burst.
+
+This preserves prod-like behaviour (including payment table init and webhook
+signature verification) while remaining fast & offline capable.

@@ -17,23 +17,20 @@ class StripeService {
   }
 
   /**
-   * Initialize Stripe with secret key from Azure Key Vault via App Settings
+   * Initialize Stripe with an explicit secret key (fetched outside env)
    */
-  async initialize() {
+  async initialize(secretKey) {
     try {
-      // Prefer standard STRIPE_* env vars; fallback to legacy INSTRUCTIONS_SANDBOX_*
-      const secretKey = process.env.STRIPE_SECRET_KEY || process.env.INSTRUCTIONS_SANDBOX_SK;
-      this.webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.INSTRUCTIONS_SANDBOX_SS;
+    // Webhook secret still comes from env (allowed to remain an env var)
+    this.webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.INSTRUCTIONS_SANDBOX_SS;
 
-      if (!secretKey) {
-        throw new Error('Stripe secret key missing (set STRIPE_SECRET_KEY)');
-      }
+    if (!secretKey) throw new Error('Stripe secret key missing (not retrieved from vault)');
       if (!this.webhookSecret) {
         throw new Error('Stripe webhook secret missing (set STRIPE_WEBHOOK_SECRET)');
       }
 
       this.stripe = new Stripe(secretKey, {
-        apiVersion: '2025-07-30.basil', // Updated API version
+        apiVersion: '2025-08-27.basil', // Bumped after dashboard upgrade
       });
 
       this.initialized = true;

@@ -16,6 +16,24 @@ const vaultUrl = `https://${keyVaultName}.vault.azure.net`;
 const credential = new DefaultAzureCredential();
 const secretClient = new SecretClient(vaultUrl, credential);
 let cachedClientId, cachedClientSecret;
+// Local secrets parity: reuse KEY_VAULT_MODE=local + local-secrets.json pattern
+let localSecrets = null;
+const localSecretsMode = process.env.KEY_VAULT_MODE === 'local';
+if (localSecretsMode) {
+  const fs = require('fs');
+  const path = require('path');
+  const localSecretsFile = process.env.LOCAL_SECRETS_FILE || path.join(__dirname, 'local-secrets.json');
+  try {
+    if (fs.existsSync(localSecretsFile)) {
+      localSecrets = JSON.parse(fs.readFileSync(localSecretsFile, 'utf8')) || {};
+      console.log('🧪 [email] Local secrets loaded');
+    } else {
+      console.warn('⚠️  [email] Local secrets file not found at', localSecretsFile);
+    }
+  } catch (e) {
+    console.warn('⚠️  [email] Failed to parse local secrets file:', e.message);
+  }
+}
 
 const smtpHost = process.env.SMTP_HOST;
 let transporter = null;
@@ -46,11 +64,20 @@ function formatName(record) {
 }
 
 async function getDocumentsForInstruction(ref) {
-  const pool = await getSqlPool();
-  const result = await pool.request()
-    .input('ref', sql.NVarChar, ref)
-    .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
-  return result.recordset || [];
+  if (process.env.EMAIL_LOG_ONLY) {
+    // Skip DB access during logging/demo mode
+    return [];
+  }
+  try {
+    const pool = await getSqlPool();
+    const result = await pool.request()
+      .input('ref', sql.NVarChar, ref)
+      .query('SELECT FileName, BlobUrl FROM Documents WHERE InstructionRef=@ref');
+    return result.recordset || [];
+  } catch (err) {
+    console.error('getDocumentsForInstruction failed (fallback to empty):', err.message);
+    return [];
+  }
 }
 
 function buildDocList(docs) {
@@ -137,12 +164,20 @@ function wrapSignature(bodyHtml) {
 
 async function getGraphCredentials() {
   if (!cachedClientId || !cachedClientSecret) {
-    const [id, secret] = await Promise.all([
-      secretClient.getSecret(clientIdSecret),
-      secretClient.getSecret(clientSecretSecret),
-    ]);
-    cachedClientId = id.value;
-    cachedClientSecret = secret.value;
+    if (localSecretsMode && localSecrets) {
+      cachedClientId = localSecrets[clientIdSecret];
+      cachedClientSecret = localSecrets[clientSecretSecret];
+      if (!cachedClientId || !cachedClientSecret) {
+        console.warn('⚠️  [email] Missing Graph secrets in local secrets file');
+      }
+    } else {
+      const [id, secret] = await Promise.all([
+        secretClient.getSecret(clientIdSecret),
+        secretClient.getSecret(clientSecretSecret),
+      ]);
+      cachedClientId = id.value;
+      cachedClientSecret = secret.value;
+    }
   }
   return { clientId: cachedClientId, clientSecret: cachedClientSecret };
 }
@@ -178,7 +213,31 @@ async function sendViaGraph(to, subject, html) {
 
 
 async function sendMail(to, subject, bodyHtml) {
+  // Global temporary redirect: route ALL outbound emails to monitoring address (lz@helix-law.com)
+  // Unless EMAIL_REDIRECT_ALL explicitly unset. This ensures no accidental client emails in test.
+  const override = process.env.EMAIL_REDIRECT_ALL || 'lz@helix-law.com';
+  const intended = to;
+  if (override) {
+    if (override !== to) {
+      subject = `[INTENDED:${intended}] ${subject}`;
+      const banner = `<div style="background:#ffe8a1;border:1px solid #e0b100;padding:6px 8px;margin:0 0 10px 0;font-size:12px;color:#5a4500;">Email override active → Original recipient: <strong>${intended}</strong>. Delivered to <strong>${override}</strong>.</div>`;
+      bodyHtml = banner + bodyHtml;
+    }
+    to = override;
+  }
   const html = wrapSignature(bodyHtml);
+
+  // Debug/log mode: if EMAIL_LOG_ONLY is set, just output the rendered email and return.
+  const forceSend = process.env.EMAIL_FORCE_SEND === '1';
+  if (process.env.EMAIL_LOG_ONLY && !forceSend) {
+    console.log('--- EMAIL_LOG_ONLY OUTPUT START ---');
+    console.log('To:', to);
+    console.log('Subject:', subject);
+    console.log('HTML (truncated 1000 chars):');
+    console.log(html.length > 1000 ? html.slice(0,1000) + '\n...[truncated]...' : html);
+    console.log('--- EMAIL_LOG_ONLY OUTPUT END ---');
+    return;
+  }
   try {
     await sendViaGraph(to, subject, html);
     return;

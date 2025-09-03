@@ -104,16 +104,18 @@ router.post('/create-payment-intent', async (req, res) => {
       nanoid = nanoidModule.nanoid;
     }
 
-    // Reuse existing processing payment for same instruction & amount to avoid duplicates
+    // Reuse existing in-flight payment for same instruction & amount to avoid duplicate PaymentIntents
+    // Includes both 'processing' and 'requires_action' (awaiting 3DS) states.
     try {
       const existing = await paymentDatabase.getPaymentsByInstruction(instructionRef);
-      const candidate = existing.find(p => p.amount === amount && p.payment_status === 'processing');
+      const candidate = existing.find(p => p.amount === amount && ['processing','requires_action'].includes(p.payment_status));
       if (candidate && candidate.client_secret) {
         console.log(`♻️ Reusing existing in-flight payment ${candidate.id} for ${instructionRef}`);
         return res.json({
           paymentId: candidate.id,
           clientSecret: candidate.client_secret,
-          amount: candidate.amount,
+          amount: candidate.amount, // major units (presentation)
+          amountMinor: candidate.amount_minor || Math.round(candidate.amount * 100), // canonical minor units
           currency: candidate.currency
         });
       }
@@ -135,7 +137,7 @@ router.post('/create-payment-intent', async (req, res) => {
       }
     });
 
-    // Store payment in database
+  // Store payment in database (persist both major + canonical minor units)
   const payment = await paymentDatabase.createPayment({
       id: paymentId,
       paymentIntentId: paymentIntent.paymentIntentId,
@@ -152,11 +154,14 @@ router.post('/create-payment-intent', async (req, res) => {
 
     console.log(`✅ Created payment: ${paymentId} for instruction: ${instructionRef}`);
 
-    // paymentIntent.amount is in minor units from Stripe; convert back to major for UI
+    // Respond with both representations:
+    // - amount (major) kept for existing client expectations (presentation only)
+    // - amountMinor (canonical minor units from Stripe / DB)
     res.json({
       paymentId,
       clientSecret: paymentIntent.clientSecret,
-      amount: paymentIntent.amount / 100,
+      amount: paymentIntent.amount / 100, // derived major units
+      amountMinor: paymentIntent.amount,  // canonical
       currency: paymentIntent.currency
     });
 
@@ -386,10 +391,9 @@ async function handlePaymentIntentEvent(event) {
 
     console.log(`✅ Updated payment ${payment.id}: ${statusMapping.payment_status}/${statusMapping.internal_status}`);
 
-    // Additional business logic can be added here
-    // e.g., send confirmation emails, update instruction status, etc.
+    // Successful completion side-effects (idempotent)
     if (statusMapping.payment_status === 'succeeded' && statusMapping.internal_status === 'completed') {
-      await handleSuccessfulPayment(payment, paymentIntent);
+      await handleSuccessfulPayment(payment, paymentIntent, event.id);
     }
 
   } catch (error) {
@@ -403,20 +407,85 @@ async function handlePaymentIntentEvent(event) {
  * @param {Object} payment - Payment record
  * @param {Object} paymentIntent - Stripe PaymentIntent
  */
-async function handleSuccessfulPayment(payment, paymentIntent) {
+// In-memory processed-event guard (survives process lifetime; replace with DB table for durability)
+const processedSuccessEvents = new Set();
+setInterval(() => {
+  // Simple memory pressure guard – clear set every 6h
+  processedSuccessEvents.clear();
+}, 6 * 60 * 60 * 1000).unref();
+
+async function handleSuccessfulPayment(payment, paymentIntent, stripeEventId) {
+  // Idempotency: prevent duplicate side-effects if Stripe retries the succeeded event
+  if (stripeEventId && processedSuccessEvents.has(stripeEventId)) {
+    console.log(`↩️  Skipping duplicate success side-effects for event ${stripeEventId}`);
+    return;
+  }
+  if (stripeEventId) processedSuccessEvents.add(stripeEventId);
+
   try {
-    console.log(`🎉 Payment completed successfully: ${payment.id}`);
-    
-    // Add your business logic here:
-    // - Send confirmation email
-    // - Update instruction status
-    // - Trigger fulfillment process
-    // - Generate receipts
-    // etc.
-    
+    console.log(`🎉 Payment completed successfully: paymentId=${payment.id} intent=${paymentIntent.id}`);
+
+    const instructionRef = payment.instruction_ref;
+    if (!instructionRef) {
+      console.warn('⚠️ Successful payment has no instruction_ref; skipping instruction updates/emails');
+      return;
+    }
+
+    // Lazy-load heavy modules to keep baseline route cost low
+    const instructionDb = require('./instructionDb');
+    const { sendClientSuccessEmail, sendFeeEarnerEmail } = require('./email');
+
+    // 1. Fetch/manipulate instruction record
+    let instruction = await instructionDb.getInstruction(instructionRef);
+    if (!instruction) {
+      console.warn(`⚠️ No instruction row for ${instructionRef}; creating minimal row`);
+      await instructionDb.upsertInstruction(instructionRef, {
+        PaymentMethod: 'card',
+        PaymentResult: 'successful',
+        PaymentAmount: payment.amount, // major units
+        PaymentProduct: payment.metadata?.product || 'Legal Services',
+        InternalStatus: 'paid'
+      });
+      instruction = await instructionDb.getInstruction(instructionRef);
+    } else {
+      // Update payment-related columns (do not overwrite existing PaymentAmount if set)
+      await instructionDb.updatePaymentStatus(
+        instructionRef,
+        'card',
+        true,
+        payment.amount,
+        payment.metadata?.product || instruction.PaymentProduct || 'Legal Services',
+        null,
+        paymentIntent.id,
+        null
+      );
+      instruction = await instructionDb.getInstruction(instructionRef);
+    }
+
+    // 2. Close any open deal and attach ref if missing
+    try {
+      await instructionDb.attachInstructionRefToDeal(instructionRef);
+      await instructionDb.closeDeal(instructionRef);
+    } catch (dealErr) {
+      console.error('Deal linkage/closure failed (continuing):', dealErr.message);
+    }
+
+    // 3. Dispatch emails (fire and forget semantics with isolated error handling)
+    const emailRecord = {
+      ...instruction,
+      InstructionRef: instructionRef,
+      PaymentAmount: payment.amount,
+      PaymentProduct: payment.metadata?.product || instruction.PaymentProduct || 'Legal Services',
+      PaymentMethod: 'card',
+      PaymentResult: 'successful'
+    };
+    try { await sendClientSuccessEmail(emailRecord); } catch (e) { console.error('Client success email failed:', e.message); }
+    try { await sendFeeEarnerEmail(emailRecord); } catch (e) { console.error('Fee earner email failed:', e.message); }
+
+    console.log(`✅ Success side-effects complete for instruction ${instructionRef}`);
   } catch (error) {
     console.error('❌ Failed to handle successful payment:', error);
-    // Don't throw here - webhook should still be acknowledged
+    // swallow – webhook ack should still succeed
   }
 }
 
