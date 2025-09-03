@@ -117,7 +117,7 @@ const PaymentReceipt: React.FC<PaymentReceiptProps> = ({
               <FiUser />
               Reference
             </span>
-            <span className="detail-value">{instructionRef}</span>
+            <span className="detail-value">HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
           </div>
         </div>
 

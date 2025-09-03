@@ -210,7 +210,7 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
               </div>
               <div className="summary-row">
                 <span className="summary-label">Reference</span>
-                <span className="summary-value">{instructionRef}</span>
+                <span className="summary-value">HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
               </div>
             </div>
 

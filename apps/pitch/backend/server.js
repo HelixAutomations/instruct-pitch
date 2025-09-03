@@ -106,6 +106,8 @@ const DEBUG_LOG = !process.env.DEBUG_LOG || /^1|true$/i.test(process.env.DEBUG_L
 const paymentsOff = /^1|true|yes$/i.test(String(
   process.env.DISABLE_PAYMENTS || process.env.PAYMENT_DISABLED || ''
 ));
+// Log the evaluated payment disable flag early for diagnostics (no secrets)
+console.log('[payments] paymentsOff flag =', paymentsOff, 'via env vars DISABLE_PAYMENTS/PAYMENT_DISABLED');
 
 function log(...args) {
   if (!DEBUG_LOG) return;
@@ -211,6 +213,22 @@ if (uploadRouter) {
 
 // ─── Payment Routes and Stripe Initialization ────────────────────────────
 // Payment system initialization will happen after Key Vault secrets are loaded
+
+// Lightweight health endpoint (does not require Stripe to be initialized yet)
+app.get('/api/payments/health', (req, res) => {
+  try {
+    res.json({
+      ok: true,
+      paymentsOff,
+      stripeInitialized: !!(stripeService && stripeService.initialized),
+      routesMounted: !!(app._router && app._router.stack && app._router.stack.some(l => l?.route?.path && String(l.route.path).includes('/api/payments'))),
+      now: new Date().toISOString(),
+      strategy: 'key-vault-only'
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
 
 // ─── Test route for debugging ──────────────────────────────────────────
 app.get('/test', (req, res) => {
@@ -379,17 +397,18 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
       }
     }
 
-    // Always attempt to load Stripe secret key from Key Vault (name fixed: stripe-secret-key)
+    // Always attempt to load Stripe restricted payments key from Key Vault
+    // Secret name: stripe-restricted-payments-key
     try {
-      const stripeSecret = await secretClient.getSecret('stripe-secret-key');
+      const stripeSecret = await secretClient.getSecret('stripe-restricted-payments-key');
       if (stripeSecret && stripeSecret.value) {
         cachedStripeSecretKey = stripeSecret.value;
-        console.log('✅ Loaded stripe-secret-key from Key Vault');
+        console.log('✅ Loaded stripe-restricted-payments-key from Key Vault');
       } else {
-        console.warn('⚠️ stripe-secret-key secret empty');
+        console.warn('⚠️ stripe-restricted-payments-key secret empty');
       }
     } catch (stripeErr) {
-      console.warn('⚠️  Unable to load stripe-secret-key from Key Vault:', stripeErr.message);
+      console.warn('⚠️  Unable to load stripe-restricted-payments-key from Key Vault:', stripeErr.message);
     }
 
   console.log('✅ Key Vault secret retrieval complete');
@@ -398,21 +417,7 @@ let cachedFetchInstructionDataCode, cachedDbPassword;
     // Now that DB password is available, initialize payment system
     try {
       if (stripeService && paymentDatabase && paymentRoutes) {
-        // Fallback: attempt to read local-secrets.json if running locally and vault secret missing
-        if (!cachedStripeSecretKey) {
-          try {
-            const localSecretsPath = path.join(__dirname, 'local-secrets.json');
-            if (fs.existsSync(localSecretsPath)) {
-              const raw = JSON.parse(fs.readFileSync(localSecretsPath, 'utf8'));
-              if (raw && raw.STRIPE_SECRET_KEY) {
-                cachedStripeSecretKey = raw.STRIPE_SECRET_KEY;
-                console.log('🧪 Using STRIPE_SECRET_KEY from local-secrets.json');
-              }
-            }
-          } catch (lsErr) {
-            console.warn('⚠️ Could not read local-secrets.json for STRIPE_SECRET_KEY:', lsErr.message);
-          }
-        }
+  // No fallback: stripe key must come from Key Vault. If absent, initialization throws.
 
         // Initialize Stripe service with retrieved secret key (required)
         await stripeService.initialize(cachedStripeSecretKey);
@@ -550,7 +555,14 @@ app.get('/api/instruction', async (req, res) => {
           console.log('Found deal:', deal);
           if (deal && deal.Amount && deal.Amount > 0) {
             console.log('Prefilling missing PaymentAmount from deal:', deal.Amount);
-            data = { ...data, PaymentAmount: deal.Amount };
+            // Update both the response AND persist to database
+            const updatedFields = { 
+              PaymentAmount: deal.Amount,
+              PaymentProduct: deal.ServiceDescription || data.PaymentProduct,
+              WorkType: deal.AreaOfWork || data.WorkType
+            };
+            await upsertInstruction(ref, updatedFields);
+            data = { ...data, ...updatedFields };
           } else {
             console.log('No deal found, deal has no amount, or amount is zero:', deal?.Amount);
           }
@@ -602,12 +614,13 @@ app.post('/api/instruction', async (req, res) => {
     }
 
     if (!existing.InstructionRef) {
-      const match = /HLX-(\d+)-/.exec(instructionRef);
+      const match = /HLX-(\d+)-(.+)$/.exec(instructionRef);
       if (match) {
-        // Prefill from latest deal for UX convenience. Official snapshot
-        // happens at POID transition (see below) to align with service-owner policy.
+        // Prefill from the specific deal for this passcode, not just the latest deal
         try {
-          const deal = await getLatestDeal(Number(match[1]));
+          const prospectId = Number(match[1]);
+          const passcode = match[2];
+          const deal = await getDealByPasscodeIncludingLinked(passcode, prospectId);
           if (deal) {
             merged.paymentAmount = merged.paymentAmount ?? deal.Amount;
             merged.paymentProduct = merged.paymentProduct ?? deal.ServiceDescription;

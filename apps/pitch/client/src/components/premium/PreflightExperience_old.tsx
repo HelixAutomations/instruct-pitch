@@ -205,7 +205,7 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
               </div>
               <div className="summary-row">
                 <span className="summary-label">Reference</span>
-                <span className="summary-value">{instructionRef}</span>
+                <span className="summary-value">HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
               </div>
             </div>
 
@@ -383,7 +383,7 @@ const PreflightExperience: React.FC<PreflightExperienceProps> = ({
             </div>
             <div className="preflight-summary-item">
               <span className="preflight-label">Reference:</span>
-              <span className="preflight-value">{instructionRef}</span>
+              <span className="preflight-value">HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
             </div>
             <div className="preflight-summary-item">
               <span className="preflight-label">Total Amount:</span>

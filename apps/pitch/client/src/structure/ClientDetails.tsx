@@ -41,8 +41,10 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   const handleCopyRef = async () => {
     if (!instructionRef) return;
     
+    const formattedRef = `HLX-${instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}`;
+    
     try {
-      await navigator.clipboard.writeText(instructionRef);
+      await navigator.clipboard.writeText(formattedRef);
       setCopied(true);
       // Reset copied state after 2 seconds
       setTimeout(() => setCopied(false), 2000);
@@ -97,7 +99,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
                   />
                 </svg>
               </span>
-              <span className="ref-text">{instructionRef}</span>
+              <span className="ref-text">HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
               {copied && <span className="copy-feedback">Copied!</span>}
             </span>
           )}

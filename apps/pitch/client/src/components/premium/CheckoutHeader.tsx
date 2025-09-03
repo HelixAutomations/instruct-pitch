@@ -32,7 +32,19 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
       // Animate to 100% first
       setTimeout(() => setProgressAnimation(100), 200);
     } else {
-      setProgressAnimation(((currentIndex + 1) / steps.length) * 100);
+      // Fixed 3-step progress: identity=33%, payment=66%, complete=100%
+      let progress = 0;
+      switch (currentStep) {
+        case 'identity':
+          progress = 33.33;
+          break;
+        case 'payment':
+          progress = 66.66;
+          break;
+        default:
+          progress = 33.33; // Default to first step
+      }
+      setProgressAnimation(progress);
     }
   }, [currentStep, currentIndex, steps.length]);
 
@@ -190,7 +202,9 @@ const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
             {instructionRef && showInstructionRef && (
               <div className="instruction-ref">
                 <span className="ref-label">Reference:</span>
-                <span className="ref-value">{instructionRef}</span>
+                <span className="ref-value">
+                  HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}
+                </span>
               </div>
             )}
             

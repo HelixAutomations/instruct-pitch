@@ -52,7 +52,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           <div className="header-metadata">
             <div className="order-reference">
               <span className="ref-label">Order Reference</span>
-              <span className="ref-value">{instructionRef}</span>
+              <span className="ref-value">HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
             </div>
             <div className="security-indicators">
               <span className="security-badge-header">SSL Encrypted</span>
@@ -89,7 +89,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             </div>
             <div className="metadata-item">
               <span className="metadata-label">Reference Number</span>
-              <span className="metadata-value">{instructionRef}</span>
+              <span className="metadata-value">HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
             </div>
             <div className="metadata-item">
               <span className="metadata-label">Regulatory Body</span>
@@ -273,7 +273,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           
           {/* Instruction Reference */}
           <div className="instruction-reference">
-            <span className="instruction-ref">Ref: {instructionRef}</span>
+            <span className="instruction-ref">Ref: HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}</span>
           </div>
           
           <div className="proceed-footer">

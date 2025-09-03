@@ -132,7 +132,7 @@ const SuccessPage: React.FC = () => {
                   {/* Integrated Reference Block */}
                   <div className="sp-ref-block" style={{ padding: '0 0 clamp(16px,4vw,24px)', textAlign: 'center', margin: '0 0 clamp(8px,3vw,16px)', borderBottom: '1px solid #f1f5f9' }}>
                     <span style={{ fontSize: 'clamp(12px,2.8vw,14px)', fontWeight: 700, color: '#15803d', display: 'block', marginBottom: 'clamp(6px,1.5vw,8px)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Your Reference</span>
-                    <span style={{ fontSize: 'clamp(18px,4.5vw,22px)', fontWeight: 800, color: '#1e293b', fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace', letterSpacing: '0.05em', wordBreak: 'break-all', display: 'block', padding: 'clamp(4px,1vw,6px) 0' }}>{summary.instructionRef}</span>
+                    <span style={{ fontSize: 'clamp(18px,4.5vw,22px)', fontWeight: 800, color: '#1e293b', fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace', letterSpacing: '0.05em', wordBreak: 'break-all', display: 'block', padding: 'clamp(4px,1vw,6px) 0' }}>HLX-{summary.instructionRef}</span>
                   </div>
                   {/* Optional Document Upload Section (moved above next steps) */}
                   <div className="sp-upload" style={{ textAlign: 'left' }}>

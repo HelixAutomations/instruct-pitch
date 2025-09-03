@@ -107,7 +107,7 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
         currency: currency.toLowerCase(),
         total: {
           label: 'Legal Services',
-          amount: Math.round(amount * 1.2 * 100), // Convert to pence and add VAT
+          amount: Math.round(amount * 100), // Convert to pence (VAT already included)
         },
         requestPayerName: true,
         requestPayerEmail: true,
@@ -343,13 +343,15 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
                 </div>
                 <div className="bank-detail-item">
                   <span className="detail-label">Reference</span>
-                  <span className="detail-value" onClick={() => handleCopy('reference', instructionRef)}>{instructionRef}</span>
-                  <button type="button" className="copy-btn" onClick={() => handleCopy('reference', instructionRef)}>{copiedField==='reference' ? 'Copied' : 'Copy'}</button>
+                  <span className="detail-value" onClick={() => handleCopy('reference', `HLX-${instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}`)}>
+                    HLX-{instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}
+                  </span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('reference', `HLX-${instructionRef.includes('-') ? instructionRef.split('-').pop() : instructionRef}`)}>{copiedField==='reference' ? 'Copied' : 'Copy'}</button>
                 </div>
                 <div className="bank-detail-item">
                   <span className="detail-label">Amount (GBP)</span>
-                  <span className="detail-value" onClick={() => handleCopy('amount', formatAmount(amount * 1.2))}>{formatAmount(amount * 1.2)}</span>
-                  <button type="button" className="copy-btn" onClick={() => handleCopy('amount', formatAmount(amount * 1.2))}>{copiedField==='amount' ? 'Copied' : 'Copy'}</button>
+                  <span className="detail-value" onClick={() => handleCopy('amount', formatAmount(amount))}>{formatAmount(amount)}</span>
+                  <button type="button" className="copy-btn" onClick={() => handleCopy('amount', formatAmount(amount))}>{copiedField==='amount' ? 'Copied' : 'Copy'}</button>
                 </div>
               </div>
               <div className="bank-hints">
@@ -403,7 +405,7 @@ const ModernPaymentForm: React.FC<ModernPaymentFormProps> = ({
             ) : (
               <>
                 <FiLock />
-                Pay {formatAmount(amount * 1.2)}
+                Pay {formatAmount(amount)}
               </>
             )}
           </button>

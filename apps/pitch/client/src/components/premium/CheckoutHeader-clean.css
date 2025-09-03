@@ -151,11 +151,13 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 /* Integrated Progress Indicator */
 .hero-progress-meta {
   margin-bottom: 0.5rem;
+  width: 100%;
 }
 
 .progress-bar {
@@ -164,6 +166,7 @@
   background: var(--gray-200);
   border-radius: 2px;
   overflow: hidden;
+  min-width: 0;  /* Ensure it can shrink if needed but still take full available width */
 }
 
 .progress-bar .progress-fill {

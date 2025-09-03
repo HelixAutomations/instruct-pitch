@@ -23,7 +23,6 @@ import {
 // (Icons removed with old summary/review UI)
 } from 'react-icons/fa';
 import ProofOfId from './ProofOfId';
-import DocumentUploadPremium from '../components/premium/DocumentUploadPremium';
 import '../styles/HomePage.css';
 import '../styles/modern-checkout.css';
 import { ProofData } from '../context/ProofData';
@@ -80,7 +79,7 @@ interface HomePageProps {
   onContactInfoChange?: (info: { feeEarner?: string }) => void;
   onInstructionConfirmed?: () => void;
   onGreetingChange?: (greeting: string | null) => void;
-  onCurrentStepChange?: (step: 'identity' | 'documents' | 'payment') => void;
+  onCurrentStepChange?: (step: 'identity' | 'payment') => void; // documents removed
 }
 
 const HomePage: React.FC<HomePageProps> = ({
@@ -97,44 +96,26 @@ const HomePage: React.FC<HomePageProps> = ({
 }) => {
   // --- STATE & STEP HANDLING (simplified after sidebar removal) ---
   const navigate = useNavigate();
-  const [currentCheckoutStep, setCurrentCheckoutStep] = useState<'identity'|'documents'|'payment'>('identity');
+  const [currentCheckoutStep, setCurrentCheckoutStep] = useState<'identity'|'payment'>('identity');
   
   // Wrapper function to handle step changes
-  const updateCurrentStep = useCallback((step: 'identity'|'documents'|'payment') => {
+  const updateCurrentStep = useCallback((step: 'identity'|'payment') => {
     setCurrentCheckoutStep(step);
     onCurrentStepChange?.(step);
   }, [onCurrentStepChange]);
   
-  const paymentsDisabled = passcode !== '20200';
+  // Payment availability - no longer restricted by passcode
+  const paymentsDisabled = false; // TODO: Connect to server-side paymentsOff flag if needed
   const [instructionReady, setInstructionReady] = useState(false);
   const [initializationAttempted, setInitializationAttempted] = useState(false);
   // instruction declared later; use a ref pattern by deferring showPaymentStep calculation
   const [showPaymentStep, setShowPaymentStep] = useState(false);
-  const checkoutSteps = useMemo(() => {
-    const base: { key: 'identity'|'documents'|'payment'; label: string }[] = [
-      { key: 'identity', label: 'Prove Your Identity' },
-    ];
-    if (showPaymentStep) base.push({ key: 'payment', label: 'Pay' });
-    base.push({ key: 'documents', label: 'Upload Documents' });
-    return base;
-  }, [showPaymentStep]);
+  // checkoutSteps removed (UI can infer current step directly)
 
-  const getCurrentStepIndex = () => checkoutSteps.findIndex(s => s.key === currentCheckoutStep);
-  const nextStep = () => {
-    const idx = getCurrentStepIndex();
-    if (idx < checkoutSteps.length - 1) {
-      updateCurrentStep(checkoutSteps[idx + 1].key);
-      // Scroll to top of form area after step change
-      setTimeout(() => {
-        scrollIntoViewIfNeeded(stepContentRef.current, 20);
-      }, 100);
-    }
-  };
-  const prevStep = () => {
-    const idx = getCurrentStepIndex();
-    if (idx > 0) updateCurrentStep(checkoutSteps[idx - 1].key);
-  };
-  const goToStep = (stepKey: 'identity' | 'documents' | 'payment') => {
+  // getCurrentStepIndex removed (single forward navigation)
+  // nextStep removed (two-step flow)
+  // prevStep no longer needed (only forward navigation)
+  const goToStep = (stepKey: 'identity' | 'payment') => {
     updateCurrentStep(stepKey);
     // Scroll to top of form area after step change
     setTimeout(() => {
@@ -201,10 +182,11 @@ const HomePage: React.FC<HomePageProps> = ({
     workType: '',
     pitchedAt: undefined,
   });
+  const [dealFetchAttempted, setDealFetchAttempted] = useState(false);
   const [instructionCompleted, setInstructionCompleted] = useState(false);
 
   // Uploaded files type (lightweight)
-  interface UploadedFile { file: File; uploaded: boolean; }
+  // UploadedFile interface removed (documents step removed)
 
   useEffect(() => {
     if (onContactInfoChange) {
@@ -377,12 +359,10 @@ const HomePage: React.FC<HomePageProps> = ({
   // TODO: Add Stripe payment preloading here when implementing Stripe integration
 
 
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [] = useState<PaymentDetails>({ cardNumber: '', expiry: '', cvv: '' });
-  const [isUploadSkipped, setUploadSkipped] = useState(false);
 
   // instructionReady declared earlier (moved up)
-  const [instructionError] = useState<string | null>(null);
+  // instructionError state removed (no longer displayed in trimmed flow)
 
   // Debug: log payment visibility state to help diagnose missing step 2
   useEffect(() => {
@@ -390,11 +370,11 @@ const HomePage: React.FC<HomePageProps> = ({
       // eslint-disable-next-line no-console
       console.log('[HomePage] payment debug', {
         passcode,
-        paymentsDisabled: passcode !== '20200',
+        paymentsDisabled: false,
         instructionRef: instruction.instructionRef,
         instructionAmount: instruction.amount,
         hasDeal: instruction.amount > 0,
-        prefetchPayment: !((passcode !== '20200')) && instruction.amount > 0,
+        prefetchPayment: instruction.amount > 0,
         instructionReady,
       });
     } catch (e) {
@@ -403,9 +383,8 @@ const HomePage: React.FC<HomePageProps> = ({
   }, [passcode, instruction.instructionRef, instruction.amount, instructionReady]);
 
   const [isIdReviewDone, setIdReviewDone] = useState(false);
-  const [isUploadDone, setUploadDone] = useState(false);
-  const [isPaymentDone, setPaymentDone] = useState(false);
-  const [expiryText, setExpiryText] = useState('');
+  // Uploads handled on success page now
+  // Upload step removed (handled on success page)
   const { summaryComplete, setSummaryComplete } = useCompletion();
 
   // Debounce timer ref for API calls
@@ -433,13 +412,6 @@ const HomePage: React.FC<HomePageProps> = ({
     ].every((f) => f && f.toString().trim());
   }, [proofData.idStatus, proofData.title, proofData.firstName, proofData.lastName, proofData.nationality, proofData.idNumber]);
 
-  // Handle payment state when payments are disabled
-  useEffect(() => {
-    if (paymentsDisabled) {
-      setPaymentDone(true);
-    }
-  }, [paymentsDisabled]);
-
   const idExpiry = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 30);
@@ -454,47 +426,11 @@ const HomePage: React.FC<HomePageProps> = ({
   // Track editing state and whether any changes have been made
   // Removed editing/review state
 
-  const formatAmount = (amt: number) => {
-    const hasDecimals = Math.floor(amt) !== amt;
-    return amt.toLocaleString('en-GB', {
-      minimumFractionDigits: hasDecimals ? 2 : 0,
-      maximumFractionDigits: hasDecimals ? 2 : 0,
-    });
-  };
-
-  useEffect(() => {
-    if (!instruction.pitchedAt) return;
-    const pitchDate = new Date(instruction.pitchedAt);
-    const expiry = new Date(pitchDate.getTime() + 14 * 24 * 60 * 60 * 1000);
-
-    const update = () => {
-      const now = new Date();
-      let diff = expiry.getTime() - now.getTime();
-      if (diff < 0) diff = 0;
-      const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-      const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-      setExpiryText(`${days}d ${hours}h`);
-    };
-
-    update();
-    const timer = setInterval(update, 60 * 60 * 1000);
-    return () => clearInterval(timer);
-  }, [instruction.pitchedAt]);
-
-
   // Clear any persisted progress on first load so refreshing starts clean
   useEffect(() => {
     sessionStorage.removeItem('paymentDone');
     sessionStorage.removeItem(`uploadedDocs-${passcode}-${instructionRef}`);
   }, [passcode, instructionRef]);
-
-  useEffect(() => {
-    if (localStorage.getItem('paymentSuccess') === 'true') {
-      setPaymentDone(true);
-      sessionStorage.setItem('paymentDone', 'true');
-      localStorage.removeItem('paymentSuccess');
-    }
-  }, []);
 
   // Once ID details are marked complete, keep the state unless the user
   // explicitly clears required fields and tries to proceed again.
@@ -509,30 +445,29 @@ const HomePage: React.FC<HomePageProps> = ({
 
   // handleEdit removed (legacy review)
 
-  useEffect(() => {
-    const isComplete = uploadedFiles.some(f => f.uploaded);
-    setUploadDone(isComplete);
-  }, [uploadedFiles]);
+  // Upload monitoring removed
 
-  // Auto-navigate to success when documents are done and no payment needed
+  // Handle post-identity transition:
+  //  - If amount > 0 => move to payment (avoid race with showPaymentStep effect)
+  //  - If no amount or payments disabled => go to success
   useEffect(() => {
-    console.log('Navigation check:', {
-      returning,
-      isUploadDone,
-      isUploadSkipped,
-      currentCheckoutStep,
-      showPaymentStep
-    });
-    if (
-      !returning &&
-      (isUploadDone || isUploadSkipped) &&
-      currentCheckoutStep === 'documents' &&
-      !showPaymentStep
-    ) {
-      console.log('Navigating to success page...');
+    if (returning) return;
+    if (currentCheckoutStep !== 'identity') return;
+    if (!isIdReviewDone || !instructionReady || !dealFetchAttempted) return;
+
+    const hasPayableAmount = !paymentsDisabled && instruction.amount > 0;
+
+    if (hasPayableAmount) {
+      if (!showPaymentStep) {
+        // Race guard: ensure payment step flag set before navigation
+        setShowPaymentStep(true);
+      }
+      // Navigate to payment if still on identity
+      goToStep('payment');
+    } else {
       navigate(`/${clientId}-${passcode}/success`);
     }
-  }, [isUploadDone, isUploadSkipped, currentCheckoutStep, returning, showPaymentStep, navigate, clientId]);
+  }, [returning, currentCheckoutStep, isIdReviewDone, instructionReady, dealFetchAttempted, paymentsDisabled, instruction.amount, showPaymentStep, navigate, clientId, passcode, goToStep]);
 
   // Handle instruction completion callback
   useEffect(() => {
@@ -544,9 +479,7 @@ const HomePage: React.FC<HomePageProps> = ({
   useEffect(() => {
     if (instructionCompleted) {
       setIdReviewDone(true);
-      // Always set payment and upload done for completed instructions
-      setPaymentDone(true);
-      setUploadDone(true);
+      // Always set summary complete for completed instructions
       setSummaryComplete(true);
     }
   }, [instructionCompleted, setSummaryComplete]);
@@ -587,14 +520,41 @@ const HomePage: React.FC<HomePageProps> = ({
     setShowPaymentStep(!paymentsDisabled && instruction.amount > 0);
   }, [paymentsDisabled, instruction.amount]);
 
+  // Fallback single attempt: if amount still zero post-init, fetch deal directly by passcode
+  useEffect(() => {
+    if (paymentsDisabled) return;
+    if (!instructionReady) return;
+    if (instruction.amount > 0) return;
+    if (dealFetchAttempted) return;
+    if (!passcode) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/getDealByPasscodeIncludingLinked?passcode=${encodeURIComponent(passcode)}`);
+        setDealFetchAttempted(true);
+        if (!res.ok) return;
+        const deal = await res.json();
+        if (deal && typeof deal.Amount === 'number' && deal.Amount > 0) {
+          setInstruction(prev => ({
+            ...prev,
+            amount: Number(deal.Amount),
+            product: deal.ServiceDescription || prev.product,
+            workType: deal.AreaOfWork || prev.workType,
+          }));
+        }
+      } catch {
+        setDealFetchAttempted(true);
+      }
+    })();
+  }, [paymentsDisabled, instructionReady, instruction.amount, dealFetchAttempted, passcode]);
+
   // Removed paymentData tracking effect (paymentData no longer in scope)
 
   // If payment step disappears (e.g. amount becomes 0) and we're on it, go back
   useEffect(() => {
     if (currentCheckoutStep === 'payment' && !showPaymentStep) {
-      updateCurrentStep('documents');
+      navigate(`/${clientId}-${passcode}/success`);
     }
-  }, [currentCheckoutStep, showPaymentStep]);
+  }, [currentCheckoutStep, showPaymentStep, navigate, clientId, passcode]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -628,32 +588,25 @@ const HomePage: React.FC<HomePageProps> = ({
               onUpdate={setProofData}
               setIsComplete={setIdReviewDone}
               onNext={(skipToPayment) => { 
-                if (skipToPayment) {
-                  // Skip directly to payment
-                  console.log('🚀 DEV: Skipping from ProofOfId directly to payment...');
-                  setIdReviewDone(true);
-                  setUploadDone(true);
+                if (!isIdReviewDone) return;
+                // Conditions to proceed to payment: explicit skipToPayment, already have amount, or fallback not yet attempted
+                const shouldShowPayment = !paymentsDisabled && (skipToPayment || instruction.amount > 0 || !dealFetchAttempted);
+                if (shouldShowPayment) {
+                  if (!dealFetchAttempted && instruction.amount === 0) setDealFetchAttempted(true);
                   setShowPaymentStep(true);
-                  setTimeout(() => {
-                    goToStep('payment');
-                  }, 100);
-                } else if (isIdReviewDone) {
-                  nextStep();
+                  setTimeout(() => goToStep('payment'), 60);
+                } else {
+                  navigate(`/${clientId}-${passcode}/success`);
                 }
               }}
               onSkipToStep={(step) => {
-                console.log(`🚀 DEV: Skipping from ProofOfId to ${step} step...`);
                 setIdReviewDone(true);
                 if (step === 'payment') {
-                  setUploadDone(true);
+                  if (!dealFetchAttempted && instruction.amount === 0) setDealFetchAttempted(true);
                   setShowPaymentStep(true);
-                  setTimeout(() => {
-                    goToStep('payment');
-                  }, 100);
-                } else if (step === 'documents') {
-                  setTimeout(() => {
-                    goToStep('documents');
-                  }, 100);
+                  setTimeout(() => goToStep('payment'), 60);
+                } else {
+                  navigate(`/${clientId}-${passcode}/success`);
                 }
               }}
             />
@@ -662,63 +615,16 @@ const HomePage: React.FC<HomePageProps> = ({
           </>
         )}
 
-        {/* Document Upload */}
-        {currentCheckoutStep === 'documents' && (
-          <>
-            <DocumentUploadPremium
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-              setIsComplete={setUploadDone}
-              onBack={prevStep}
-              onNext={() => {
-                console.log('DocumentUpload onNext called, showPaymentStep:', showPaymentStep);
-                // Always go to success when documents are completed/skipped
-                console.log('Documents completed, navigating to success');
-                navigate(`/${clientId}-${passcode}/success`);
-              }}
-              setUploadSkipped={setUploadSkipped}
-              isUploadSkipped={isUploadSkipped}
-              clientId={clientId}
-              passcode={passcode}
-              instructionRef={instruction.instructionRef}
-              instructionReady={instructionReady}
-              instructionError={instructionError}
-            />
-
-            {/* Legacy document upload navigation removed; premium buttons in DocumentUploadPremium manage flow */}
-          </>
-        )}
+  {/* Documents step removed */}
 
         {/* Payment */}
         {currentCheckoutStep === 'payment' && showPaymentStep && (
           <>
-            {!isPaymentDone && (
-              <div className="service-summary-box">
-                <div className="summary-grid">
-                  {proofData.helixContact && (
-                    <div className="summary-item">
-                      <div className="summary-label">Solicitor</div>
-                      <div className="summary-value">{proofData.helixContact.split(' ')[0]}</div>
-                    </div>
-                  )}
-                  <div className="summary-item">
-                    <div className="summary-label">Amount (inc. VAT)</div>
-                    <div className="summary-value amount-value">£{formatAmount(instruction.amount)}</div>
-                  </div>
-                  <div className="summary-item">
-                    <div className="summary-label">Expires in</div>
-                    <div className="summary-value">{expiryText}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {!paymentsDisabled && (
               <PremiumCheckout
                 instructionRef={instruction.instructionRef}
                 onComplete={() => {
                   console.log('HomePage: Premium checkout completed');
-                  setPaymentDone(true);
                   navigate(`/${clientId}-${passcode}/success`);
                 }}
               />
