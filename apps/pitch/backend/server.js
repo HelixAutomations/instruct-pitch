@@ -715,6 +715,40 @@ app.get('/api/instruction/:ref/documents', async (req, res) => {
   }
 });
 
+app.get('/api/instruction/summary/:ref', async (req, res) => {
+  const ref = req.params.ref;
+  try {
+    const data = await getInstruction(ref);
+    if (!data) {
+      return res.status(404).json({ error: 'Instruction not found' });
+    }
+    
+    // Return a summary with key fields needed for the success page
+    const summary = {
+      instructionRef: ref,
+      clientType: data.clientType,
+      companyName: data.companyName,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      stage: data.stage,
+      internalStatus: data.internalStatus,
+      PaymentAmount: data.PaymentAmount,
+      PaymentProduct: data.PaymentProduct,
+      WorkType: data.WorkType,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt
+    };
+    
+    console.log('✅ Instruction summary fetched for:', ref);
+    res.json(summary);
+  } catch (err) {
+    console.error('❌ fetch instruction summary error:', err);
+    res.status(500).json({ error: 'Failed to fetch instruction summary' });
+  }
+});
+
 app.get('/api/instruction/:ref/tiller-preview', async (req, res) => {
   const ref = req.params.ref;
   try {
