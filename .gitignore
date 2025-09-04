@@ -58,6 +58,3 @@ Thumbs.db
 # VS Code settings (optional - comment out if you want to share)
 .vscode/settings.json
 .vscode/launch.json
-
-# Exclude tab-app submodule/separate repository
-apps/tab-app/
