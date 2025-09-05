@@ -4,6 +4,7 @@ const sql = require('mssql');
 const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
 const { getSqlPool } = require('./sqlClient');
+const { getPaymentByInstructionRef, formatPaymentAmount, getPaymentMethodDisplay } = require('./paymentService');
 
 const FROM_ADDRESS = 'automations@helix-law.com';
 const FROM_NAME = 'Helix Law Team';
@@ -296,17 +297,22 @@ async function sendMail(to, subject, bodyHtml) {
   });
 }
 
-function buildClientSuccessBody(record) {
+async function buildClientSuccessBody(record) {
   const firstName = record.FirstName || 'Client';
   const greeting = `Dear ${firstName},`;
-  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
+  
+  // Get payment data from Payments table
+  const payment = await getPaymentByInstructionRef(record.InstructionRef);
+  const amount = payment ? formatPaymentAmount(payment) : '';
   const product = record.PaymentProduct || 'your matter';
   
   // Extract passcode and create HLX-PASSCODE format for display
   const passcode = record.InstructionRef.split('-').pop() || record.InstructionRef;
-  const shortRef = passcode === record.InstructionRef ? passcode : `HLX-${passcode}`;  // Include receipt URL if available
-  const receiptSection = record.ReceiptUrl ? 
-    `<p><a href="${record.ReceiptUrl}" style="color: #3690CE; text-decoration: none;">View your payment receipt</a></p>` : '';
+  const shortRef = passcode === record.InstructionRef ? passcode : `HLX-${passcode}`;
+  
+  // Include receipt URL if available from payments data
+  const receiptSection = payment?.ReceiptUrl ? 
+    `<p><a href="${payment.ReceiptUrl}" style="color: #3690CE; text-decoration: none;">View your payment receipt</a></p>` : '';
   
   return `
     <div style="font-family: Raleway, sans-serif; color: #1a1a1a; line-height: 1.6;">
@@ -321,10 +327,13 @@ function buildClientSuccessBody(record) {
   `;
 }
 
-function buildClientFailureBody(record) {
+async function buildClientFailureBody(record) {
   const firstName = record.FirstName || 'Client';
   const greeting = `Dear ${firstName},`;
-  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
+  
+  // Get payment data from Payments table  
+  const payment = await getPaymentByInstructionRef(record.InstructionRef);
+  const amount = payment ? formatPaymentAmount(payment) : '';
   const product = record.PaymentProduct || 'your matter';
   
   // Extract passcode and create HLX-PASSCODE format for display and bank reference
@@ -355,12 +364,15 @@ function buildClientFailureBody(record) {
   `;
 }
 
-function buildFeeEarnerBody(record, docs) {
+async function buildFeeEarnerBody(record, docs) {
   const name = formatName(record) || 'Client';
-  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
+  
+  // Get payment data from Payments table
+  const payment = await getPaymentByInstructionRef(record.InstructionRef);
+  const amount = payment ? formatPaymentAmount(payment) : '';
   const product = record.PaymentProduct || '';
-  const status = record.PaymentResult === 'successful' ? 'Succeeded' : (record.PaymentResult || '');
-  const method = record.PaymentMethod === 'bank' ? 'Bank transfer confirmed by client' : `Card payment ${status}`;
+  const status = payment ? getPaymentStatusDisplay(payment) : '';
+  const method = payment ? getPaymentMethodDisplay(payment) : 'N/A';
   const docList = buildDocList(docs || []);
   
   // Get current timestamp for diagnostics
@@ -398,10 +410,10 @@ function buildFeeEarnerBody(record, docs) {
         <tr style="background:#f8f9fa"><td style="padding:8px;border:1px solid #ddd;font-weight:600">Amount</td><td style="padding:8px;border:1px solid #ddd">£${amount}</td></tr>
         <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Product/Service</td><td style="padding:8px;border:1px solid #ddd">${product}</td></tr>
         <tr style="background:#f8f9fa"><td style="padding:8px;border:1px solid #ddd;font-weight:600">Work Type</td><td style="padding:8px;border:1px solid #ddd">${record.WorkType || 'N/A'}</td></tr>
-        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Method</td><td style="padding:8px;border:1px solid #ddd">${record.PaymentMethod || 'N/A'}</td></tr>
-        <tr style="background:#f8f9fa"><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Result</td><td style="padding:8px;border:1px solid #ddd">${record.PaymentResult || 'N/A'}</td></tr>
-        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Timestamp</td><td style="padding:8px;border:1px solid #ddd">${record.PaymentTimestamp || 'N/A'}</td></tr>
-        <tr style="background:#f8f9fa"><td style="padding:8px;border:1px solid #ddd;font-weight:600">Order ID</td><td style="padding:8px;border:1px solid #ddd">${record.OrderId || 'N/A'}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Method</td><td style="padding:8px;border:1px solid #ddd">${method}</td></tr>
+        <tr style="background:#f8f9fa"><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Status</td><td style="padding:8px;border:1px solid #ddd">${status}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Timestamp</td><td style="padding:8px;border:1px solid #ddd">${payment?.CreatedAt || 'N/A'}</td></tr>
+        <tr style="background:#f8f9fa"><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment ID</td><td style="padding:8px;border:1px solid #ddd">${payment?.PaymentIntentId || 'N/A'}</td></tr>
         <tr><td style="padding:8px;border:1px solid #ddd;font-weight:600">Payment Disabled</td><td style="padding:8px;border:1px solid #ddd">${record.PaymentDisabled ? 'Yes' : 'No'}</td></tr>
       </table>
       
@@ -450,11 +462,15 @@ function buildFeeEarnerBody(record, docs) {
   `;
 }
 
-function buildAccountsBody(record, docs) {
+async function buildAccountsBody(record, docs) {
   const name = formatName(record) || 'Client';
-  const amount = record.PaymentAmount != null ? Number(record.PaymentAmount).toFixed(2) : '';
-  const ref = record.OrderId || record.InstructionRef;
+  
+  // Get payment data from Payments table
+  const payment = await getPaymentByInstructionRef(record.InstructionRef);
+  const amount = payment ? formatPaymentAmount(payment) : '';
+  const ref = payment?.PaymentIntentId || record.InstructionRef;
   const docList = buildDocList(docs || []);
+  
   return `
     <p>Bank transfer pending for instruction <strong>${record.InstructionRef}</strong>.</p>
     <p><strong>Client:</strong> ${name}<br/>Email: ${record.Email || 'N/A'}<br/>Phone: ${record.Phone || 'N/A'}</p>
@@ -467,21 +483,24 @@ function buildAccountsBody(record, docs) {
 
 async function sendClientSuccessEmail(record) {
   if (!record.Email) return;
-  const body = buildClientSuccessBody(record);
+  const body = await buildClientSuccessBody(record);
   await sendMail(record.Email, 'Instruction Confirmed – Payment Received', body);
 }
 
 async function sendClientFailureEmail(record) {
   if (!record.Email) return;
-  const body = buildClientFailureBody(record);
+  const body = await buildClientFailureBody(record);
   await sendMail(record.Email, 'Complete Payment – Instruction Pending', body);
 }
 
 async function sendFeeEarnerEmail(record) {
   const to = ['lz@helix-law.com', 'cb@helix-law.com']; // Internal tech team notification
   const docs = await getDocumentsForInstruction(record.InstructionRef);
-  const body = buildFeeEarnerBody(record, docs);
-  const amount = record.PaymentAmount != null ? `£${Number(record.PaymentAmount).toFixed(2)}` : 'N/A';
+  const body = await buildFeeEarnerBody(record, docs);
+  
+  // Get payment data for subject line
+  const payment = await getPaymentByInstructionRef(record.InstructionRef);
+  const amount = payment ? `£${formatPaymentAmount(payment)}` : 'N/A';
   const service = record.PaymentProduct || 'Unknown service';
   
   // Send to multiple recipients
@@ -501,12 +520,16 @@ async function sendDebugStuckClientEmail(record, reason = 'Unknown issue') {
   const shortRef = record.InstructionRef ? `HLX-${record.InstructionRef.split('-').pop()}` : 'N/A';
   const name = [record.FirstName, record.LastName].filter(Boolean).join(' ') || 'Unknown';
   
+  // Get payment data for debug info
+  const payment = await getPaymentByInstructionRef(record.InstructionRef);
+  const paymentInfo = payment ? `${payment.Method} - ${payment.Status}` : 'none';
+  
   const body = `
     <div style="font-family:Arial,sans-serif;color:#111;font-size:14px">
       <p><strong>${shortRef}</strong> - ${name} (${record.Email || 'no email'})</p>
       <p><strong>Issue:</strong> ${reason}</p>
       <p><strong>Status:</strong> ${record.Stage || 'unknown'} / ${record.InternalStatus || 'unknown'}</p>
-      <p><strong>Payment:</strong> ${record.PaymentMethod || 'none'} - ${record.PaymentResult || 'none'}</p>
+      <p><strong>Payment:</strong> ${paymentInfo}</p>
       <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
     </div>
   `;
@@ -523,7 +546,11 @@ async function sendDebugStuckClientEmail(record, reason = 'Unknown issue') {
 // Send bank details to client upon request from failure page
 async function sendBankDetailsEmail({ Email, InstructionRef, Amount }) {
   if (!Email) return;
-  const amountStr = Amount != null ? Number(Amount).toFixed(2) : '';
+  
+  // Get payment data from Payments table if available
+  const payment = await getPaymentByInstructionRef(InstructionRef);
+  const amountStr = payment ? formatPaymentAmount(payment) : (Amount != null ? Number(Amount).toFixed(2) : '');
+  
   // Extract just the passcode for bank reference (get last part after final hyphen)
   const bankRef = InstructionRef.split('-').pop() || InstructionRef;
   const html = `

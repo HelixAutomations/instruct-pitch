@@ -62,7 +62,7 @@ const stubs = {
   },
   './instructionDb': {
     getInstruction: async () => stubs.getInstructionResponse,
-    updatePaymentStatus: async () => { stubs.updateCalled = true; },
+    // updatePaymentStatus: removed from new payment architecture
     attachInstructionRefToDeal: async () => { stubs.linked = true; },
     closeDeal: async () => { stubs.closed = true; },
     // Tests may trigger insertIDVerification via submitVerification; noop it here

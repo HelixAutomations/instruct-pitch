@@ -261,52 +261,6 @@ async function markCompleted(ref) {
   return result.recordset[0]
 }
 
-async function updatePaymentStatus(
-  ref,
-  method,
-  success,
-  amount,
-  product,
-  aliasId,
-  orderId,
-  shaSign
-) {
-  const pool = await getSqlPool()
-  const paymentResult = method === 'card'
-    ? (success ? 'successful' : 'rejected')
-    : 'verifying'
-  const internalStatus = method === 'card'
-    ? (success ? 'paid' : null)
-    : 'paid'
-
-  const request = pool.request()
-    .input('InstructionRef',   sql.NVarChar,  ref)
-    .input('PaymentMethod',    sql.NVarChar,  method)
-    .input('PaymentResult',    sql.NVarChar,  paymentResult)
-    .input('PaymentAmount',    sql.Decimal(18,2), amount != null ? Number(amount) : null)
-    .input('PaymentProduct',   sql.NVarChar,  product || null)
-    .input('AliasId',          sql.NVarChar,  aliasId)
-    .input('OrderId',          sql.NVarChar,  orderId)
-    .input('SHASign',          sql.NVarChar,  shaSign)
-    .input('PaymentTimestamp', sql.DateTime2, new Date())
-    .input('InternalStatus',   sql.NVarChar,  internalStatus)
-
-  await request.query(`
-    UPDATE Instructions SET
-      PaymentMethod    = @PaymentMethod,
-      PaymentResult    = @PaymentResult,
-      PaymentAmount    = COALESCE(@PaymentAmount, PaymentAmount),
-      PaymentProduct   = COALESCE(@PaymentProduct, PaymentProduct),
-      AliasId          = @AliasId,
-      OrderId          = @OrderId,
-      SHASign          = @SHASign,
-      PaymentTimestamp = @PaymentTimestamp,
-      InternalStatus   = CASE WHEN @InternalStatus IS NOT NULL THEN @InternalStatus ELSE InternalStatus END,
-      LastUpdated      = SYSUTCDATETIME()
-    WHERE InstructionRef = @InstructionRef
-  `)
-}
-
 async function attachInstructionRefToDeal(ref) {
   const match = /^HLX-(\d+)-/.exec(ref)
   if (!match) return
@@ -442,7 +396,6 @@ module.exports = {
   getOrCreateInstructionRefForPasscode,
   upsertInstruction,
   markCompleted,
-  updatePaymentStatus,
   attachInstructionRefToDeal,
   closeDeal,
   getDocumentsForInstruction,

@@ -74,7 +74,7 @@ if (!fs.existsSync(path.join(__dirname, 'dist', 'generateInstructionRef.js'))) {
 }
 
 let uploadRouter, sql, getSqlPool, DefaultAzureCredential, SecretClient;
-let getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction;
+let getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction;
 let normalizeInstruction;
 // Payment-related modules (declared here so later async init can see them)
 let stripeService, paymentDatabase, paymentRoutes;
@@ -86,7 +86,7 @@ try {
   ({ getSqlPool } = require('./sqlClient'));
   ({ DefaultAzureCredential } = require('@azure/identity'));
   ({ SecretClient } = require('@azure/keyvault-secrets'));
-  ({ getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, updatePaymentStatus, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb'));
+  ({ getInstruction, upsertInstruction, markCompleted, getLatestDeal, getDealByPasscode, getDealByPasscodeIncludingLinked, getDealByProspectId, getOrCreateInstructionRefForPasscode, attachInstructionRefToDeal, closeDeal, getDocumentsForInstruction } = require('./instructionDb'));
   ({ normalizeInstruction } = require('./utilities/normalize'));
   
   // Payment-related modules
@@ -540,38 +540,20 @@ app.get('/api/instruction', async (req, res) => {
     let data = await getInstruction(ref);
     log('Fetched instruction', ref);
     
-    // If instruction exists but PaymentAmount is missing or 0, try to prefill from deal
-    if (data && (data.PaymentAmount == null || data.PaymentAmount === 0)) {
-      console.log('PaymentAmount is missing or 0, attempting prefill for', ref);
-      const match = /HLX-(\d+)-(.+)$/.exec(ref);
-      if (match) {
-        const prospectId = Number(match[1]);
-        const passcode = match[2];
-        try {
-          console.log('Looking up deal by ProspectId and passcode:', prospectId, passcode);
-          const deal = await getDealByPasscodeIncludingLinked(passcode, prospectId);
-          console.log('Found deal:', deal);
-          if (deal && deal.Amount && deal.Amount > 0) {
-            console.log('Prefilling missing PaymentAmount from deal:', deal.Amount);
-            // Update both the response AND persist to database
-            const updatedFields = { 
-              PaymentAmount: deal.Amount,
-              PaymentProduct: deal.ServiceDescription || data.PaymentProduct,
-              WorkType: deal.AreaOfWork || data.WorkType
-            };
-            await upsertInstruction(ref, updatedFields);
-            data = { ...data, ...updatedFields };
-          } else {
-            console.log('No deal found, deal has no amount, or amount is zero:', deal?.Amount);
-          }
-        } catch (prefillErr) {
-          console.warn('⚠️ Failed to prefill PaymentAmount from deal:', prefillErr?.message || prefillErr);
-        }
-      } else {
-        console.log('InstructionRef does not match expected format');
-      }
-    } else {
-      console.log('PaymentAmount already exists:', data?.PaymentAmount);
+    // Remove payment fields from instruction response (now handled by separate payments API)
+    if (data) {
+      const {
+        PaymentMethod,
+        PaymentResult, 
+        PaymentAmount,
+        PaymentProduct,
+        PaymentTimestamp,
+        AliasId,
+        OrderId,
+        SHASign,
+        ...cleanData
+      } = data;
+      data = cleanData;
     }
     
     res.json(data || null);
@@ -614,15 +596,15 @@ app.post('/api/instruction', async (req, res) => {
     if (!existing.InstructionRef) {
       const match = /HLX-(\d+)-(.+)$/.exec(instructionRef);
       if (match) {
-        // Prefill from the specific deal for this passcode, not just the latest deal
+        // Prefill only non-payment fields from deal
         try {
           const prospectId = Number(match[1]);
           const passcode = match[2];
           const deal = await getDealByPasscodeIncludingLinked(passcode, prospectId);
           if (deal) {
-            merged.paymentAmount = merged.paymentAmount ?? deal.Amount;
-            merged.paymentProduct = merged.paymentProduct ?? deal.ServiceDescription;
+            // Only prefill business data, not payment data
             merged.workType = merged.workType ?? deal.AreaOfWork;
+            // Payment data handled by separate payments API
           }
         } catch (prefillErr) {
           console.warn('⚠️ Failed deal prefill on first save:', prefillErr?.message || prefillErr);
@@ -650,17 +632,17 @@ app.post('/api/instruction', async (req, res) => {
           console.error('❌ Failed to link instruction to deal at POID:', linkErr);
         }
 
-        // Snapshot amount/service/workType and set reporting flags.
+        // Snapshot business fields and set reporting flags (no payment data)
         try {
-          const patch = { paymentDisabled: true, paymentMethod: null, paymentResult: null, poidDate: new Date().toISOString() };
+          const patch = { paymentDisabled: true, poidDate: new Date().toISOString() };
           const match = /HLX-(\d+)-/.exec(instructionRef);
           if (match) {
             try {
               const deal = await getLatestDeal(Number(match[1]));
               if (deal) {
-                if (patch.paymentAmount == null) patch.paymentAmount = deal.Amount;
-                if (patch.paymentProduct == null) patch.paymentProduct = deal.ServiceDescription;
+                // Only snapshot business data, payment data handled separately
                 if (patch.workType == null) patch.workType = deal.AreaOfWork;
+                // Note: payment amounts now handled by payments API
               }
             } catch (dealSnapErr) {
               console.warn('⚠️ Failed to fetch deal for snapshot:', dealSnapErr?.message || dealSnapErr);
@@ -732,11 +714,10 @@ app.get('/api/instruction/summary/:ref', async (req, res) => {
       phone: data.phone,
       stage: data.stage,
       internalStatus: data.internalStatus,
-      PaymentAmount: data.PaymentAmount,
-      PaymentProduct: data.PaymentProduct,
       WorkType: data.WorkType,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt
+      // Payment fields removed - now handled by separate payments API
     };
     
     console.log('✅ Instruction summary fetched for:', ref);
@@ -811,14 +792,12 @@ app.post('/api/instruction/send-emails', async (req, res) => {
       await sendFeeEarnerEmail(record);
 
       // Send appropriate client email based on payment status
-      // Default to failure email if payment status is unclear
+      // Use InternalStatus since payment fields are now separate
       console.log('📧 Email decision for', instructionRef, ':', {
-        PaymentResult: record.PaymentResult,
-        PaymentMethod: record.PaymentMethod, 
         InternalStatus: record.InternalStatus
       });
       
-      if (record.PaymentResult === 'successful' || record.PaymentMethod === 'bank' || record.InternalStatus === 'paid') {
+      if (record.InternalStatus === 'paid') {
         console.log('📧 Sending client SUCCESS email');
         await sendClientSuccessEmail(record);
       } else {

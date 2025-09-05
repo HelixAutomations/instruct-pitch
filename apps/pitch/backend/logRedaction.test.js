@@ -34,7 +34,7 @@ const stubs = {
     axios: { post: async () => ({ data: 'STATUS=9' }), get: async () => ({ data: {} }) },
     './instructionDb': {
         getInstruction: async () => ({}),
-        updatePaymentStatus: async () => { },
+        // updatePaymentStatus: removed from new payment architecture
         closeDeal: async () => { }
     },
     './upload': (_req, _res, next) => next(),

@@ -52,6 +52,7 @@ Copy-Item .\backend\.env $packageRoot -Force -ErrorAction SilentlyContinue
 Copy-Item .\backend\stripe-service.js $packageRoot -Force
 Copy-Item .\backend\payment-database.js $packageRoot -Force
 Copy-Item .\backend\payment-routes.js $packageRoot -Force
+Copy-Item .\backend\paymentService.js $packageRoot -Force
 
 # Copy backend dist (compiled TypeScript output) to root-level dist
 Write-Host "Copying backend compiled artifacts to package root dist"
@@ -107,6 +108,7 @@ Push-Location $packageRoot
    '.\stripe-service.js',
    '.\payment-database.js',
    '.\payment-routes.js',
+   '.\paymentService.js',
    '.\web.config',
    '.\package.json',
    '.\\.env',
@@ -129,7 +131,7 @@ if ($LASTEXITCODE -eq 0) {
   # Optional cleanup after successful deployment
   $shouldClean = $true
   if ($shouldClean) {
-    Remove-Item .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env, .\stripe-service.js, .\payment-database.js, .\payment-routes.js -ErrorAction SilentlyContinue
+    Remove-Item .\email.js, .\upload.js, .\sqlClient.js, .\instructionDb.js, .\package.json, .\web.config, .\.env, .\stripe-service.js, .\payment-database.js, .\payment-routes.js, .\paymentService.js -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force .\node_modules -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force .\client -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue

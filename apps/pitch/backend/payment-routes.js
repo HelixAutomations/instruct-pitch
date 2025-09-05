@@ -440,25 +440,16 @@ async function handleSuccessfulPayment(payment, paymentIntent, stripeEventId) {
     if (!instruction) {
       console.warn(`⚠️ No instruction row for ${instructionRef}; creating minimal row`);
       await instructionDb.upsertInstruction(instructionRef, {
-        PaymentMethod: 'card',
-        PaymentResult: 'successful',
-        PaymentAmount: payment.amount, // major units
-        PaymentProduct: payment.metadata?.product || 'Legal Services',
-        InternalStatus: 'paid'
+        InternalStatus: 'paid',
+        LastUpdated: new Date().toISOString()
       });
       instruction = await instructionDb.getInstruction(instructionRef);
     } else {
-      // Update payment-related columns (do not overwrite existing PaymentAmount if set)
-      await instructionDb.updatePaymentStatus(
-        instructionRef,
-        'card',
-        true,
-        payment.amount,
-        payment.metadata?.product || instruction.PaymentProduct || 'Legal Services',
-        null,
-        paymentIntent.id,
-        null
-      );
+      // Update internal status and timestamp (payment data now handled separately)
+      await instructionDb.upsertInstruction(instructionRef, {
+        InternalStatus: 'paid',
+        LastUpdated: new Date().toISOString()
+      });
       instruction = await instructionDb.getInstruction(instructionRef);
     }
 

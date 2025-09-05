@@ -400,17 +400,7 @@ const HomePage: React.FC<HomePageProps> = ({
     }, delay);
   }, [saveInstruction]);
 
-  // Memoized function to check if ID info is complete
-  const isIdInfoComplete = useCallback(() => {
-    return [
-      proofData.idStatus,
-      proofData.title,
-      proofData.firstName,
-      proofData.lastName,
-      proofData.nationality,
-      proofData.idNumber,
-    ].every((f) => f && f.toString().trim());
-  }, [proofData.idStatus, proofData.title, proofData.firstName, proofData.lastName, proofData.nationality, proofData.idNumber]);
+  // Removed auto-complete inspection; explicit Next click governs completion now.
 
   const idExpiry = useMemo(() => {
     const d = new Date();
@@ -434,14 +424,8 @@ const HomePage: React.FC<HomePageProps> = ({
 
   // Once ID details are marked complete, keep the state unless the user
   // explicitly clears required fields and tries to proceed again.
-  useEffect(() => {
-    const isComplete = isIdInfoComplete();
-    if (!isIdReviewDone && isComplete) {
-      setIdReviewDone(true);
-      // Auto-save proof of ID completion when Step 1 is complete - debounced to prevent spam
-      debouncedSaveInstruction('proof-of-id-complete', 2000);
-    }
-  }, [isIdReviewDone, isIdInfoComplete, debouncedSaveInstruction]);
+  // Removed auto-complete effect: we no longer mark proof-of-id complete or POST early
+  // Completion now happens only when user explicitly clicks Next on the final step.
 
   // handleEdit removed (legacy review)
 
@@ -587,9 +571,17 @@ const HomePage: React.FC<HomePageProps> = ({
               value={proofData}
               onUpdate={setProofData}
               setIsComplete={setIdReviewDone}
-              onNext={(skipToPayment) => { 
-                if (!isIdReviewDone) return;
-                // Conditions to proceed to payment: explicit skipToPayment, already have amount, or fallback not yet attempted
+              onNext={(skipToPayment) => {
+                // Explicit user confirmation path. Ensure we flag completion & save once.
+                if (!isIdReviewDone) {
+                  setIdReviewDone(true);
+                  debouncedSaveInstruction('proof-of-id-complete', 50); // immediate (tiny delay to batch)
+                }
+                // Subsequent invokes still ensure stage persisted (idempotent server-side)
+                else {
+                  debouncedSaveInstruction('proof-of-id-complete', 250);
+                }
+
                 const shouldShowPayment = !paymentsDisabled && (skipToPayment || instruction.amount > 0 || !dealFetchAttempted);
                 if (shouldShowPayment) {
                   if (!dealFetchAttempted && instruction.amount === 0) setDealFetchAttempted(true);

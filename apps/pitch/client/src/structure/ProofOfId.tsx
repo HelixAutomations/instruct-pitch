@@ -320,16 +320,10 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
 
   const goNext = useCallback(() => {
     if (!isValid()) return;
-    
     if (currentQuestionInGroup < totalSteps - 1) {
-      // Move to next step
       setCurrentQuestionInGroup(q => q + 1);
-    } else {
-      // Complete
-      setIsComplete(true);
-      onNext();
     }
-  }, [isValid, currentQuestionInGroup, totalSteps, setIsComplete, onNext]);
+  }, [isValid, currentQuestionInGroup, totalSteps]);
 
   const goPrev = useCallback(() => {
     if (currentQuestionInGroup > 0) {
@@ -344,32 +338,23 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        if (isValid()) {
-          e.preventDefault();
-          goNext();
-        }
-      } else if (e.key === 'Escape') {
+      // Only allow Escape to go back, remove Enter auto-advance
+      if (e.key === 'Escape') {
         goPrev();
       }
+      // Removed Enter key auto-advance to prevent jumping to payment
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [goNext, goPrev, isValid]);
+  }, [goPrev]);
 
-  useEffect(() => {
-    const isLastStep = currentQuestionInGroup === totalSteps - 1;
-    setIsComplete(isLastStep && isValid());
-  }, [currentQuestionInGroup, totalSteps, isValid, setIsComplete]);
+  // Removed derived auto-complete; final confirmation sets completion explicitly.
 
   const renderInput = (question: Question) => {
     const val: any = (value as any)[question.key] ?? '';
     
     switch (question.type) {
       case 'choice':
-        // Don't auto-advance for key identity questions to allow switching between options
-        const shouldAutoAdvance = !['idStatus', 'isCompanyClient', 'idType'].includes(question.key);
-        
         // For specific questions, use professional card-style choices instead of unified layout
         if (question.key === 'idStatus' || question.key === 'isCompanyClient' || question.key === 'idType') {
           return (
@@ -382,9 +367,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                     className={`premium-professional-choice-card ${val === option.value ? 'active' : ''}`}
                     onClick={() => {
                       updateField(question.key, option.value);
-                      if (shouldAutoAdvance) {
-                        setTimeout(() => goNext(), 250);
-                      }
+                      // Removed auto-advance to require explicit user confirmation
                     }}
                     aria-pressed={val === option.value}
                     role="radio"
@@ -435,9 +418,7 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
                 className={`premium-choice-button ${val === option.value ? 'active' : ''}`}
                 onClick={() => {
                   updateField(question.key, option.value);
-                  if (shouldAutoAdvance) {
-                    setTimeout(() => goNext(), 150);
-                  }
+                  // Removed auto-advance to require explicit user confirmation
                 }}
                 aria-pressed={val === option.value}
                 role="radio"
@@ -679,45 +660,31 @@ const ProofOfId: React.FC<ProofOfIdProps> = ({
           )}
           
           {/* Only show continue button for non-auto-advancing questions */}
-          {(() => {
-            // For single questions that are choice type with auto-advance, don't show button
-            if (currentStep.type === 'single' && currentStep.question.type === 'choice') {
-              const shouldAutoAdvance = !['idType'].includes(currentStep.question.key);
-              if (shouldAutoAdvance) return null;
-            }
-            
-            // For group pages with only choice questions that auto-advance, don't show button
-            if (currentStep.type === 'groupPage') {
-              const allQuestionsAutoAdvance = currentStep.questions.every((q: Question) => {
-                if (q.type === 'choice') {
-                  return !['idStatus', 'isCompanyClient', 'idType'].includes(q.key);
-                }
-                return false;
-              });
-              if (allQuestionsAutoAdvance && currentStep.questions.length === 1) return null;
-            }
-            
-            return (
-              <button
-                type="button"
-                className="premium-button premium-button--primary premium-button--nav premium-button--clean"
-                disabled={!isValid()}
-                onClick={goNext}
-                aria-label={
-                  currentQuestionInGroup === totalSteps - 1
-                    ? "Complete identity proof"
-                    : "Continue to next step"
-                }
-              >
-                <span>
-                  {currentQuestionInGroup === totalSteps - 1
-                    ? "Complete"
-                    : "Continue →"
-                  }
-                </span>
-              </button>
-            );
-          })()}
+          {/* Always show navigation button (removed auto-hide) */}
+          {currentQuestionInGroup < totalSteps - 1 && (
+            <button
+              type="button"
+              className="premium-button premium-button--primary premium-button--nav premium-button--clean"
+              disabled={!isValid()}
+              onClick={goNext}
+            >
+              <span>Continue →</span>
+            </button>
+          )}
+          {currentQuestionInGroup === totalSteps - 1 && (
+            <button
+              type="button"
+              className="premium-button premium-button--primary premium-button--nav premium-button--clean"
+              disabled={!isValid()}
+              onClick={() => {
+                if (!isValid()) return;
+                setIsComplete(true);
+                onNext();
+              }}
+            >
+              <span>Complete</span>
+            </button>
+          )}
 
           {/* Development Skip Buttons - Step 2 and 3 */}
           {/* Dev skip buttons relocated to floating sidebar (local only) */}
