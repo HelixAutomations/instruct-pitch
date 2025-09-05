@@ -189,7 +189,7 @@ async function upsertInstruction(ref, fields) {
     'CompanyName','CompanyNumber','CompanyHouseNumber','CompanyStreet','CompanyCity',
     'CompanyCounty','CompanyPostcode','CompanyCountry','CompanyCountryCode',
     'Notes','PaymentMethod','PaymentResult','PaymentAmount','PaymentProduct',
-    'AliasId','OrderId','SHASign','PaymentTimestamp'
+    'AliasId','OrderId','SHASign','PaymentTimestamp','SolicitorId'
   ])
   const request = pool.request().input('ref', sql.NVarChar, ref)
   const setParts = []
@@ -207,6 +207,13 @@ async function upsertInstruction(ref, fields) {
     if (col === 'ConsentGiven') {
       request.input(col, sql.Bit, Boolean(val))
     } else if (col === 'HelixContact') {
+      const initials = val == null ? null : String(val)
+        .split(' ')
+        .filter(Boolean)
+        .map(w => w[0].toUpperCase())
+        .join('')
+      request.input(col, sql.NVarChar, initials)
+    } else if (col === 'SolicitorId') {
       const initials = val == null ? null : String(val)
         .split(' ')
         .filter(Boolean)

@@ -39,6 +39,7 @@ const ALLOWED_FIELDS = [
 
   // Misc
   'helixContact',
+  'solicitorId',
   'agreement',
   'nationalityCode',
   'countryCode',

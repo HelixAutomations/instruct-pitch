@@ -604,6 +604,7 @@ app.post('/api/instruction', async (req, res) => {
           if (deal) {
             // Only prefill business data, not payment data
             merged.workType = merged.workType ?? deal.AreaOfWork;
+            merged.solicitorId = merged.solicitorId ?? deal.PitchedBy;
             // Payment data handled by separate payments API
           }
         } catch (prefillErr) {

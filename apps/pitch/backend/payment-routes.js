@@ -125,16 +125,46 @@ router.post('/create-payment-intent', async (req, res) => {
 
     const paymentId = nanoid();
 
+    // Fetch instruction details to enrich payment metadata
+    let enrichedMetadata = { instructionRef, paymentId, ...metadata };
+    try {
+      const instructionDb = require('./instructionDb');
+      const instruction = await instructionDb.getInstruction(instructionRef);
+      if (instruction) {
+        // Try to get deal info for better area of work classification
+        let areaOfWork = instruction.AreaOfWork || 'Uncertain';
+        try {
+          const match = /^HLX-(\d+)-(.+)$/.exec(instructionRef);
+          if (match) {
+            const prospectId = Number(match[1]);
+            const passcode = match[2];
+            const { getDealByPasscodeIncludingLinked } = instructionDb;
+            const deal = await getDealByPasscodeIncludingLinked(passcode, prospectId);
+            if (deal && deal.AreaOfWork) {
+              areaOfWork = deal.AreaOfWork;
+            }
+          }
+        } catch (dealErr) {
+          console.warn('⚠️ Could not fetch deal for area of work:', dealErr.message);
+        }
+        
+        enrichedMetadata = {
+          ...enrichedMetadata,
+          serviceDescription: instruction.ServiceDescription || instruction.PaymentProduct || 'Payment on Account of Costs',
+          areaOfWork: areaOfWork,
+          product: instruction.PaymentProduct || 'Payment on Account of Costs'
+        };
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to enrich payment metadata:', err.message);
+    }
+
     // Create PaymentIntent with Stripe (convert major -> minor inside stripeService)
     const paymentIntent = await stripeService.createPaymentIntent({
       amount, // major units
       currency,
       paymentId,
-      metadata: {
-        instructionRef,
-        paymentId,
-        ...metadata
-      }
+      metadata: enrichedMetadata
     });
 
   // Store payment in database (persist both major + canonical minor units)
@@ -145,10 +175,7 @@ router.post('/create-payment-intent', async (req, res) => {
       amountMinor: paymentIntent.amount, // minor units canonical
       currency,
       clientSecret: paymentIntent.clientSecret,
-      metadata: {
-        instructionRef,
-        ...metadata
-      },
+      metadata: enrichedMetadata,
       instructionRef
     });
 
@@ -437,19 +464,48 @@ async function handleSuccessfulPayment(payment, paymentIntent, stripeEventId) {
 
     // 1. Fetch/manipulate instruction record
     let instruction = await instructionDb.getInstruction(instructionRef);
+    
+    // Get deal data to populate missing fields
+    let dealData = null;
+    try {
+      const match = /^HLX-(\d+)-(.+)$/.exec(instructionRef);
+      if (match) {
+        const prospectId = Number(match[1]);
+        const passcode = match[2];
+        const { getDealByPasscodeIncludingLinked } = instructionDb;
+        dealData = await getDealByPasscodeIncludingLinked(passcode, prospectId);
+      }
+    } catch (dealErr) {
+      console.warn('⚠️ Could not fetch deal for instruction population:', dealErr.message);
+    }
+    
     if (!instruction) {
-      console.warn(`⚠️ No instruction row for ${instructionRef}; creating minimal row`);
-      await instructionDb.upsertInstruction(instructionRef, {
+      console.warn(`⚠️ No instruction row for ${instructionRef}; creating row with deal data`);
+      const updateData = {
         InternalStatus: 'paid',
         LastUpdated: new Date().toISOString()
-      });
+      };
+      
+      // Populate HelixContact from deal PitchedBy if available
+      if (dealData && dealData.PitchedBy) {
+        updateData.HelixContact = dealData.PitchedBy;
+      }
+      
+      await instructionDb.upsertInstruction(instructionRef, updateData);
       instruction = await instructionDb.getInstruction(instructionRef);
     } else {
-      // Update internal status and timestamp (payment data now handled separately)
-      await instructionDb.upsertInstruction(instructionRef, {
+      // Update internal status and timestamp, and populate missing HelixContact if needed
+      const updateData = {
         InternalStatus: 'paid',
         LastUpdated: new Date().toISOString()
-      });
+      };
+      
+      // If HelixContact is missing or incomplete, populate from deal PitchedBy
+      if (dealData && dealData.PitchedBy && (!instruction.HelixContact || instruction.HelixContact === 'L')) {
+        updateData.HelixContact = dealData.PitchedBy;
+      }
+      
+      await instructionDb.upsertInstruction(instructionRef, updateData);
       instruction = await instructionDb.getInstruction(instructionRef);
     }
 
@@ -488,10 +544,12 @@ async function handleSuccessfulPayment(payment, paymentIntent, stripeEventId) {
       ...instruction,
       InstructionRef: instructionRef,
       PaymentAmount: payment.amount,
-      PaymentProduct: payment.metadata?.product || instruction.PaymentProduct || 'Legal Services',
+      PaymentProduct: payment.metadata?.product || instruction.PaymentProduct || instruction.ServiceDescription || 'Payment on Account of Costs',
       PaymentMethod: 'card',
       PaymentResult: 'successful',
-      ReceiptUrl: receiptUrl // Add the actual Stripe receipt URL
+      ReceiptUrl: receiptUrl, // Add the actual Stripe receipt URL
+      ServiceDescription: instruction.ServiceDescription || payment.metadata?.serviceDescription || 'Payment on Account of Costs',
+      AreaOfWork: instruction.AreaOfWork || payment.metadata?.areaOfWork || 'Uncertain'
     };
     try { await sendClientSuccessEmail(emailRecord); } catch (e) { console.error('Client success email failed:', e.message); }
     try { await sendFeeEarnerEmail(emailRecord); } catch (e) { console.error('Fee earner email failed:', e.message); }
@@ -607,7 +665,7 @@ router.post('/admin/payment-failure-notification', async (req, res) => {
           InstructionRef: instructionRef,
           Email: clientEmail,
           PaymentAmount: amount,
-          PaymentProduct: 'Legal Services',
+          PaymentProduct: 'Payment on Account of Costs',
           PaymentResult: 'failed'
         });
         console.log(`✅ Client failure notification sent to ${clientEmail}`);

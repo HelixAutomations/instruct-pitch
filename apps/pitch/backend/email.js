@@ -220,7 +220,7 @@ async function getGraphCredentials() {
   return { clientId: cachedClientId, clientSecret: cachedClientSecret };
 }
 
-async function sendViaGraph(to, subject, html) {
+async function sendViaGraph(to, subject, html, fromAddress = FROM_ADDRESS, bccAddresses = [], ccAddresses = []) {
   const { clientId, clientSecret } = await getGraphCredentials();
   const tokenRes = await axios.post(
     `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
@@ -239,30 +239,52 @@ async function sendViaGraph(to, subject, html) {
     ? to.map(email => ({ emailAddress: { address: email } }))
     : [{ emailAddress: { address: to } }];
   
+  // Handle BCC recipients
+  const bccRecipients = bccAddresses && bccAddresses.length > 0
+    ? bccAddresses.map(email => ({ emailAddress: { address: email } }))
+    : [];
+  
+  // Handle CC recipients
+  const ccRecipients = ccAddresses && ccAddresses.length > 0
+    ? ccAddresses.map(email => ({ emailAddress: { address: email } }))
+    : [];
+  
   const payload = {
     message: {
       subject,
       body: { contentType: "HTML", content: html },
       toRecipients: recipients,
-      from: { emailAddress: { address: FROM_ADDRESS } },
+      from: { emailAddress: { address: fromAddress } },
     },
     saveToSentItems: "false",
   };
+  
+  // Add BCC if provided
+  if (bccRecipients.length > 0) {
+    payload.message.bccRecipients = bccRecipients;
+  }
+  
+  // Add CC if provided
+  if (ccRecipients.length > 0) {
+    payload.message.ccRecipients = ccRecipients;
+  }
+  
   await axios.post(
-    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(FROM_ADDRESS)}/sendMail`,
+    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(fromAddress)}/sendMail`,
     payload,
     { headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" } }
   );
 }
 
 
-async function sendMail(to, subject, bodyHtml) {
+async function sendMail(to, subject, bodyHtml, fromAddress = FROM_ADDRESS, bccAddresses = [], ccAddresses = []) {
   // Testing redirect: route ALL emails to both internal recipients but keep production appearance
   // Both internal emails (arrays) and client emails (strings) go to both lz@ and cb@
+  let finalTo = to;
   if (Array.isArray(to)) {
-    to = ['lz@helix-law.com', 'cb@helix-law.com']; // Internal emails go to both
+    finalTo = ['lz@helix-law.com', 'cb@helix-law.com']; // Internal emails go to both
   } else {
-    to = ['lz@helix-law.com', 'cb@helix-law.com']; // Client emails also go to both
+    finalTo = ['lz@helix-law.com', 'cb@helix-law.com']; // Client emails also go to both
   }
   
   // Use system signature for automated emails (no contact info)
@@ -272,7 +294,10 @@ async function sendMail(to, subject, bodyHtml) {
   const forceSend = process.env.EMAIL_FORCE_SEND === '1';
   if (process.env.EMAIL_LOG_ONLY && !forceSend) {
     console.log('--- EMAIL_LOG_ONLY OUTPUT START ---');
-    console.log('To:', to);
+    console.log('To:', finalTo);
+    console.log('From:', fromAddress);
+    console.log('CC:', ccAddresses);
+    console.log('BCC:', bccAddresses);
     console.log('Subject:', subject);
     console.log('HTML (truncated 1000 chars):');
     console.log(html.length > 1000 ? html.slice(0,1000) + '\n...[truncated]...' : html);
@@ -280,7 +305,7 @@ async function sendMail(to, subject, bodyHtml) {
     return;
   }
   try {
-    await sendViaGraph(to, subject, html);
+    await sendViaGraph(finalTo, subject, html, fromAddress, bccAddresses, ccAddresses);
     return;
   } catch (err) {
     console.error("sendMail via Graph failed, falling back to SMTP", err);
@@ -289,12 +314,24 @@ async function sendMail(to, subject, bodyHtml) {
     console.error("SMTP_HOST not configured, cannot send email via SMTP");
     return;
   }
-  await transporter.sendMail({
-    from: `"${FROM_NAME}" <${FROM_ADDRESS}>`,
-    to,
+  
+  // SMTP fallback with BCC and CC support
+  const mailOptions = {
+    from: `"${FROM_NAME}" <${fromAddress}>`,
+    to: finalTo,
     subject,
     html,
-  });
+  };
+  
+  if (bccAddresses && bccAddresses.length > 0) {
+    mailOptions.bcc = bccAddresses;
+  }
+  
+  if (ccAddresses && ccAddresses.length > 0) {
+    mailOptions.cc = ccAddresses;
+  }
+  
+  await transporter.sendMail(mailOptions);
 }
 
 async function buildClientSuccessBody(record) {
@@ -304,7 +341,7 @@ async function buildClientSuccessBody(record) {
   // Get payment data from Payments table
   const payment = await getPaymentByInstructionRef(record.InstructionRef);
   const amount = payment ? formatPaymentAmount(payment) : '';
-  const product = record.PaymentProduct || 'your matter';
+  const product = record.PaymentProduct || 'Payment on Account of Costs';
   
   // Extract passcode and create HLX-PASSCODE format for display
   const passcode = record.InstructionRef.split('-').pop() || record.InstructionRef;
@@ -334,7 +371,7 @@ async function buildClientFailureBody(record) {
   // Get payment data from Payments table  
   const payment = await getPaymentByInstructionRef(record.InstructionRef);
   const amount = payment ? formatPaymentAmount(payment) : '';
-  const product = record.PaymentProduct || 'your matter';
+  const product = record.PaymentProduct || 'Payment on Account of Costs';
   
   // Extract passcode and create HLX-PASSCODE format for display and bank reference
   const passcode = record.InstructionRef.split('-').pop() || record.InstructionRef;
@@ -483,14 +520,44 @@ async function buildAccountsBody(record, docs) {
 
 async function sendClientSuccessEmail(record) {
   if (!record.Email) return;
+  
+  // Get fee earner email from instruction or use default
+  const feeEarnerEmail = record.HelixContact && record.HelixContact.includes('@') 
+    ? record.HelixContact 
+    : record.SolicitorEmail || FROM_ADDRESS;
+  
   const body = await buildClientSuccessBody(record);
-  await sendMail(record.Email, 'Instruction Confirmed – Payment Received', body);
+  
+  // Send from fee earner's email with fee earner CC'd and admin team BCC'd
+  await sendMail(
+    record.Email, 
+    'Instruction Confirmed – Payment Received', 
+    body,
+    feeEarnerEmail, // from address
+    [], // no BCC for now
+    [feeEarnerEmail, 'lz@helix-law.com', 'cb@helix-law.com'] // CC fee earner + admin team
+  );
 }
 
 async function sendClientFailureEmail(record) {
   if (!record.Email) return;
+  
+  // Get fee earner email from instruction or use default
+  const feeEarnerEmail = record.HelixContact && record.HelixContact.includes('@') 
+    ? record.HelixContact 
+    : record.SolicitorEmail || FROM_ADDRESS;
+  
   const body = await buildClientFailureBody(record);
-  await sendMail(record.Email, 'Complete Payment – Instruction Pending', body);
+  
+  // Send from fee earner's email with fee earner CC'd and admin team CC'd
+  await sendMail(
+    record.Email, 
+    'Complete Payment – Instruction Pending', 
+    body,
+    feeEarnerEmail, // from address
+    [], // no BCC
+    [feeEarnerEmail, 'lz@helix-law.com', 'cb@helix-law.com'] // CC fee earner + admin team
+  );
 }
 
 async function sendFeeEarnerEmail(record) {
