@@ -14,29 +14,45 @@ let cachedToken;
 let tokenExpiry = 0;
 
 async function getCredentials() {
+    console.log('[TILLER-AUTH] Getting credentials from Key Vault:', vaultUrl);
+    
     if (!cachedClientId || !cachedClientSecret) {
-        const [id, secret] = await Promise.all([
-            secretClient.getSecret('tiller-clientid'),
-            secretClient.getSecret('tiller-clientsecret'),
-        ]);
-        cachedClientId = id.value;
-        cachedClientSecret = secret.value;
+        console.log('[TILLER-AUTH] Fetching new credentials from Key Vault...');
+        try {
+            const [id, secret] = await Promise.all([
+                secretClient.getSecret('tiller-clientid'),
+                secretClient.getSecret('tiller-clientsecret'),
+            ]);
+            cachedClientId = id.value;
+            cachedClientSecret = secret.value;
+            console.log('[TILLER-AUTH] SUCCESS: Credentials retrieved from Key Vault');
+        } catch (err) {
+            console.error('[TILLER-AUTH] ERROR: Failed to get credentials from Key Vault:', err.message);
+            console.error('[TILLER-AUTH] Key Vault URL:', vaultUrl);
+            console.error('[TILLER-AUTH] Error details:', err);
+            throw err;
+        }
+    } else {
+        console.log('[TILLER-AUTH] Using cached credentials');
     }
+    
     return { clientId: cachedClientId, clientSecret: cachedClientSecret };
 }
 
 async function refreshToken() {
-    const { clientId, clientSecret } = await getCredentials();
-    const body = new URLSearchParams({
-        grant_type: 'client_credentials',
-        scope: 'VerificationsAPI',
-        client_id: clientId,
-        client_secret: clientSecret,
-    }).toString();
-
-    console.log('▶️ Requesting Tiller token for', clientId);
-
+    console.log('[TILLER-AUTH] Refreshing token...');
+    
     try {
+        const { clientId, clientSecret } = await getCredentials();
+        const body = new URLSearchParams({
+            grant_type: 'client_credentials',
+            scope: 'VerificationsAPI',
+            client_id: clientId,
+            client_secret: clientSecret,
+        }).toString();
+
+        console.log('[TILLER-AUTH] Requesting token for client:', clientId);
+
         const res = await axios.post(
             'https://verify-auth.tiller-verify.com/connect/token',
             body,
@@ -48,17 +64,18 @@ async function refreshToken() {
             }
         );
 
-        console.log('◀️ Token status:', res.status);
+        console.log('[TILLER-AUTH] Token response status:', res.status);
         cachedToken = res.data.access_token;
         tokenExpiry = Date.now() + (res.data.expires_in - 60) * 1000;
-        console.log('◀️ Token expires in:', res.data.expires_in);
+        console.log('[TILLER-AUTH] SUCCESS: Token expires in', res.data.expires_in, 'seconds');
         return cachedToken;
     } catch (err) {
+        console.error('[TILLER-AUTH] ERROR: Failed to refresh token');
         if (err.response) {
-            console.error('❌ Token status:', err.response.status);
-            console.error('❌ Token error data:', JSON.stringify(err.response.data));
+            console.error('[TILLER-AUTH] HTTP Status:', err.response.status);
+            console.error('[TILLER-AUTH] Error data:', JSON.stringify(err.response.data, null, 2));
         } else {
-            console.error('❌ Token request error:', err.message);
+            console.error('[TILLER-AUTH] Network error:', err.message);
         }
         throw err;
     }
@@ -73,10 +90,27 @@ async function getToken() {
 }
 
 async function submitVerification(instructionData) {
-    const token = await getToken();
-    const payload = buildTillerPayload(instructionData);
-    console.log('▶️ Tiller payload built');
+    const instructionRef = instructionData.instructionRef || instructionData.InstructionRef;
+    console.log(`[TILLER-API] Starting verification submission for: ${instructionRef}`);
+    
     try {
+        console.log(`[TILLER-API] Getting auth token...`);
+        const token = await getToken();
+        console.log(`[TILLER-API] Token obtained successfully`);
+        
+        console.log(`[TILLER-API] Building payload for ${instructionRef}...`);
+        const payload = buildTillerPayload(instructionData);
+        console.log(`[TILLER-API] Payload built successfully`);
+        console.log(`[TILLER-API] Payload summary:`, {
+            hasProfile: !!payload.profile,
+            countryCode: payload.profile?.currentAddress?.structured?.countryCode,
+            firstName: payload.profile?.firstName,
+            lastName: payload.profile?.lastName,
+            email: payload.profile?.email,
+            cardTypesCount: payload.profile?.cardTypes?.length || 0
+        });
+        
+        console.log(`[TILLER-API] Submitting to Tiller API...`);
         const res = await axios.post(
             'https://verify-api.tiller-verify.com/api/v1/verifications',
             payload,
@@ -87,20 +121,21 @@ async function submitVerification(instructionData) {
                 },
             }
         );
-        console.log('◀️ Tiller status:', res.status);
-        console.log('◀️ Tiller response:', JSON.stringify(res.data));
+        
+        console.log(`[TILLER-API] SUCCESS: Verification submitted for ${instructionRef}`);
+        console.log(`[TILLER-API] Response status:`, res.status);
+        console.log(`[TILLER-API] Response data:`, JSON.stringify(res.data, null, 2));
         return res.data;
     } catch (err) {
+        console.error(`[TILLER-API] ERROR: Verification failed for ${instructionRef}`);
         if (err.response) {
-            console.error('❌ Tiller status:', err.response.status);
-            console.error('❌ Tiller error data:', JSON.stringify(err.response.data));
+            console.error(`[TILLER-API] HTTP Status:`, err.response.status);
+            console.error(`[TILLER-API] Error Response:`, JSON.stringify(err.response.data, null, 2));
+            console.error(`[TILLER-API] Request Headers:`, err.config?.headers);
         } else {
-            console.error('❌ Tiller request error:', err.message);
+            console.error(`[TILLER-API] Network/Other Error:`, err.message);
         }
-        console.error(
-            '❌ Failed payload for',
-            instructionData.instructionRef || instructionData.InstructionRef
-        );
+        console.error(`[TILLER-API] Full error:`, err);
         throw err;
     }
 }

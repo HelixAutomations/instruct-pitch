@@ -66,7 +66,9 @@ const iconMap: Record<string, React.ReactElement> = {
   jpeg: <FaFileImage className="section-icon" />,
   png: <FaFileImage className="section-icon" />,
   mp3: <FaFileAudio className="section-icon" />,
-  mp4: <FaFileVideo className="section-icon" />
+  mp4: <FaFileVideo className="section-icon" />,
+  msg: <FaFileAlt className="section-icon" />,
+  eml: <FaFileAlt className="section-icon" />
 };
 
 const getFileIcon = (file?: File) => {
@@ -112,6 +114,7 @@ function SupportedFileTypesInfo() {
           <span className="file-type-icon" title="Archive (.zip, .rar)"><FaFileArchive /></span>
           <span className="file-type-icon" title="Video (.mp4)"><FaFileVideo /></span>
           <span className="file-type-icon" title="Audio (.mp3)"><FaFileAudio /></span>
+          <span className="file-type-icon" title="Email (.msg, .eml)"><FaFileAlt /></span>
         </div>
       </CSSTransition>
     </div>
@@ -442,7 +445,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           id="fileUpload"
           type="file"
           multiple
-          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.jpg,.png,.mp3,.mp4"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.jpg,.png,.mp3,.mp4,.msg,.eml"
           className="file-input-hidden"
           onChange={e => {
             const files = Array.from(e.target.files || []);

@@ -180,7 +180,7 @@ const DocumentUploadPremium: React.FC<DocumentUploadPremiumProps> = ({
     const allowedTypes = new Set([
       'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
       'txt', 'zip', 'rar', '7z', 'jpg', 'jpeg', 'png', 'gif',
-      'mp3', 'wav', 'mp4', 'avi', 'mov'
+      'mp3', 'wav', 'mp4', 'avi', 'mov', 'msg', 'eml'
     ]);
     
     const ext = getFileExtension(file.name);

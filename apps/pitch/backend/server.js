@@ -565,22 +565,39 @@ app.get('/api/instruction', async (req, res) => {
 
 app.post('/api/instruction', async (req, res) => {
   const { instructionRef, stage, ...rest } = req.body;
+  console.log(`[INSTRUCTION-POST] Processing instruction: ${instructionRef}`);
+  console.log(`[INSTRUCTION-POST] Stage: ${stage}`);
+  console.log(`[INSTRUCTION-POST] Request body keys:`, Object.keys(req.body));
+  console.log(`[INSTRUCTION-POST] Rest data keys:`, Object.keys(rest));
+  
   if (!instructionRef) {
+    console.log(`[INSTRUCTION-POST] ERROR: Missing instructionRef`);
     return res.status(400).json({ error: 'Missing instructionRef' });
   }
 
   try {
+    console.log(`[INSTRUCTION-POST] Fetching existing record...`);
     const existing = (await getInstruction(instructionRef)) || {};
     if (existing.InstructionRef) {
+      console.log(`[INSTRUCTION-POST] Found existing record for: ${instructionRef}`);
       log('Fetched existing record for', instructionRef);
+    } else {
+      console.log(`[INSTRUCTION-POST] No existing record found, creating new: ${instructionRef}`);
     }
+    
     const existingStage = existing.stage || existing.Stage;
+    console.log(`[INSTRUCTION-POST] Existing stage: ${existingStage}, New stage: ${stage}`);
+    
     if (existingStage === 'completed' && stage !== 're-visit') {
+      console.log(`[INSTRUCTION-POST] Instruction already completed, returning early: ${instructionRef}`);
       return res.json({ completed: true });
     }
 
+    console.log(`[INSTRUCTION-POST] Normalizing instruction data...`);
     const normalized = normalizeInstruction(rest);
+    console.log(`[INSTRUCTION-POST] Normalized data keys:`, Object.keys(normalized));
     log('Normalized data keys:', Object.keys(normalized));
+    
     let merged = {
       ...existing,
       ...normalized,
@@ -604,7 +621,10 @@ app.post('/api/instruction', async (req, res) => {
           if (deal) {
             // Only prefill business data, not payment data
             merged.workType = merged.workType ?? deal.AreaOfWork;
-            merged.solicitorId = merged.solicitorId ?? deal.PitchedBy;
+            // Populate HelixContact from PitchedBy if not already set
+            if (!merged.helixContact && deal.PitchedBy) {
+              merged.helixContact = deal.PitchedBy;
+            }
             // Payment data handled by separate payments API
           }
         } catch (prefillErr) {
@@ -660,20 +680,40 @@ app.post('/api/instruction', async (req, res) => {
       try {
         const { submitVerification } = require('./utilities/tillerApi');
         const { insertIDVerification } = require('./instructionDb');
+        
+        console.log(`[TILLER-SUBMIT] Starting Tiller verification for: ${record.InstructionRef}`);
+        console.log(`[TILLER-SUBMIT] Record data summary:`, {
+          ref: record.InstructionRef,
+          stage: record.Stage || record.stage,
+          hasEmail: !!record.Email,
+          hasCountry: !!(record.Country || record.country),
+          hasFirstName: !!(record.FirstName || record.firstName),
+          hasLastName: !!(record.LastName || record.lastName),
+          recordKeys: Object.keys(record).slice(0, 10) // First 10 keys for debugging
+        });
+        
         log('Submitting record to Tiller:', record.InstructionRef);
         submitVerification(record)
           .then(async res => {
+            console.log(`[TILLER-SUBMIT] SUCCESS: Tiller verification request sent for ${record.InstructionRef}`);
+            console.log(`[TILLER-SUBMIT] Tiller response:`, typeof res === 'object' ? JSON.stringify(res, null, 2) : res);
             log('Tiller verification request sent');
+            
             try {
+              console.log(`[TILLER-SUBMIT] Saving Tiller response to database...`);
               const risk = await insertIDVerification(record.InstructionRef, record.Email, res);
+              console.log(`[TILLER-SUBMIT] SUCCESS: Tiller response saved for ${record.InstructionRef}`);
               log('Tiller response saved');
               log('Risk data:', JSON.stringify(risk));
             } catch (err) {
-              console.error('❌ Failed to save Tiller response:', err.message);
+              console.error(`[TILLER-SUBMIT] ERROR: Failed to save Tiller response for ${record.InstructionRef}:`, err.message);
+              console.error(`[TILLER-SUBMIT] Save error stack:`, err.stack);
             }
           })
           .catch(err => {
-            console.error('❌ Tiller verification error:', err.message);
+            console.error(`[TILLER-SUBMIT] ERROR: Tiller verification failed for ${record.InstructionRef}:`, err.message);
+            console.error(`[TILLER-SUBMIT] Error stack:`, err.stack);
+            console.error(`[TILLER-SUBMIT] Error details:`, err);
           });
       } catch (err) {
         console.error('❌ Failed to start Tiller verification:', err);
@@ -731,15 +771,37 @@ app.get('/api/instruction/summary/:ref', async (req, res) => {
 
 app.get('/api/instruction/:ref/tiller-preview', async (req, res) => {
   const ref = req.params.ref;
+  console.log(`[TILLER-PREVIEW] Starting preview for instruction: ${ref}`);
+  
   try {
+    console.log(`[TILLER-PREVIEW] Fetching instruction record for: ${ref}`);
     const record = await getInstruction(ref);
-    if (!record) return res.status(404).json({ error: 'Instruction not found' });
+    
+    if (!record) {
+      console.log(`[TILLER-PREVIEW] ERROR: Instruction not found: ${ref}`);
+      return res.status(404).json({ error: 'Instruction not found' });
+    }
+    
+    console.log(`[TILLER-PREVIEW] Instruction found:`, {
+      ref: record.InstructionRef,
+      stage: record.Stage || record.stage,
+      hasCountry: !!(record.Country || record.country),
+      hasNationality: !!(record.Nationality || record.nationality),
+      recordKeys: Object.keys(record)
+    });
+    
+    console.log(`[TILLER-PREVIEW] Building Tiller payload...`);
     const { buildTillerPayload } = require('./utilities/buildTillerPayload');
     const payload = buildTillerPayload(record);
+    
+    console.log(`[TILLER-PREVIEW] SUCCESS: Payload built for ${ref}`);
+    console.log(`[TILLER-PREVIEW] Payload country code:`, payload.profile?.currentAddress?.structured?.countryCode);
+    
     res.json(payload);
   } catch (err) {
-    console.error('❌ tiller preview error:', err);
-    res.status(500).json({ error: 'Failed to build payload' });
+    console.error(`[TILLER-PREVIEW] ERROR for ${ref}:`, err.message);
+    console.error(`[TILLER-PREVIEW] Stack trace:`, err.stack);
+    res.status(500).json({ error: 'Failed to build payload', details: err.message });
   }
 });
 

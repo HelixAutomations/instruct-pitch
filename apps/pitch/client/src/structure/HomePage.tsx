@@ -207,7 +207,12 @@ const HomePage: React.FC<HomePageProps> = ({
         }
         payload = { ...payload, ...allowed };
       } else {
-        payload.internalStatus = 'pitch';
+        // Include prefill data and HelixContact for initial stage
+        const allowed: Partial<ProofData> = {} as Partial<ProofData>;
+        for (const key of ALLOWED_FIELDS) {
+          if (key in proofData && (proofData as any)[key]) (allowed as any)[key] = (proofData as any)[key];
+        }
+        payload = { ...payload, ...allowed, internalStatus: 'pitch' };
       }
       const res = await fetch('/api/instruction', {
         method: 'POST',

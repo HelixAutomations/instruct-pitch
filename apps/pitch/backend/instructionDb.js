@@ -52,11 +52,36 @@ async function getSolicitorInfo(pitchedBy) {
 }
 
 async function getInstruction(ref) {
-  const pool = await getSqlPool()
-  const result = await pool.request()
-    .input('ref', sql.NVarChar, ref)
-    .query('SELECT * FROM Instructions WHERE InstructionRef = @ref')
-  return result.recordset[0]
+  console.log(`[DB] Getting instruction: ${ref}`);
+  
+  try {
+    const pool = await getSqlPool()
+    const result = await pool.request()
+      .input('ref', sql.NVarChar, ref)
+      .query('SELECT * FROM Instructions WHERE InstructionRef = @ref')
+    
+    const record = result.recordset[0];
+    if (record) {
+      console.log(`[DB] Instruction found: ${ref}`);
+      console.log(`[DB] Record summary:`, {
+        stage: record.Stage,
+        hasCountry: !!record.Country,
+        hasNationality: !!record.Nationality,
+        hasFirstName: !!record.FirstName,
+        hasLastName: !!record.LastName,
+        hasEmail: !!record.Email,
+        fieldCount: Object.keys(record).length
+      });
+    } else {
+      console.log(`[DB] Instruction NOT FOUND: ${ref}`);
+    }
+    
+    return record;
+  } catch (err) {
+    console.error(`[DB] ERROR getting instruction ${ref}:`, err.message);
+    console.error(`[DB] Stack trace:`, err.stack);
+    throw err;
+  }
 }
 
 async function getLatestDeal(prospectId) {
@@ -179,47 +204,100 @@ async function getOrCreateInstructionRefForPasscode(passcode, prospectId) {
 }
 
 async function upsertInstruction(ref, fields) {
-  const pool = await getSqlPool()
-  const allowed = new Set([
-    'Stage','ClientType','HelixContact','ConsentGiven','InternalStatus',
-    'SubmissionDate','SubmissionTime','LastUpdated','ClientId','RelatedClientId','MatterId',
-    'Title','FirstName','LastName','Nationality','NationalityAlpha2','DOB','Gender',
-    'Phone','Email','PassportNumber','DriversLicenseNumber','IdType',
-    'HouseNumber','Street','City','County','Postcode','Country','CountryCode',
-    'CompanyName','CompanyNumber','CompanyHouseNumber','CompanyStreet','CompanyCity',
-    'CompanyCounty','CompanyPostcode','CompanyCountry','CompanyCountryCode',
-    'Notes','PaymentMethod','PaymentResult','PaymentAmount','PaymentProduct',
-    'AliasId','OrderId','SHASign','PaymentTimestamp','SolicitorId'
-  ])
-  const request = pool.request().input('ref', sql.NVarChar, ref)
-  const setParts = []
-  const insertCols = ['InstructionRef']
-  const insertVals = ['@ref']
-  const columnMap = { dob: 'DOB', shaSign: 'SHASign' }
+  console.log(`[DB] Upserting instruction: ${ref}`);
+  console.log(`[DB] Fields to upsert:`, Object.keys(fields || {}));
+  console.log(`[DB] Field values:`, fields);
+  
+  try {
+    const pool = await getSqlPool()
+    const allowed = new Set([
+      'Stage','ClientType','HelixContact','ConsentGiven','InternalStatus',
+      'SubmissionDate','SubmissionTime','LastUpdated','ClientId','RelatedClientId','MatterId',
+      'Title','FirstName','LastName','Nationality','NationalityAlpha2','DOB','Gender',
+      'Phone','Email','PassportNumber','DriversLicenseNumber','IdType',
+      'HouseNumber','Street','City','County','Postcode','Country','CountryCode',
+      'CompanyName','CompanyNumber','CompanyHouseNumber','CompanyStreet','CompanyCity',
+      'CompanyCounty','CompanyPostcode','CompanyCountry','CompanyCountryCode',
+      'Notes','PaymentMethod','PaymentResult','PaymentAmount','PaymentProduct',
+      'AliasId','OrderId','SHASign','PaymentTimestamp'
+    ])
+    const request = pool.request().input('ref', sql.NVarChar, ref)
+    const setParts = []
+    const insertCols = ['InstructionRef']
+    const insertVals = ['@ref']
+    const columnMap = { dob: 'DOB', shaSign: 'SHASign', helixContact: 'HelixContact' }
 
-  for (const [key, val] of Object.entries(fields || {})) {
-    const col = columnMap[key] || key.charAt(0).toUpperCase() + key.slice(1)
-    if (!allowed.has(col)) continue
-    setParts.push(`[${col}] = @${col}`)
-    insertCols.push(`[${col}]`)
-    insertVals.push(`@${col}`)
+    for (const [key, val] of Object.entries(fields || {})) {
+      const col = columnMap[key] || key.charAt(0).toUpperCase() + key.slice(1)
+      if (!allowed.has(col)) {
+        console.log(`[DB] Skipping field "${key}" (not allowed)`);
+        continue;
+      }
+      
+      console.log(`[DB] Processing field: ${key} → ${col} = ${val}`);
+      setParts.push(`[${col}] = @${col}`)
+      insertCols.push(`[${col}]`)
+      insertVals.push(`@${col}`)
 
-    if (col === 'ConsentGiven') {
-      request.input(col, sql.Bit, Boolean(val))
-    } else if (col === 'HelixContact') {
-      const initials = val == null ? null : String(val)
-        .split(' ')
-        .filter(Boolean)
-        .map(w => w[0].toUpperCase())
-        .join('')
-      request.input(col, sql.NVarChar, initials)
-    } else if (col === 'SolicitorId') {
-      const initials = val == null ? null : String(val)
-        .split(' ')
-        .filter(Boolean)
-        .map(w => w[0].toUpperCase())
-        .join('')
-      request.input(col, sql.NVarChar, initials)
+      if (col === 'ConsentGiven') {
+        request.input(col, sql.Bit, Boolean(val))
+      } else if (col === 'HelixContact') {
+        console.log(`[DB] Processing HelixContact field:`, val);
+        let initials = null
+        if (val != null) {
+          const inputStr = String(val).trim()
+          console.log(`[DB] HelixContact input:`, inputStr);
+          
+          // If the input already looks like initials (2-3 uppercase letters), validate against team table
+          if (/^[A-Z]{2,3}$/.test(inputStr)) {
+            console.log(`[DB] Input looks like initials, checking team table...`);
+            // Check if these initials exist in the team table
+            try {
+              const teamCheck = await pool.request()
+                .input('checkInitials', sql.NVarChar(10), inputStr)
+                .query('SELECT COUNT(*) as count FROM [dbo].[team] WHERE [Initials] = @checkInitials')
+              
+              const count = teamCheck.recordset[0].count;
+              console.log(`[DB] Team table check for "${inputStr}": ${count} matches`);
+              
+              if (count > 0) {
+                initials = inputStr
+                console.log(`[DB] Using validated initials: ${initials}`);
+              } else {
+                // Initials not found in team table
+                if (inputStr.length <= 3) {
+                  // Keep short strings as-is (likely initials not in database)
+                  initials = inputStr
+                  console.log(`[DB] Using unvalidated short initials: ${initials}`);
+                } else {
+                  // Process longer strings as full names
+                  console.log(`[DB] Processing long input as full name`);
+                  initials = inputStr
+                    .split(' ')
+                    .filter(Boolean)
+                    .map(w => w[0].toUpperCase())
+                    .join('')
+                  console.log(`[DB] Extracted initials from full name: ${initials}`);
+                }
+              }
+            } catch (error) {
+              console.error('[DB] Error validating initials:', error)
+              initials = inputStr
+              console.log(`[DB] Using raw input due to error: ${initials}`);
+            }
+          } else {
+            // Process as full name - extract initials from each word
+            console.log(`[DB] Processing as full name (not initials format)`);
+            initials = inputStr
+              .split(' ')
+              .filter(Boolean)
+              .map(w => w[0].toUpperCase())
+              .join('')
+            console.log(`[DB] Extracted initials: ${initials}`);
+          }
+        }
+        console.log(`[DB] Final HelixContact value: ${initials}`);
+        request.input(col, sql.NVarChar, initials)
     } else if (['DOB','SubmissionDate','PaymentTimestamp'].includes(col)) {
       let dateVal = null
       if (val) {
@@ -234,26 +312,43 @@ async function upsertInstruction(ref, fields) {
     }
   }
 
-  const updateSql = setParts.length
-    ? `UPDATE Instructions SET ${setParts.join(', ')} WHERE InstructionRef=@ref`
-    : ''
-  const insertSql = `INSERT INTO Instructions (${insertCols.join(',')}) VALUES (${insertVals.join(',')})`
+    const updateSql = setParts.length
+      ? `UPDATE Instructions SET ${setParts.join(', ')} WHERE InstructionRef=@ref`
+      : ''
+    const insertSql = `INSERT INTO Instructions (${insertCols.join(',')}) VALUES (${insertVals.join(',')})`
 
-  const sqlText = setParts.length
-    ? `IF EXISTS (SELECT 1 FROM Instructions WHERE InstructionRef=@ref)
-      BEGIN
-        ${updateSql};
-      END
-      ELSE
-      BEGIN
-        ${insertSql};
-      END
-      SELECT * FROM Instructions WHERE InstructionRef=@ref;`
-    : `${insertSql};
-      SELECT * FROM Instructions WHERE InstructionRef=@ref;`
+    const sqlText = setParts.length
+      ? `IF EXISTS (SELECT 1 FROM Instructions WHERE InstructionRef=@ref)
+        BEGIN
+          ${updateSql};
+        END
+        ELSE
+        BEGIN
+          ${insertSql};
+        END
+        SELECT * FROM Instructions WHERE InstructionRef=@ref;`
+      : `${insertSql};
+        SELECT * FROM Instructions WHERE InstructionRef=@ref;`
 
-  const result = await request.query(sqlText)
-  return result.recordset[result.recordset.length - 1]
+    console.log(`[DB] Executing upsert query for: ${ref}`);
+    const result = await request.query(sqlText)
+    const record = result.recordset[result.recordset.length - 1];
+    
+    console.log(`[DB] Upsert completed for: ${ref}`);
+    console.log(`[DB] Final record summary:`, {
+      stage: record?.Stage,
+      hasCountry: !!record?.Country,
+      hasHelixContact: !!record?.HelixContact,
+      fieldCount: record ? Object.keys(record).length : 0
+    });
+    
+    return record;
+  } catch (err) {
+    console.error(`[DB] ERROR upserting instruction ${ref}:`, err.message);
+    console.error(`[DB] Fields that failed:`, fields);
+    console.error(`[DB] Stack trace:`, err.stack);
+    throw err;
+  }
 }
 
 async function markCompleted(ref) {

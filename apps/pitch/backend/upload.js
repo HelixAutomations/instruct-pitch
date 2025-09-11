@@ -18,6 +18,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_EXTS = new Set([
   'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
   'txt', 'zip', 'rar', 'jpg', 'jpeg', 'png', 'mp3', 'mp4',
+  'msg', 'eml',
 ]);
 
 const account = process.env.AZURE_STORAGE_ACCOUNT;

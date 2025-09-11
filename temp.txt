@@ -1,39 +1,5 @@
-chat
-document
-
-agents
-
-restore
-
-delegate
-prompt
-
-submodules
-functions
-triggers
-bindings
-middleware
-validation
-logging
-monitoring
-security
-authentication
-authorization
-database
-connection pooling
-error handling
-retry policies
-async/await
-configuration
-environment variables
-secrets management
-key vault
-deployment
-CI/CD
-testing
-unit tests
-integration tests
-performance
-scaling
-caching
-rate limiting
+1. name resolution (team hub)
+1.1 initialisation prefill
+2. initials truncated (instructions)
+3. payment insert (instructions)
+4. id verification failing (team hub)
