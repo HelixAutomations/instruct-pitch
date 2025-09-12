@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useClient } from '../../context/ClientContext';
 import './PaymentSummaryMinimal.css';
 import PreflightExperience from './PreflightExperience';
 import lawSocietyLogo from '../../assets/The Law society.svg';
@@ -22,7 +23,8 @@ interface PaymentSummaryMinimalProps {
     SolicitorEmail?: string;
     SolicitorPhone?: string;
   };
-  onProceedToPayment: () => void;
+  // Called when the user proceeds; passes the chosen subtotal (pre-VAT)
+  onProceedToPayment: (chosenSubtotal: number) => void;
   showPreflight?: boolean;
   onPreflightComplete?: () => void;
 }
@@ -33,9 +35,16 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
   showPreflight = false,
   onPreflightComplete
 }) => {
+  // Access global deal data to persist user edits beyond this component
+  const { dealData: ctxDealData, setDealData } = useClient();
   // State for editable amount
   const [editableAmount, setEditableAmount] = useState(dealData.Amount);
   const [isEditingAmount, setIsEditingAmount] = useState(false);
+
+  const persistAmount = (newAmount: number) => {
+    const base = ctxDealData ?? dealData;
+    setDealData({ ...base, Amount: newAmount });
+  };
 
   // Calculate amounts based on editable amount
   const subtotal = editableAmount;
@@ -110,7 +119,12 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
                     <input
                       type="number"
                       value={editableAmount.toFixed(2)}
-                      onChange={(e) => setEditableAmount(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        const next = Number.isFinite(val) ? val : 0;
+                        setEditableAmount(next);
+                        persistAmount(next);
+                      }}
                       onBlur={() => {
                         // Small delay to allow click on confirm button
                         setTimeout(() => setIsEditingAmount(false), 150);
@@ -121,6 +135,7 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
                         }
                         if (e.key === 'Escape') {
                           setEditableAmount(dealData.Amount); // Reset to original
+                          persistAmount(dealData.Amount);
                           setIsEditingAmount(false);
                         }
                       }}
@@ -180,7 +195,7 @@ const PaymentSummaryMinimal: React.FC<PaymentSummaryMinimalProps> = ({
         {/* Proceed Button */}
         <button 
           className="proceed-button-minimal"
-          onClick={onProceedToPayment}
+          onClick={() => onProceedToPayment(editableAmount)}
         >
           <div className="button-content">
             <span className="button-text">Pay Now</span>

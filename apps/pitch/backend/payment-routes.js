@@ -483,7 +483,13 @@ async function handleSuccessfulPayment(payment, paymentIntent, stripeEventId) {
       console.warn(`⚠️ No instruction row for ${instructionRef}; creating row with deal data`);
       const updateData = {
         InternalStatus: 'paid',
-        LastUpdated: new Date().toISOString()
+        LastUpdated: new Date().toISOString(),
+        // Persist the paid amount and related payment fields so the DB reflects the actual charged total
+        PaymentAmount: payment.amount,
+        PaymentProduct: payment.metadata?.product || undefined,
+        PaymentMethod: 'card',
+        PaymentResult: 'successful',
+        PaymentTimestamp: new Date().toISOString()
       };
       
       // Populate HelixContact from deal PitchedBy if available
@@ -497,7 +503,13 @@ async function handleSuccessfulPayment(payment, paymentIntent, stripeEventId) {
       // Update internal status and timestamp, and populate missing HelixContact if needed
       const updateData = {
         InternalStatus: 'paid',
-        LastUpdated: new Date().toISOString()
+        LastUpdated: new Date().toISOString(),
+        // Persist the paid amount and related payment fields so the DB reflects the actual charged total
+        PaymentAmount: payment.amount,
+        PaymentProduct: payment.metadata?.product || instruction.PaymentProduct || instruction.ServiceDescription || 'Payment on Account of Costs',
+        PaymentMethod: 'card',
+        PaymentResult: 'successful',
+        PaymentTimestamp: new Date().toISOString()
       };
       
       // If HelixContact is missing or incomplete, populate from deal PitchedBy

@@ -1,5 +1,7 @@
 1. name resolution (team hub)
+
 1.1 initialisation prefill
 2. initials truncated (instructions)
+
 3. payment insert (instructions)
 4. id verification failing (team hub)

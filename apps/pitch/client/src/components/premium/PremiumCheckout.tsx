@@ -16,9 +16,11 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
   instructionRef,
   onComplete
 }) => {
-  const { dealData } = useClient();
+  const { dealData, setDealData } = useClient();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('summary');
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  // Track any user-edited subtotal (pre-VAT) chosen in the summary step
+  const [selectedSubtotal, setSelectedSubtotal] = useState<number | null>(null);
 
   // Ensure we have deal data before rendering payment
   if (!dealData || !dealData.Amount) {
@@ -54,7 +56,7 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
       {(currentStep === 'summary' || currentStep === 'preflight') && (
         <PaymentSummaryMinimal
           dealData={{
-            Amount: dealData.Amount || 0,
+            Amount: (selectedSubtotal ?? dealData.Amount) || 0,
             ServiceDescription: dealData.ServiceDescription || 'Legal Services',
             InstructionRef: dealData.InstructionRef,
             ProspectId: dealData.ProspectId,
@@ -63,7 +65,14 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
             SolicitorEmail: dealData.SolicitorEmail,
             SolicitorPhone: dealData.SolicitorPhone
           }}
-          onProceedToPayment={() => setCurrentStep('preflight')}
+          onProceedToPayment={(chosenSubtotal) => {
+            setSelectedSubtotal(chosenSubtotal);
+            // Persist into global context so any downstream consumer uses the edited amount
+            if (dealData) {
+              setDealData({ ...dealData, Amount: chosenSubtotal });
+            }
+            setCurrentStep('preflight');
+          }}
           showPreflight={currentStep === 'preflight'}
           onPreflightComplete={() => setCurrentStep('payment')}
         />
@@ -75,7 +84,7 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
           {/* Order Summary with integrated payment form */}
           <OrderSummaryMinimal
             dealData={{
-              Amount: dealData.Amount || 0,
+              Amount: (selectedSubtotal ?? dealData.Amount) || 0,
               ServiceDescription: dealData.ServiceDescription || 'Legal Services',
               InstructionRef: dealData.InstructionRef,
               ProspectId: dealData.ProspectId
@@ -99,7 +108,7 @@ const PremiumCheckout: React.FC<PremiumCheckoutProps> = ({
             <PaymentReceipt
               paymentId={paymentId}
               dealData={{
-                Amount: dealData.Amount || 0,
+                Amount: (selectedSubtotal ?? dealData.Amount) || 0,
                 ServiceDescription: dealData.ServiceDescription || 'Legal Services',
                 InstructionRef: dealData.InstructionRef,
                 ProspectId: dealData.ProspectId
