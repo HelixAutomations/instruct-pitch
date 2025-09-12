@@ -97,6 +97,8 @@ const HomePage: React.FC<HomePageProps> = ({
   // --- STATE & STEP HANDLING (simplified after sidebar removal) ---
   const navigate = useNavigate();
   const [currentCheckoutStep, setCurrentCheckoutStep] = useState<'identity'|'payment'>('identity');
+  // When true, skip Proof of ID and render payment as a standalone flow
+  const [forcePaymentOnly, setForcePaymentOnly] = useState(false);
   
   // Wrapper function to handle step changes
   const updateCurrentStep = useCallback((step: 'identity'|'payment') => {
@@ -130,6 +132,27 @@ const HomePage: React.FC<HomePageProps> = ({
   useEffect(() => {
     // Steps are always visible in the new layout
   }, []);
+
+  // Detect URL params to enable payment-only mode
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const stepParam = (params.get('step') || '').toLowerCase();
+      const paymentOnlyParam = params.get('paymentOnly');
+      const skipIdParam = params.get('skipId');
+      const shouldForcePayment = stepParam === 'payment' || paymentOnlyParam === '1' || paymentOnlyParam === 'true' || skipIdParam === '1' || skipIdParam === 'true';
+      if (shouldForcePayment) {
+        setForcePaymentOnly(true);
+        setIdReviewDone(true); // treat ID as complete for this session
+        // Ensure payment step is active and visible even before amount load
+        setShowPaymentStep(true);
+        // Navigate to payment step
+        updateCurrentStep('payment');
+      }
+    } catch (e) {
+      // ignore URL parsing errors
+    }
+  }, [updateCurrentStep]);
 
   const [proofData, setProofData] = useState<ProofData>({
     idStatus: 'first-time',
@@ -570,7 +593,7 @@ const HomePage: React.FC<HomePageProps> = ({
       {/* Step Content */}
       <div ref={stepContentRef}>
         {/* Identity Verification */}
-        {currentCheckoutStep === 'identity' && (
+        {currentCheckoutStep === 'identity' && !forcePaymentOnly && (
           <>
             <ProofOfId
               value={proofData}
@@ -615,7 +638,7 @@ const HomePage: React.FC<HomePageProps> = ({
   {/* Documents step removed */}
 
         {/* Payment */}
-        {currentCheckoutStep === 'payment' && showPaymentStep && (
+        {currentCheckoutStep === 'payment' && (showPaymentStep || forcePaymentOnly) && (
           <>
             {!paymentsDisabled && (
               <PremiumCheckout
