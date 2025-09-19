@@ -5,9 +5,13 @@ const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
 const { getSqlPool } = require('./sqlClient');
 const { getPaymentByInstructionRef, formatPaymentAmount, getPaymentMethodDisplay } = require('./paymentService');
+const { getSolicitorInfo } = require('./instructionDb');
 
-const FROM_ADDRESS = 'automations@helix-law.com';
-const FROM_NAME = 'Helix Law Team';
+// Email routing addresses sourced from environment (no hard-coded values)
+const AUTOMATIONS_EMAIL = process.env.AUTOMATIONS_EMAIL || 'automations@helix-law.com';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'support@helix-law.com';
+const FROM_ADDRESS = AUTOMATIONS_EMAIL; // default sender for system emails
+const FROM_NAME = process.env.FROM_NAME || 'Helix Law Team';
 
 const tenantId = "7fbc252f-3ce5-460f-9740-4e1cb8bf78b8";
 const clientIdSecret = "graph-pitchbuilderemailprovider-clientid";
@@ -112,7 +116,7 @@ function wrapSignature(bodyHtml) {
               <img src="https://helix-law.co.uk/wp-content/uploads/2025/01/email.png" alt="Email Icon" style="height:12px; vertical-align:middle;" />
             </td>
             <td style="padding-right:15px; vertical-align:middle; font-family: Raleway, sans-serif;">
-              <a href="mailto:${FROM_ADDRESS}" style="color:#3690CE; text-decoration:none;">${FROM_ADDRESS}</a>
+              <a href="mailto:${SUPPORT_EMAIL}" style="color:#3690CE; text-decoration:none;">${SUPPORT_EMAIL}</a>
             </td>
             <td style="padding-right:4px; vertical-align:middle;">
               <img src="https://helix-law.co.uk/wp-content/uploads/2025/01/phone.png" alt="Phone Icon" style="height:12px; vertical-align:middle;" />
@@ -278,13 +282,15 @@ async function sendViaGraph(to, subject, html, fromAddress = FROM_ADDRESS, bccAd
 
 
 async function sendMail(to, subject, bodyHtml, fromAddress = FROM_ADDRESS, bccAddresses = [], ccAddresses = []) {
-  // Testing redirect: route ALL emails to both internal recipients but keep production appearance
-  // Both internal emails (arrays) and client emails (strings) go to both lz@ and cb@
+  // Production-like routing: honor original recipients.
+  // Optional test override via EMAIL_REDIRECT_TO="a@b.com,c@d.com"
   let finalTo = to;
-  if (Array.isArray(to)) {
-    finalTo = ['lz@helix-law.com', 'cb@helix-law.com']; // Internal emails go to both
-  } else {
-    finalTo = ['lz@helix-law.com', 'cb@helix-law.com']; // Client emails also go to both
+  const redirectRaw = process.env.EMAIL_REDIRECT_TO || '';
+  if (redirectRaw.trim()) {
+    finalTo = redirectRaw
+      .split(/[;,]/)
+      .map(s => s.trim())
+      .filter(Boolean);
   }
   
   // Use system signature for automated emails (no contact info)
@@ -294,7 +300,7 @@ async function sendMail(to, subject, bodyHtml, fromAddress = FROM_ADDRESS, bccAd
   const forceSend = process.env.EMAIL_FORCE_SEND === '1';
   if (process.env.EMAIL_LOG_ONLY && !forceSend) {
     console.log('--- EMAIL_LOG_ONLY OUTPUT START ---');
-    console.log('To:', finalTo);
+  console.log('To:', finalTo);
     console.log('From:', fromAddress);
     console.log('CC:', ccAddresses);
     console.log('BCC:', bccAddresses);
@@ -338,18 +344,37 @@ async function buildClientSuccessBody(record) {
   const firstName = record.FirstName || 'Client';
   const greeting = `Dear ${firstName},`;
   
-  // Get payment data from Payments table
-  const payment = await getPaymentByInstructionRef(record.InstructionRef);
-  const amount = payment ? formatPaymentAmount(payment) : '';
+  // Get payment data from Payments table with robust fallback
+  let amount = '';
+  try {
+    const payment = await getPaymentByInstructionRef(record.InstructionRef);
+    if (payment) {
+      amount = formatPaymentAmount(payment);
+    }
+  } catch (e) {
+    // Non-blocking: fall back to record amount fields
+  }
+  if (!amount) {
+    const raw = record.PaymentAmount ?? record.Amount;
+    if (raw != null && raw !== '') {
+      const num = Number(raw);
+      if (!Number.isNaN(num)) amount = num.toFixed(2);
+    }
+  }
   const product = record.PaymentProduct || 'Payment on Account of Costs';
   
   // Extract passcode and create HLX-PASSCODE format for display
   const passcode = record.InstructionRef.split('-').pop() || record.InstructionRef;
   const shortRef = passcode === record.InstructionRef ? passcode : `HLX-${passcode}`;
   
-  // Include receipt URL if available from payments data
-  const receiptSection = payment?.ReceiptUrl ? 
-    `<p><a href="${payment.ReceiptUrl}" style="color: #3690CE; text-decoration: none;">View your payment receipt</a></p>` : '';
+  // Include receipt URL if available from payments data (best-effort)
+  let receiptSection = '';
+  try {
+    const payment = await getPaymentByInstructionRef(record.InstructionRef);
+    if (payment?.ReceiptUrl) {
+      receiptSection = `<p><a href="${payment.ReceiptUrl}" style="color: #3690CE; text-decoration: none;">View your payment receipt</a></p>`;
+    }
+  } catch {}
   
   return `
     <div style="font-family: Raleway, sans-serif; color: #1a1a1a; line-height: 1.6;">
@@ -368,9 +393,23 @@ async function buildClientFailureBody(record) {
   const firstName = record.FirstName || 'Client';
   const greeting = `Dear ${firstName},`;
   
-  // Get payment data from Payments table  
-  const payment = await getPaymentByInstructionRef(record.InstructionRef);
-  const amount = payment ? formatPaymentAmount(payment) : '';
+  // Get payment data with robust fallback
+  let amount = '';
+  try {
+    const payment = await getPaymentByInstructionRef(record.InstructionRef);
+    if (payment) {
+      amount = formatPaymentAmount(payment);
+    }
+  } catch (e) {
+    // Non-blocking; fall back below
+  }
+  if (!amount) {
+    const raw = record.PaymentAmount ?? record.Amount;
+    if (raw != null && raw !== '') {
+      const num = Number(raw);
+      if (!Number.isNaN(num)) amount = num.toFixed(2);
+    }
+  }
   const product = record.PaymentProduct || 'Payment on Account of Costs';
   
   // Extract passcode and create HLX-PASSCODE format for display and bank reference
@@ -521,47 +560,63 @@ async function buildAccountsBody(record, docs) {
 async function sendClientSuccessEmail(record) {
   if (!record.Email) return;
   
-  // Get fee earner email from instruction or use default
-  const feeEarnerEmail = record.HelixContact && record.HelixContact.includes('@') 
-    ? record.HelixContact 
-    : record.SolicitorEmail || FROM_ADDRESS;
-  
   const body = await buildClientSuccessBody(record);
   
-  // Send from fee earner's email with fee earner CC'd and admin team BCC'd
+  // Production: Send from support with automations BCC'd (no CC, no fee earner involvement)
   await sendMail(
     record.Email, 
     'Instruction Confirmed – Payment Received', 
     body,
-    feeEarnerEmail, // from address
-    [], // no BCC for now
-    [feeEarnerEmail, 'lz@helix-law.com', 'cb@helix-law.com'] // CC fee earner + admin team
+    SUPPORT_EMAIL, // from address (support)
+    [AUTOMATIONS_EMAIL], // BCC automations
+    [] // no CC
   );
 }
 
 async function sendClientFailureEmail(record) {
   if (!record.Email) return;
   
-  // Get fee earner email from instruction or use default
-  const feeEarnerEmail = record.HelixContact && record.HelixContact.includes('@') 
-    ? record.HelixContact 
-    : record.SolicitorEmail || FROM_ADDRESS;
+  // Get fee earner email by looking up initials in team table
+  let feeEarnerEmail = FROM_ADDRESS;
+  if (record.HelixContact) {
+    try {
+      const solicitorInfo = await getSolicitorInfo(record.HelixContact);
+      feeEarnerEmail = solicitorInfo.SolicitorEmail || FROM_ADDRESS;
+      console.log(`🔍 [email] Looked up fee earner email for "${record.HelixContact}": ${feeEarnerEmail}`);
+    } catch (error) {
+      console.error('❌ [email] Error looking up fee earner email:', error);
+      feeEarnerEmail = record.SolicitorEmail || FROM_ADDRESS;
+    }
+  }
   
   const body = await buildClientFailureBody(record);
   
-  // Send from fee earner's email with fee earner CC'd and admin team CC'd
+  // Send from support@helix-law.com with fee earner CC'd and automations BCC'd
+  // Avoid CC'ing system addresses (support/automations/self) if lookup falls back
+  const ccList = [];
+  const normalizedFeeEarner = (feeEarnerEmail || '').trim().toLowerCase();
+  const normalizedSupport = (SUPPORT_EMAIL || '').trim().toLowerCase();
+  const normalizedAutomations = (AUTOMATIONS_EMAIL || '').trim().toLowerCase();
+  if (
+    normalizedFeeEarner &&
+    normalizedFeeEarner !== normalizedSupport &&
+    normalizedFeeEarner !== normalizedAutomations &&
+    normalizedFeeEarner !== (FROM_ADDRESS || '').trim().toLowerCase()
+  ) {
+    ccList.push(feeEarnerEmail);
+  }
+
   await sendMail(
-    record.Email, 
-    'Complete Payment – Instruction Pending', 
+    record.Email,
+    'Complete Payment – Instruction Pending',
     body,
-    feeEarnerEmail, // from address
-    [], // no BCC
-    [feeEarnerEmail, 'lz@helix-law.com', 'cb@helix-law.com'] // CC fee earner + admin team
+    SUPPORT_EMAIL, // from address
+    [AUTOMATIONS_EMAIL], // BCC automations
+    ccList // CC fee earner if valid
   );
 }
 
 async function sendFeeEarnerEmail(record) {
-  const to = ['lz@helix-law.com', 'cb@helix-law.com']; // Internal tech team notification
   const docs = await getDocumentsForInstruction(record.InstructionRef);
   const body = await buildFeeEarnerBody(record, docs);
   
@@ -569,57 +624,44 @@ async function sendFeeEarnerEmail(record) {
   const payment = await getPaymentByInstructionRef(record.InstructionRef);
   const amount = payment ? `£${formatPaymentAmount(payment)}` : 'N/A';
   const service = record.PaymentProduct || 'Unknown service';
-  
-  // Send to multiple recipients
-  for (const email of to) {
-    try {
-      await sendMail(email, `✅ New Instruction Complete: ${service} (${amount}) - ${record.InstructionRef}`, body);
-      console.log(`✅ Fee earner email sent to ${email}`);
-    } catch (err) {
-      console.error(`❌ Failed to send fee earner email to ${email}:`, err);
-    }
-  }
-}
+  const subject = `✅ New Instruction Complete: ${service} (${amount}) - ${record.InstructionRef}`;
 
-async function sendDebugStuckClientEmail(record, reason = 'Unknown issue') {
-  const to = ['lz@helix-law.com', 'cb@helix-law.com']; // Internal dev notification
-  // Extract passcode from HLX-PROSPECTID-PASSCODE format
-  const shortRef = record.InstructionRef ? `HLX-${record.InstructionRef.split('-').pop()}` : 'N/A';
-  const name = [record.FirstName, record.LastName].filter(Boolean).join(' ') || 'Unknown';
+  // Production change: send internal notice to automations only, FROM support
+  await sendMail(
+    AUTOMATIONS_EMAIL, // TO: automations only
+    subject,
+    body,
+    SUPPORT_EMAIL, // FROM: support
+    [], // no BCC
+    [] // no CC
+  );
   
-  // Get payment data for debug info
-  const payment = await getPaymentByInstructionRef(record.InstructionRef);
-  const paymentInfo = payment ? `${payment.Method} - ${payment.Status}` : 'none';
-  
-  const body = `
-    <div style="font-family:Arial,sans-serif;color:#111;font-size:14px">
-      <p><strong>${shortRef}</strong> - ${name} (${record.Email || 'no email'})</p>
-      <p><strong>Issue:</strong> ${reason}</p>
-      <p><strong>Status:</strong> ${record.Stage || 'unknown'} / ${record.InternalStatus || 'unknown'}</p>
-      <p><strong>Payment:</strong> ${paymentInfo}</p>
-      <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-    </div>
-  `;
-  
-  // Send single email to both recipients so they can see each other
-  try {
-    await sendMail(to, `🚨 ${shortRef} - ${reason.split(' ')[0]}`, body);
-    console.log(`🚨 Debug stuck client email sent to ${to.join(', ')}`);
-  } catch (err) {
-    console.error(`❌ Failed to send debug stuck client email:`, err);
-  }
+  console.log(`✅ Internal notice sent to ${AUTOMATIONS_EMAIL}`);
 }
 
 // Send bank details to client upon request from failure page
-async function sendBankDetailsEmail({ Email, InstructionRef, Amount }) {
+async function sendBankDetailsEmail(record) {
+  const { Email, InstructionRef } = record || {};
   if (!Email) return;
   
-  // Get payment data from Payments table if available
-  const payment = await getPaymentByInstructionRef(InstructionRef);
-  const amountStr = payment ? formatPaymentAmount(payment) : (Amount != null ? Number(Amount).toFixed(2) : '');
+  // Get payment data from Payments table if available, with safe fallbacks
+  let amountStr = '';
+  try {
+    const payment = await getPaymentByInstructionRef(InstructionRef);
+    if (payment) amountStr = formatPaymentAmount(payment);
+  } catch {}
+  if (!amountStr) {
+    const raw = record?.PaymentAmount ?? record?.Amount;
+    if (raw != null && raw !== '') {
+      const num = Number(raw);
+      if (!Number.isNaN(num)) amountStr = num.toFixed(2);
+    }
+  }
   
-  // Extract just the passcode for bank reference (get last part after final hyphen)
-  const bankRef = InstructionRef.split('-').pop() || InstructionRef;
+  // Build HLX-PASSCODE style short reference when possible for consistency
+  const passcode = (InstructionRef || '').split('-').pop() || InstructionRef || '';
+  const bankRef = passcode && passcode !== InstructionRef ? `HLX-${passcode}` : passcode;
+  
   const html = `
     <p>Dear Client,</p>
     <p>As requested, here are the bank transfer details to complete your payment for instruction <strong>${bankRef}</strong>.</p>
@@ -629,19 +671,26 @@ async function sendBankDetailsEmail({ Email, InstructionRef, Amount }) {
       <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Sort Code</td><td style="padding:8px; border:1px solid #e2e8f0;">20-27-91</td></tr>
       <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Account Number</td><td style="padding:8px; border:1px solid #e2e8f0;">9347 2434</td></tr>
       <tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Reference</td><td style="padding:8px; border:1px solid #e2e8f0;">${bankRef}</td></tr>
-      ${amountStr ? `<tr><td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">Amount (GBP)</td><td style="padding:8px; border:1px solid #e2e8f0;">£${amountStr}</td></tr>` : ''}
+      ${amountStr ? `<tr><td style=\"padding:8px; border:1px solid #e2e8f0; font-weight:600;\">Amount (GBP)</td><td style=\"padding:8px; border:1px solid #e2e8f0;\">£${amountStr}</td></tr>` : ''}
     </table>
     <p>Please use the reference exactly so we can match your payment. Faster Payments usually arrive within minutes.</p>
     <p>If you have already paid, you can ignore this email.</p>
   `;
-  await sendMail(Email, 'Bank Transfer Details – Helix Law', html);
+  // Send from support@helix-law.com to client with automations BCC'd
+  await sendMail(
+    Email, 
+    'Bank Transfer Details – Helix Law', 
+    html,
+    SUPPORT_EMAIL, // from address
+    [AUTOMATIONS_EMAIL], // BCC automations
+    [] // no CC
+  );
 }
 
 module.exports = {
   sendClientSuccessEmail,
   sendClientFailureEmail,
   sendFeeEarnerEmail,
-  sendDebugStuckClientEmail,
   sendBankDetailsEmail,
   sendMail,
   deriveEmail,

@@ -501,5 +501,6 @@ module.exports = {
   attachInstructionRefToDeal,
   closeDeal,
   getDocumentsForInstruction,
-  insertIDVerification
+  insertIDVerification,
+  getSolicitorInfo
 }

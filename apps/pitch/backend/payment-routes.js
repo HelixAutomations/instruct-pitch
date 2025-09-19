@@ -684,22 +684,6 @@ router.post('/admin/payment-failure-notification', async (req, res) => {
       } catch (clientEmailError) {
         console.error(`❌ Failed to send client notification:`, clientEmailError);
       }
-      
-      // Send debug stuck client notification since payment failed
-      try {
-        const { sendDebugStuckClientEmail } = require('./email');
-        await sendDebugStuckClientEmail({
-          InstructionRef: instructionRef,
-          Email: clientEmail,
-          PaymentAmount: amount,
-          PaymentResult: 'failed',
-          InternalStatus: 'payment_failed',
-          Stage: 'payment_error'
-        }, `Payment failure - Error: ${errorMessage || errorCode || 'Unknown payment error'}`);
-        console.log(`🔍 Debug stuck client notification sent for payment failure: ${instructionRef}`);
-      } catch (debugErr) {
-        console.error(`❌ Failed to send debug stuck client notification:`, debugErr);
-      }
     }
 
     res.json({ 

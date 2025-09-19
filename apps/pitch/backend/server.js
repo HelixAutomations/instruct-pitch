@@ -867,15 +867,6 @@ app.post('/api/instruction/send-emails', async (req, res) => {
         // Send failure email for any other case (including undefined/null payment status)
         console.log('📧 Sending client FAILURE email');
         await sendClientFailureEmail(record);
-        
-        // Also send debug notification to dev team for potential stuck client
-        const { sendDebugStuckClientEmail } = require('./email');
-        try {
-          await sendDebugStuckClientEmail(record, 'Client reached completion but payment status unclear - may be stuck waiting for payment confirmation');
-          console.log('🔍 Debug notification sent for potentially stuck client:', instructionRef);
-        } catch (debugErr) {
-          console.error('❌ Failed to send debug stuck client notification:', debugErr);
-        }
       }
     } catch (emailErr) {
       console.error('❌ Failed to send notification emails:', emailErr);
